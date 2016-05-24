@@ -1,0 +1,42 @@
+{
+  "name": "vpl-v1",
+  "version": "0.0.1",
+  "description": "",
+  "dependencies": {
+    "babel": "^6.5.2",
+    "express": "^4.13.4",
+    "history": "^2.1.1",
+    "path-parser": "^1.0.2",
+    "radium": "^0.17.1",
+    "react": "^15.1.0",
+    "react-dom": "^15.1.0",
+    "react-helmet": "^3.1.0",
+    "react-redux": "^4.4.5",
+    "redux": "^3.5.2",
+    "redux-actions": "^0.9.1",
+    "serve-favicon": "^2.3.0"
+  },
+  "devDependencies": {
+    "babel-core": "^6.9.0",
+    "babel-loader": "^6.2.4",
+    "babel-preset-es2015": "^6.9.0",
+    "babel-preset-react": "^6.5.0",
+    "babel-preset-stage-2": "^6.5.0",
+    "react-hot-loader": "^1.3.0",
+    "redux-devtools": "^3.3.1",
+    "redux-devtools-dock-monitor": "^1.1.1",
+    "redux-devtools-log-monitor": "^1.0.11",
+    "webpack": "^1.13.1",
+    "webpack-dev-middleware": "^1.6.1",
+    "webpack-hot-middleware": "^2.10.0",
+		"babel-plugin-transform-decorators-legacy": "^1.3.4"
+  },
+  "scripts": {
+    "dev": "webpack -d --watch --progress --colors",
+    "build": "webpack -p --progress --colors",
+    "serve": "sudo PORT=80 node build/server.js",
+    "serve-w": "sudo PORT=80 nodemon build/server.js --delay 3.5"
+  },
+  "author": "Avinoam Henig, Juliet Slade, Michael Siff",
+  "license": "ISC"
+}
