@@ -57,15 +57,20 @@ const ExpressionView = name('ExpressionView')(Radium(({
 		};
 
 		if (typeof piece === 'string') {
-			return (<span style={[textPieceStyles]}>{piece}</span>);
+			return (
+				<span key={i} style={[textPieceStyles]}>{piece}</span>
+			);
 		}
 
 		if (level >= 3) {
-			return (<span style={[textPieceStyles]}>{'...'}</span>);
+			return (
+				<span key={i} style={[textPieceStyles]}>{'...'}</span>
+			);
 		}
 
 		return (
 			<ExpressionView
+				key={i}
 				expr={piece}
 				level={level + 1}
 				isCaseExp={expr.tag === 'case'}
