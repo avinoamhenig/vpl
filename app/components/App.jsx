@@ -23,13 +23,23 @@ const App = name('App')(Radium(({
 		KhtmlUserSelect: 'none',
 		MozUserSelect: 'none',
 		msUserSelect: 'none',
-		userSelect: 'none'
+		userSelect: 'none',
+		WebkitTapHighlightColor: 'rgba(0,0,0,0)'
 	};
 
 	return (
-		<div style={[noSelect]}>
-			<Helmet title="VPL" />
-			<Helmet link={[{"rel": "stylesheet", "href": "https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css"}]} />
+		<div style={noSelect}>
+			<Helmet
+				title="VPL"
+				link={[
+					{ rel: 'stylesheet', href: 'https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css' }
+				]}
+				meta={[
+					{ charset: 'utf-8' },
+					{ name: 'viewport',
+						content: 'initial-scale=1, maximum-scale=1' }
+				]}
+				/>
 			{ routeMatch.key === routes.LAMBDA && <LambdaViewContainer />}
 		</div>
 	);

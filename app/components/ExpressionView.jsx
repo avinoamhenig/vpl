@@ -57,19 +57,19 @@ const ExpressionView = name('ExpressionView')(Radium(({
 
 	let levelStyles = {
 		fontFamily: 'Helvetica Neue, sans-serif',
-		fontSize: '20px',
+		fontSize: 35,
 		fontWeight: '200',
 
 		// height: 45-level*4,
 		// lineHeight: (45-level*4) + 'px',
 		// borderRadius: 10 - level*2,
-		height: level === 0 ? 'auto' : 40,
-		lineHeight: '40px',
+		height: level === 0 ? 'auto' : 70,
+		lineHeight: '70px',
 		borderRadius: level === 1 ? 4 : 0,
 
-		marginLeft: notFirst ? 10 : 0,
-		padding: level === 0 ? '5px 5px 0 5px' : '0 5px',
-		marginBottom: 5,
+		marginLeft: notFirst ? 12 : 0,
+		padding: level === 0 ? '12px 12px 0 12px' : '0 12px',
+		marginBottom: 12,
 		backgroundColor: selectedExpId === expr.id ? colors.selectedExp : level === 0 ? 'rgba(0,0,0,0)' : colors.exp,
 		display: 'inline-block',
 		cursor: 'pointer'
@@ -98,12 +98,11 @@ const ExpressionView = name('ExpressionView')(Radium(({
 			);
 		}
 
-		if (level >= 4) {
+		if (level >= 3) {
 			return (
 				<span
 					key={piece.id}
-					style={[simplePieceStyles, pieceStyles]}
-					onClick={(e) => clicked(e, piece.exp)}>
+					style={[simplePieceStyles, pieceStyles]}>
 					{'...'}
 				</span>
 			);
