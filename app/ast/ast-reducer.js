@@ -1,3 +1,5 @@
+import processAst from './processAst.js'
+
 const jsonAst = [
 	{	"name": "sum",
 		"args": ["n"],
@@ -16,7 +18,7 @@ const jsonAst = [
 			}],
 			"elseExp": {
 				"tag": "call",
-				"function": "+",
+				"function": { "tag": "identifier", "name": "+" },
 				"argVals": [
 					{ "tag": "number", "val": 1 },
 					{	"tag": "call",
@@ -36,7 +38,9 @@ const jsonAst = [
 	}
 ];
 
-const astReducer = (state = jsonAst, action) => {
+const processed = processAst(jsonAst);
+
+const astReducer = (state = processed, action) => {
 	return state;
 };
 

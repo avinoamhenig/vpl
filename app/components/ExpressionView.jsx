@@ -2,34 +2,28 @@ import React from 'react'
 import name from '../lib/name'
 import Radium from 'radium'
 import colors from '../styles/colors'
+import simpleToString from '../ast/simpleToString.js'
 
-let simpleToString = e => {
-	if (e.tag === 'identifier') {
-		return e.name;
-	} else if (e.tag === 'number') {
-		return '' + e.val;
+let handleSimple = e => {
+	let simple = simpleToString(e);
+	if (typeof simple === 'string') {
+		return { isSimple: true, id: e.id, exp: e, string: simple };
 	} else {
 		return e;
 	}
-};
-
-const infixFns = '+ - * div mod = != < > <= >='.split(' ');
-let isInfixCall = e => {
-	return e.argVals.length === 2
-		&& infixFns.indexOf(simpleToString(e.function)) !== -1;
-};
+}
 
 const ExpressionView = name('ExpressionView')(Radium(({
-	expr, level, isCaseExp, notFirst
+	expr, level, notFirst
 }) => {
 	let pieces = [];
 
-	if (isCaseExp && expr.condition !== undefined) {
+	if (expr.syntaxTag === 'case_exp') {
 		pieces.push(expr.condition);
-		pieces.push(simpleToString(expr.exp));
-	} else if (isCaseExp) {
+		pieces.push(handleSimple(expr.exp));
+	} else if (expr.syntaxTag === 'else_exp') {
 		pieces.push('else');
-		pieces.push(simpleToString(expr));
+		pieces.push(handleSimple(expr.exp));
 	} else if (expr.tag === 'case') {
 		pieces.push('?');
 		for (let caseExp of expr.cases) {
@@ -37,25 +31,26 @@ const ExpressionView = name('ExpressionView')(Radium(({
 		}
 		pieces.push(expr.elseExp);
 	} else if (expr.tag === 'call') {
-		if (isInfixCall(expr)) {
+		if (expr.infix) {
 			pieces = [
-				simpleToString(expr.argVals[0]),
-				simpleToString(expr.function),
-				simpleToString(expr.argVals[1])
+				handleSimple(expr.argVals[0]),
+				handleSimple(expr.function),
+				handleSimple(expr.argVals[1])
 			];
 		} else {
-			pieces.push(simpleToString(expr.function));
+			pieces.push(handleSimple(expr.function));
 			for (let argVal of expr.argVals) {
-				pieces.push(simpleToString(argVal));
+				pieces.push(handleSimple(argVal));
 			}
 		}
 	} else {
-		pieces.push(simpleToString(expr));
+		pieces.push(handleSimple(expr));
 	}
 
 	let levelStyles = {
-		fontFamily: 'sans-serif',
+		fontFamily: 'Helvetica Neue, sans-serif',
 		fontSize: '20px',
+		fontWeight: '200',
 
 		// height: 45-level*4,
 		// lineHeight: (45-level*4) + 'px',
@@ -69,6 +64,7 @@ const ExpressionView = name('ExpressionView')(Radium(({
 		marginBottom: 10,
 		backgroundColor: colors.epxrLevels[level],
 		display: 'inline-block',
+		cursor: 'pointer'
 	};
 
 	let exprMarkup = pieces.map((piece, i) => {
@@ -77,24 +73,27 @@ const ExpressionView = name('ExpressionView')(Radium(({
 			marginRight: i === pieces.length-1 ? 5 : 0
 		};
 
-		if (typeof piece === 'string') {
+		if (piece.isSimple) {
 			return (
-				<span key={i} style={[textPieceStyles]}>{piece}</span>
+				<span key={piece.id} style={[textPieceStyles]}>
+					{piece.string}
+				</span>
 			);
 		}
 
-		if (level >= 3) {
+		if (level >= 4) {
 			return (
-				<span key={i} style={[textPieceStyles]}>{'...'}</span>
+				<span key={piece.id} style={[textPieceStyles]}>
+					{'...'}
+				</span>
 			);
 		}
 
 		return (
 			<ExpressionView
-				key={i}
+				key={piece.id}
 				expr={piece}
 				level={level + 1}
-				isCaseExp={expr.tag === 'case'}
 				notFirst={i > 0}
 				/>
 		);
