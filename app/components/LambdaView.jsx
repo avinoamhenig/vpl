@@ -5,31 +5,55 @@ import colors from '../styles/colors'
 import ExpressionView from './ExpressionView'
 
 const LambdaView = name('LambdaView')(Radium(({
-	lambda, selectedExpId, onExpClicked
+	lambda, selectedExpId, onExpClicked, nestingLimit, setNestingLimit
 }) => {
 	let headerStyles = {
 		fontFamily: 'sans-serif',
 		color: '#666',
 		fontSize: '25px',
-		padding: '15px',
 		borderBottom: '1px dashed #ddd',
 		marginBottom: 5
+	};
+	let titleStyles = {
+		padding: 15,
+		display: 'inline-block'
+	}
+	let nestingBtnStyles = {
+		float: 'right',
+		lineHeight: '55px',
+		cursor: 'pointer',
+		width: 55,
+		textAlign: 'center',
+		':hover': {
+			backgroundColor: '#eee'
+		}
 	};
 
 	return (
 		<div>
 			<div className="lambda_header" style={headerStyles}>
-				<span style={{ 'color': '#bbb' }}>&lambda;</span>
-				{ ' ' + lambda.name }
-				<span style={{ 'color': colors.identifier }}>
-					{ ' ' + lambda.args.join(' ') }
-				</span>
+				<div style={titleStyles}>
+					<span style={{ 'color': '#bbb' }}>&lambda;</span>
+					{ ' ' + lambda.name }
+					<span style={{ 'color': colors.identifier }}>
+						{ ' ' + lambda.args.join(' ') }
+					</span>
+				</div>
+				<div
+					key="incrementNestingBtn"
+					style={nestingBtnStyles}
+					onClick={() => setNestingLimit(nestingLimit + 1)}>+</div>
+				<div
+					key="decrementNestingBtn"
+					style={nestingBtnStyles}
+					onClick={() => setNestingLimit(nestingLimit - 1)}>-</div>
 			</div>
 			<ExpressionView
 				expr={lambda.body}
 				level={0}
 				selectedExpId={selectedExpId}
-				onExpClicked={onExpClicked} />
+				onExpClicked={onExpClicked}
+				nestingLimit={nestingLimit} />
 		</div>
 	);
 }));

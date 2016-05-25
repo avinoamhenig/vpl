@@ -9,7 +9,7 @@ import LambdaView from './LambdaView'
 import { actions } from '../actions.js'
 
 const LambdaViewContainer = name('LambdaViewContainer', ({
-	route, ast, selectedExpId, selectExp
+	route, ast, selectedExpId, selectExp, nestingLimit, setNestingLimit
 }) => {
 	let routeMatch = match(routes.desc, routes.LAMBDA, route);
 
@@ -29,6 +29,8 @@ const LambdaViewContainer = name('LambdaViewContainer', ({
 				lambda={lambda}
 				selectedExpId={selectedExpId}
 				onExpClicked={selectExp}
+				nestingLimit={nestingLimit}
+				setNestingLimit={setNestingLimit}
 				/>
 		</div>
 	);
@@ -37,7 +39,8 @@ const LambdaViewContainer = name('LambdaViewContainer', ({
 const selector = (state) => ({
 	route: state.route.current,
 	ast: state.ast,
-	selectedExpId: state.ui.selectedExpId
+	selectedExpId: state.ui.selectedExpId,
+	nestingLimit: state.ui.nestingLimit
 });
 const mapDispatch = (dispatch) => bindActionCreators(actions, dispatch)
 export default connect(selector, mapDispatch)(LambdaViewContainer);

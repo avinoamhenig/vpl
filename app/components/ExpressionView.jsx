@@ -18,7 +18,7 @@ let makeSimple = (str, e) => ({
 });
 
 const ExpressionView = name('ExpressionView')(Radium(({
-	expr, level, notFirst, selectedExpId, onExpClicked
+	expr, level, notFirst, selectedExpId, onExpClicked, nestingLimit
 }) => {
 	let clicked = (e, expr) => {
 		e.stopPropagation();
@@ -98,7 +98,7 @@ const ExpressionView = name('ExpressionView')(Radium(({
 			);
 		}
 
-		if (level >= 3) {
+		if (level >= nestingLimit) {
 			return (
 				<span
 					key={piece.id}
@@ -116,6 +116,7 @@ const ExpressionView = name('ExpressionView')(Radium(({
 				notFirst={i > 0}
 				selectedExpId={selectedExpId}
 				onExpClicked={onExpClicked}
+				nestingLimit={nestingLimit}
 				/>
 		);
 	});
