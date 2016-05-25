@@ -3,19 +3,26 @@ import name from '../lib/name'
 import Radium from 'radium'
 import colors from '../styles/colors'
 
+let simpleToString = e => {
+	if (e.tag === 'identifier') {
+		return e.name;
+	} else if (e.tag === 'number') {
+		return '' + e.val;
+	} else {
+		return e;
+	}
+};
+
+const infixFns = '+ - * div mod = != < > <= >='.split(' ');
+let isInfixCall = e => {
+	return e.argVals.length === 2
+		&& infixFns.indexOf(simpleToString(e.function)) !== -1;
+};
+
 const ExpressionView = name('ExpressionView')(Radium(({
 	expr, level, isCaseExp, notFirst
 }) => {
-	let pieces = [],
-	    simpleToString = (e) => {
-				if (e.tag === 'identifier') {
-					return e.name;
-				} else if (e.tag === 'number') {
-					return '' + e.val;
-				} else {
-					return e;
-				}
-			};
+	let pieces = [];
 
 	if (isCaseExp && expr.condition !== undefined) {
 		pieces.push(expr.condition);
@@ -30,9 +37,17 @@ const ExpressionView = name('ExpressionView')(Radium(({
 		}
 		pieces.push(expr.elseExp);
 	} else if (expr.tag === 'call') {
-		pieces.push(simpleToString(expr.function));
-		for (let argVal of expr.argVals) {
-			pieces.push(simpleToString(argVal));
+		if (isInfixCall(expr)) {
+			pieces = [
+				simpleToString(expr.argVals[0]),
+				simpleToString(expr.function),
+				simpleToString(expr.argVals[1])
+			];
+		} else {
+			pieces.push(simpleToString(expr.function));
+			for (let argVal of expr.argVals) {
+				pieces.push(simpleToString(argVal));
+			}
 		}
 	} else {
 		pieces.push(simpleToString(expr));
@@ -41,19 +56,25 @@ const ExpressionView = name('ExpressionView')(Radium(({
 	let levelStyles = {
 		fontFamily: 'sans-serif',
 		fontSize: '20px',
-		height: 45-level*4,
-		lineHeight: (45-level*4) + 'px',
+
+		// height: 45-level*4,
+		// lineHeight: (45-level*4) + 'px',
+		// borderRadius: 10 - level*2,
+		height: 40,
+		lineHeight: '40px',
+		borderRadius: level === 1 ? 4 : 0,
+
+		marginLeft: notFirst ? 10 : 0,
+		padding: level === 0 ? '0 12px' : '0 5px',
 		marginBottom: 10,
 		backgroundColor: colors.epxrLevels[level],
 		display: 'inline-block',
-		borderRadius: 10 - level*2,
-		padding: '0 4px',
-		marginLeft: notFirst ? 10 : 0
 	};
 
 	let exprMarkup = pieces.map((piece, i) => {
 		let textPieceStyles = {
-			marginLeft: i === 0 ? 0 : 10
+			marginLeft: i === 0 ? 5 : 10,
+			marginRight: i === pieces.length-1 ? 5 : 0
 		};
 
 		if (typeof piece === 'string') {
