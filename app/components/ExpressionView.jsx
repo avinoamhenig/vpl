@@ -11,7 +11,11 @@ let handleSimple = e => {
 	} else {
 		return e;
 	}
-}
+};
+
+let makeSimple = (str, e) => ({
+	isSimple: true, id: e.id, exp: e, string: str
+});
 
 const ExpressionView = name('ExpressionView')(Radium(({
 	expr, level, notFirst
@@ -25,7 +29,7 @@ const ExpressionView = name('ExpressionView')(Radium(({
 		pieces.push('else');
 		pieces.push(handleSimple(expr.exp));
 	} else if (expr.tag === 'case') {
-		pieces.push('?');
+		pieces.push(makeSimple('?', expr));
 		for (let caseExp of expr.cases) {
 			pieces.push(caseExp);
 		}
