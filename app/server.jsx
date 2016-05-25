@@ -34,9 +34,11 @@ if (__DEV__) {
 app.use('/public', express.static(buildDir + '/public'));
 
 app.use(function (req, res) {
-	// bypass server render
-	res.send('<div id="app"></div><script src="/public/js/client.js"></script>');
-	return;
+	if (process.argv.indexOf('--server-render') === -1) {
+		// bypass server render
+		res.send('<div id="app"></div><script src="/public/js/client.js"></script>');
+		return;
+	}
 
 	const
 		store = configureStore(undefined, memoryRouteMiddleware, req.url),
