@@ -4,14 +4,16 @@ import Radium from 'radium'
 import colors from '../styles/colors'
 import ExpressionView from './ExpressionView'
 
-const LambdaView = name('LambdaView')(Radium(({ lambda }) => {
+const LambdaView = name('LambdaView')(Radium(({
+	lambda, selectedExpId, onExpClicked
+}) => {
 	let headerStyles = {
 		fontFamily: 'sans-serif',
 		color: '#666',
 		fontSize: '25px',
 		padding: '15px',
 		borderBottom: '1px dashed #ddd',
-		marginBottom: 15
+		marginBottom: 5
 	};
 
 	return (
@@ -23,7 +25,11 @@ const LambdaView = name('LambdaView')(Radium(({ lambda }) => {
 					{ ' ' + lambda.args.join(' ') }
 				</span>
 			</div>
-			<ExpressionView expr={lambda.body} level={0} />
+			<ExpressionView
+				expr={lambda.body}
+				level={0}
+				selectedExpId={selectedExpId}
+				onExpClicked={onExpClicked} />
 		</div>
 	);
 }));

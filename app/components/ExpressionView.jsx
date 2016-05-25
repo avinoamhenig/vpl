@@ -14,19 +14,23 @@ let handleSimple = e => {
 };
 
 let makeSimple = (str, e) => ({
-	isSimple: true, id: e.id, exp: e, string: str
+	isSimple: true, id: e.id, exp: e, string: str, isBlock: true
 });
 
 const ExpressionView = name('ExpressionView')(Radium(({
-	expr, level, notFirst
+	expr, level, notFirst, selectedExpId, onExpClicked
 }) => {
+	let clicked = (e, expr) => {
+		e.stopPropagation();
+		onExpClicked(expr);
+	};
 	let pieces = [];
 
 	if (expr.syntaxTag === 'case_exp') {
 		pieces.push(expr.condition);
 		pieces.push(handleSimple(expr.exp));
 	} else if (expr.syntaxTag === 'else_exp') {
-		pieces.push('else');
+		pieces.push(makeSimple('else', expr));
 		pieces.push(handleSimple(expr.exp));
 	} else if (expr.tag === 'case') {
 		pieces.push(makeSimple('?', expr));
@@ -59,27 +63,36 @@ const ExpressionView = name('ExpressionView')(Radium(({
 		// height: 45-level*4,
 		// lineHeight: (45-level*4) + 'px',
 		// borderRadius: 10 - level*2,
-		height: 40,
+		height: level === 0 ? 'auto' : 40,
 		lineHeight: '40px',
 		borderRadius: level === 1 ? 4 : 0,
 
 		marginLeft: notFirst ? 10 : 0,
-		padding: level === 0 ? '0 12px' : '0 5px',
-		marginBottom: 10,
-		backgroundColor: colors.epxrLevels[level],
+		padding: level === 0 ? '5px 5px 0 5px' : '0 5px',
+		marginBottom: 5,
+		backgroundColor: selectedExpId === expr.id ? colors.selectedExp : level === 0 ? 'rgba(0,0,0,0)' : colors.exp,
 		display: 'inline-block',
 		cursor: 'pointer'
 	};
 
 	let exprMarkup = pieces.map((piece, i) => {
-		let textPieceStyles = {
+		let pieceStyles = {};
+
+		if (!piece.isBlock && piece.id === selectedExpId) {
+			pieceStyles.color = colors.selectedExp;
+		}
+
+		let simplePieceStyles = {
 			marginLeft: i === 0 ? 5 : 10,
 			marginRight: i === pieces.length-1 ? 5 : 0
 		};
 
 		if (piece.isSimple) {
 			return (
-				<span key={piece.id} style={[textPieceStyles]}>
+				<span
+					key={piece.id}
+					style={[simplePieceStyles, pieceStyles]}
+					onClick={(e) => clicked(e, piece.exp)}>
 					{piece.string}
 				</span>
 			);
@@ -87,7 +100,10 @@ const ExpressionView = name('ExpressionView')(Radium(({
 
 		if (level >= 4) {
 			return (
-				<span key={piece.id} style={[textPieceStyles]}>
+				<span
+					key={piece.id}
+					style={[simplePieceStyles, pieceStyles]}
+					onClick={(e) => clicked(e, piece.exp)}>
 					{'...'}
 				</span>
 			);
@@ -99,11 +115,19 @@ const ExpressionView = name('ExpressionView')(Radium(({
 				expr={piece}
 				level={level + 1}
 				notFirst={i > 0}
+				selectedExpId={selectedExpId}
+				onExpClicked={onExpClicked}
 				/>
 		);
 	});
 
-	return (<div style={levelStyles}>{exprMarkup}</div>);
+	return (
+		<div
+			style={levelStyles}
+			onClick={(e) => clicked(e, expr)}>
+			{exprMarkup}
+		</div>
+	);
 }));
 
 export default ExpressionView;

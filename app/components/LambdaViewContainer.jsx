@@ -6,9 +6,10 @@ import { match } from '../lib/route-reducer'
 import routes from '../routes'
 import name from '../lib/name'
 import LambdaView from './LambdaView'
+import { actions } from '../actions.js'
 
 const LambdaViewContainer = name('LambdaViewContainer', ({
-	route, ast
+	route, ast, selectedExpId, selectExp
 }) => {
 	let routeMatch = match(routes.desc, routes.LAMBDA, route);
 
@@ -24,14 +25,19 @@ const LambdaViewContainer = name('LambdaViewContainer', ({
 
 	return (
 		<div>
-			<LambdaView lambda={lambda} />
+			<LambdaView
+				lambda={lambda}
+				selectedExpId={selectedExpId}
+				onExpClicked={selectExp}
+				/>
 		</div>
 	);
 });
 
 const selector = (state) => ({
 	route: state.route.current,
-	ast: state.ast
+	ast: state.ast,
+	selectedExpId: state.ui.selectedExpId
 });
-const mapDispatch = (dispatch) => ({});
+const mapDispatch = (dispatch) => bindActionCreators(actions, dispatch)
 export default connect(selector, mapDispatch)(LambdaViewContainer);
