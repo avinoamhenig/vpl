@@ -35,6 +35,7 @@
   "scripts": {
     "dev": "webpack -d --watch --progress --colors",
     "build": "webpack -p --progress --colors",
+    "clean": "rm -rf build",
     "serve": "sudo PORT=80 node build/server.js",
     "serve-w": "sudo PORT=80 nodemon build/server.js --delay 3.5"
   },
