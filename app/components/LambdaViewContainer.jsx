@@ -25,13 +25,16 @@ const LambdaViewContainer = name('LambdaViewContainer', ({
 	}
 
 	return (
-		<LambdaView
-			lambda={lambda}
-			selectedExpId={selectedExpId}
-			onExpClicked={selectExp}
-			nestingLimit={nestingLimit}
-			setNestingLimit={setNestingLimit}
-			/>
+		<div>
+			<Helmet title={'#' + routeMatch.params.id} />
+			<LambdaView
+				lambda={lambda}
+				selectedExpId={selectedExpId}
+				onExpClicked={selectExp}
+				nestingLimit={nestingLimit}
+				setNestingLimit={setNestingLimit}
+				/>
+		</div>
 	);
 });
 
