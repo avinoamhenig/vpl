@@ -6,10 +6,11 @@ import { match } from '../lib/route-reducer'
 import routes from '../routes'
 import name from '../lib/name'
 import LambdaView from './LambdaView'
-import { actions } from '../actions.js'
+import { actions } from '../reducers/ui'
 
 const LambdaViewContainer = name('LambdaViewContainer', ({
-	route, ast, selectedExpId, selectExp, nestingLimit, setNestingLimit
+	route, ast, selectedExpId, nestingLimit,
+	selectExp, setNestingLimit
 }) => {
 	let routeMatch = match(routes.desc, routes.LAMBDA, route);
 
@@ -24,15 +25,13 @@ const LambdaViewContainer = name('LambdaViewContainer', ({
 	}
 
 	return (
-		<div>
-			<LambdaView
-				lambda={lambda}
-				selectedExpId={selectedExpId}
-				onExpClicked={selectExp}
-				nestingLimit={nestingLimit}
-				setNestingLimit={setNestingLimit}
-				/>
-		</div>
+		<LambdaView
+			lambda={lambda}
+			selectedExpId={selectedExpId}
+			onExpClicked={selectExp}
+			nestingLimit={nestingLimit}
+			setNestingLimit={setNestingLimit}
+			/>
 	);
 });
 
@@ -42,5 +41,6 @@ const selector = (state) => ({
 	selectedExpId: state.ui.selectedExpId,
 	nestingLimit: state.ui.nestingLimit
 });
-const mapDispatch = (dispatch) => bindActionCreators(actions, dispatch)
+const mapDispatch = (dispatch) =>
+	bindActionCreators(actions, dispatch);
 export default connect(selector, mapDispatch)(LambdaViewContainer);

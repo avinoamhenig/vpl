@@ -1,6 +1,6 @@
 import { applyMiddleware, createStore, compose } from 'redux'
 import { navigate } from './lib/route-reducer'
-import rootReducer from './reducers/root-reducer'
+import rootReducer from './reducers/root'
 
 export default (initialState, routeMiddleware, initialUrl) => {
 	let storeEnhancers;
@@ -24,8 +24,8 @@ export default (initialState, routeMiddleware, initialUrl) => {
 	}
 
 	if (module.hot) {
-		module.hot.accept('./reducers/root-reducer', () => {
-			store.replaceReducer(require('./reducers/root-reducer').default)
+		module.hot.accept('./reducers/root', () => {
+			store.replaceReducer(require('./reducers/root').default)
 		});
 	}
 

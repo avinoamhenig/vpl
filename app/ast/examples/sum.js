@@ -1,6 +1,4 @@
-import processAst from './processAst.js'
-
-const jsonAst = [
+export default [
 	{	"name": "sum",
 		"args": ["n"],
 		"body": {
@@ -37,11 +35,3 @@ const jsonAst = [
 		}
 	}
 ];
-
-const processed = processAst(jsonAst);
-
-const astReducer = (state = processed, action) => {
-	return state;
-};
-
-export default astReducer;
