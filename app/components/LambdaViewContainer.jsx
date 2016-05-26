@@ -7,42 +7,49 @@ import routes from '../routes'
 import name from '../lib/name'
 import LambdaView from './LambdaView'
 import { actions } from '../reducers/ui'
+import { createSelector } from 'reselect'
+import getAstDepth from '../ast/getAstDepth'
 
 const LambdaViewContainer = name('LambdaViewContainer', ({
-	route, ast, selectedExpId, nestingLimit,
-	selectExp, setNestingLimit
+	selectedExpId, nestingLimit,
+	selectExp, setNestingLimit,
+	lambda, nestingDepth
 }) => {
-	let routeMatch = match(routes.desc, routes.LAMBDA, route);
-
-	if (!routeMatch) {
-		return (<div className="error">Route not found!</div>);
-	}
-
-	let lambda = ast.filter(l => l.name === routeMatch.params.id)[0];
-
 	if (lambda === null) {
 		return (<div className="error">Lambda not found!</div>);
 	}
 
 	return (
 		<div>
-			<Helmet title={'#' + routeMatch.params.id} />
+			<Helmet title={'#' + lambda.name} />
 			<LambdaView
 				lambda={lambda}
 				selectedExpId={selectedExpId}
 				onExpClicked={selectExp}
 				nestingLimit={nestingLimit}
 				setNestingLimit={setNestingLimit}
+				nestingDepth={nestingDepth}
 				/>
 		</div>
 	);
 });
 
-const selector = (state) => ({
-	route: state.route.current,
-	ast: state.ast,
+const lambdaInfoSel = createSelector(
+	state => {
+		let routeMatch = match(
+			routes.desc, routes.LAMBDA, state.route.current);
+		return state.ast.filter(l => l.name === routeMatch.params.id)[0];
+	},
+	lambda => {
+		let nestingDepth = getAstDepth(lambda.body);
+		console.log(nestingDepth);
+		return { lambda, nestingDepth };
+	}
+);
+const selector = state => ({
 	selectedExpId: state.ui.selectedExpId,
-	nestingLimit: state.ui.nestingLimit
+	nestingLimit: state.ui.nestingLimit,
+	...lambdaInfoSel(state)
 });
 const mapDispatch = (dispatch) =>
 	bindActionCreators(actions, dispatch);

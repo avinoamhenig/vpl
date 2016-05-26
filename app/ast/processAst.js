@@ -7,49 +7,49 @@ let isInfixCall = e => {
 		&& infixFns.indexOf(simpleToString(e.function)) !== -1;
 };
 
-let processAst = (ast, isCaseExp = false) => {
-	if (Array.isArray(ast)) {
-		return ast.map((lambda) => processAst(lambda));
+let processAst = (json, isCaseExp = false) => {
+	if (Array.isArray(json)) {
+		return json.map((lambda) => processAst(lambda));
 	}
 
 	let id = uuid.v4();
 
-	if (ast.body !== undefined) {
+	if (json.body !== undefined) {
 		return {
 			syntaxTag: 'function_def', id,
-			args: ast.args, name: ast.name,
-			body: processAst(ast.body)
+			args: json.args, name: json.name,
+			body: processAst(json.body)
 		};
 	} if (isCaseExp) {
-		if (ast.condition !== undefined) {
+		if (json.condition !== undefined) {
 			return {
 				syntaxTag: 'case_exp', id,
-				condition: processAst(ast.condition),
-				exp: processAst(ast.exp)
+				condition: processAst(json.condition),
+				exp: processAst(json.exp)
 			};
 		} else {
-			return { syntaxTag: 'else_exp', id, exp: processAst(ast) };
+			return { syntaxTag: 'else_exp', id, exp: processAst(json) };
 		}
-	} else if (ast.tag === 'call') {
+	} else if (json.tag === 'call') {
 		let infix = false;
-		if (ast.tag === 'call' && isInfixCall(ast)) {
+		if (json.tag === 'call' && isInfixCall(json)) {
 			infix = true;
 		}
 		return {
 			syntaxTag: 'expression', id, infix,
-			tag: ast.tag,
-			function: processAst(ast.function),
-			argVals: ast.argVals.map(arg => processAst(arg))
+			tag: json.tag,
+			function: processAst(json.function),
+			argVals: json.argVals.map(arg => processAst(arg))
 		};
-	} else if (ast.tag === 'case') {
+	} else if (json.tag === 'case') {
 		return {
 			syntaxTag: 'expression', id,
-			tag: ast.tag,
-			cases: ast.cases.map(ce => processAst(ce, true)),
-			elseExp: processAst(ast.elseExp, true)
+			tag: json.tag,
+			cases: json.cases.map(ce => processAst(ce, true)),
+			elseExp: processAst(json.elseExp, true)
 		};
 	} else {
-		return { syntaxTag: 'expression', id, ...ast };
+		return { syntaxTag: 'expression', id, ...json };
 	}
 };
 

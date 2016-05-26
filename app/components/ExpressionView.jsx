@@ -24,8 +24,8 @@ const ExpressionView = name('ExpressionView')(Radium(({
 		e.stopPropagation();
 		onExpClicked(expr);
 	};
-	let pieces = [];
 
+	let pieces = [];
 	if (expr.syntaxTag === 'case_exp') {
 		pieces.push(expr.condition);
 		pieces.push(handleSimple(expr.exp));
@@ -59,39 +59,31 @@ const ExpressionView = name('ExpressionView')(Radium(({
 		fontFamily: 'Helvetica Neue, sans-serif',
 		fontSize: 35,
 		fontWeight: '200',
-
-		// height: 45-level*4,
-		// lineHeight: (45-level*4) + 'px',
-		// borderRadius: 10 - level*2,
-		height: level === 0 ? 'auto' : 70,
+		height: level === 1 ? 'auto' : 70,
 		lineHeight: '70px',
-		borderRadius: level === 1 ? 4 : 0,
-
+		borderRadius: level === 2 ? 3 : 0,
 		marginLeft: notFirst ? 12 : 0,
-		padding: level === 0 ? '12px 12px 0 12px' : '0 12px',
+		padding: level === 1 ? '12px 12px 0 12px' : '0 7px',
 		marginBottom: 12,
-		backgroundColor: selectedExpId === expr.id ? colors.selectedExp : level === 0 ? 'rgba(0,0,0,0)' : colors.exp,
+		backgroundColor: selectedExpId === expr.id
+			? colors.selectedExp : level === 1 ? 'rgba(0,0,0,0)'
+			: colors.exp,
 		display: 'inline-block',
 		cursor: 'pointer'
 	};
 
 	let exprMarkup = pieces.map((piece, i) => {
-		let pieceStyles = {};
-
-		if (!piece.isBlock && piece.id === selectedExpId) {
-			pieceStyles.color = colors.selectedExp;
-		}
-
-		let simplePieceStyles = {
-			marginLeft: i === 0 ? 5 : 10,
-			marginRight: i === pieces.length-1 ? 5 : 0
+		let pieceStyles = {
+			paddingLeft: i === 0 ? 3 : 10,
+			color: !piece.isBlock && piece.id === selectedExpId ?
+				colors.selectedExp : '#000'
 		};
 
 		if (piece.isSimple) {
 			return (
 				<span
 					key={piece.id}
-					style={[simplePieceStyles, pieceStyles]}
+					style={[pieceStyles]}
 					onClick={(e) => clicked(e, piece.exp)}>
 					{piece.string}
 				</span>
@@ -102,7 +94,7 @@ const ExpressionView = name('ExpressionView')(Radium(({
 			return (
 				<span
 					key={piece.id}
-					style={[simplePieceStyles, pieceStyles]}>
+					style={[pieceStyles]}>
 					{'...'}
 				</span>
 			);
@@ -125,7 +117,7 @@ const ExpressionView = name('ExpressionView')(Radium(({
 		<div
 			style={levelStyles}
 			onClick={(e) => clicked(e, expr)}>
-			{exprMarkup}
+			{ level > nestingLimit ? '...' : exprMarkup }
 		</div>
 	);
 }));
