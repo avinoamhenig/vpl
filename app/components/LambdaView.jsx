@@ -1,10 +1,13 @@
 import React from 'react'
 import name from 'lib/name'
 import Radium from 'radium'
+import { compose } from 'redux'
 import colors from 'styles/colors'
 import ExpressionView from 'components/ExpressionView'
 
-const LambdaView = name('LambdaView')(Radium(({
+const LambdaView = compose(
+	name('LambdaView'), Radium
+)(({
 	lambda, selectedExpId, onExpClicked, setNestingLimit,
 	nestingLimit, nestingDepth
 }) => {
@@ -66,6 +69,6 @@ const LambdaView = name('LambdaView')(Radium(({
 				nestingLimit={nestingLimit} />
 		</div>
 	);
-}));
+});
 
 export default LambdaView;
