@@ -8,8 +8,8 @@ import ExpressionView from 'components/ExpressionView'
 const LambdaView = compose(
 	name('LambdaView'), Radium
 )(({
-	lambda, selectedExpId, onExpClicked, setNestingLimit,
-	nestingLimit, nestingDepth
+	lambda, selectedExpId, nestingLimit, nestingDepth,
+	onExpClicked, setNestingLimit, setExpandedExp
 }) => {
 	const
 		headerStyles = {
@@ -65,8 +65,9 @@ const LambdaView = compose(
 				expr={lambda.body}
 				level={1}
 				selectedExpId={selectedExpId}
+				nestingLimit={nestingLimit}
 				onExpClicked={onExpClicked}
-				nestingLimit={nestingLimit} />
+				onCollapsedExpClicked={setExpandedExp} />
 		</div>
 	);
 });

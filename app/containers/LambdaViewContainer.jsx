@@ -1,6 +1,5 @@
 import React from 'react'
-import Helmet from 'react-helmet'
-import { bindActionCreators } from 'redux'
+import { bindActionCreators, compose } from 'redux'
 import { connect } from 'react-redux'
 import { match } from 'lib/route-reducer'
 import routes from 'routes'
@@ -9,30 +8,7 @@ import LambdaView from 'components/LambdaView'
 import { actions } from 'reducers/ui'
 import { createSelector } from 'reselect'
 import getAstDepth from 'lib/ast/getAstDepth'
-
-const LambdaViewContainer = name('LambdaViewContainer', ({
-	selectedExpId, nestingLimit,
-	selectExp, setNestingLimit,
-	lambda, nestingDepth
-}) => {
-	if (lambda === null) {
-		return (<div className="error">Lambda not found!</div>);
-	}
-
-	return (
-		<div>
-			<Helmet title={'#' + lambda.name} />
-			<LambdaView
-				lambda={lambda}
-				selectedExpId={selectedExpId}
-				onExpClicked={selectExp}
-				nestingLimit={nestingLimit}
-				setNestingLimit={setNestingLimit}
-				nestingDepth={nestingDepth}
-				/>
-		</div>
-	);
-});
+import helmet from 'lib/helmetDecorator'
 
 const lambdaInfoSel = createSelector(
 	state => {
@@ -50,6 +26,11 @@ const selector = state => ({
 	nestingLimit: state.ui.nestingLimit,
 	...lambdaInfoSel(state)
 });
-const mapDispatch = (dispatch) =>
-	bindActionCreators(actions, dispatch);
-export default connect(selector, mapDispatch)(LambdaViewContainer);
+const mapDispatch = (dispatch) => ({
+	...bindActionCreators(actions, dispatch),
+	onExpClicked: (e) => dispatch(actions.selectExp(e))
+});
+export default compose(
+	connect(selector, mapDispatch),
+	helmet(({lambda}) => ({ title: '#' + lambda.name }))
+)(LambdaView);

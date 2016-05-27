@@ -8,12 +8,18 @@ import { compose } from 'redux'
 const ExpressionView = compose(
 	name('ExpressionView'), Radium
 )(({
-	expr, level, notFirst, selectedExpId, onExpClicked, nestingLimit
+	expr, level, notFirst, selectedExpId, nestingLimit,
+	onExpClicked, onCollapsedExpClicked
 }) => {
 	const
 		expClicked = function (e, expr) {
 			e.stopPropagation();
 			onExpClicked(expr);
+		},
+		expandClicked = function (e, expr) {
+			e.stopPropagation();
+			onExpClicked(expr);
+			onCollapsedExpClicked(expr);
 		},
 		pieces = exprToPieces(expr),
 		levelStyles = {
@@ -54,7 +60,8 @@ const ExpressionView = compose(
 				return (
 					<span
 						key={piece.id}
-						style={[pieceStyles]}>
+						style={[pieceStyles]}
+						onClick={(e) => expandClicked(e, piece)}>
 						{'...'}
 					</span>
 				);
@@ -67,8 +74,9 @@ const ExpressionView = compose(
 					level={level + 1}
 					notFirst={i > 0}
 					selectedExpId={selectedExpId}
-					onExpClicked={onExpClicked}
 					nestingLimit={nestingLimit}
+					onExpClicked={onExpClicked}
+					onCollapsedExpClicked={onCollapsedExpClicked}
 					/>
 			);
 		});

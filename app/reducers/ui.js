@@ -1,17 +1,27 @@
-import { createAction, createReducer } from 'redux-act'
+import { createAction as cA, createReducer } from 'redux-act'
 
 export const actions = {
-	selectExp: createAction('select expression'),
-	setNestingLimit: createAction()
+	selectExp:       cA('select expression'),
+	setNestingLimit: cA('set nesting limit'),
+	setExpandedExp:  cA('set expanded expression id')
 };
 
+const a = actions;
+
 export default createReducer({
-	[actions.selectExp]: (state, payload) =>
+	[a.selectExp]: (state, payload) =>
 		({ ...state, selectedExpId: payload.id }),
 
-	[actions.setNestingLimit]: (state, payload) =>
-		({ ...state, nestingLimit: Math.max(0, payload) })
+	[a.setNestingLimit]: (state, payload) => ({
+		...state,
+		nestingLimit: Math.max(0, payload),
+		expandedExp: null
+	}),
+
+	[a.setExpandedExp]: (state, payload) =>
+		({ ...state, expandedExp: payload.id })
 }, {
 	selectedExpId: null,
+	expandedExp: null,
 	nestingLimit: 3
 });
