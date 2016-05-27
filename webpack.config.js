@@ -1,6 +1,7 @@
 var
 	webpack = require('webpack'),
 	path = require('path'),
+	fs = require('fs'),
 
 	isDev = process.argv.indexOf('-d') !== -1
 	        || (typeof __DEV__ !== 'undefined' && __DEV__),
@@ -10,6 +11,8 @@ var
 		__ENV__   : JSON.stringify( env ),
 		__DEV__   : JSON.stringify( isDev )
 	}),
+
+	node_modules = fs.readdirSync('node_modules').filter(function(x) { return x !== '.bin' }),
 
 	common = {
 		module: {
@@ -21,7 +24,10 @@ var
 				}
 			]
 		},
-		resolve: { extensions: ['', '.js', '.jsx'] },
+		resolve: {
+			extensions: ['', '.js', '.jsx'],
+			root: path.resolve('./app')
+		},
 		devtool: 'sourcemap'
 	};
 
@@ -49,7 +55,7 @@ module.exports = [
 		entry: {
 			'server' : './app/server.jsx'
 		},
-		externals: [ /^[^\.].*$/ ],
+		externals: node_modules,
 		output: {
 			path: path.resolve('./build'),
 			filename: '[name].js',

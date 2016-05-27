@@ -1,40 +1,41 @@
 import React from 'react'
-import name from '../lib/name'
+import name from 'lib/name'
 import Radium from 'radium'
-import colors from '../styles/colors'
-import ExpressionView from './ExpressionView'
+import colors from 'styles/colors'
+import ExpressionView from 'components/ExpressionView'
 
 const LambdaView = name('LambdaView')(Radium(({
 	lambda, selectedExpId, onExpClicked, setNestingLimit,
 	nestingLimit, nestingDepth
 }) => {
-	let headerStyles = {
-		fontFamily: 'sans-serif',
-		color: '#666',
-		fontSize: '25px',
-		borderBottom: '1px dashed #ddd',
-		marginBottom: 5
-	};
-	let titleStyles = {
-		padding: 15,
-		display: 'inline-block'
-	}
-	let nestingBtnStyles = {
-		float: 'right',
-		lineHeight: '55px',
-		cursor: 'pointer',
-		width: 55,
-		textAlign: 'center',
-		':hover': {
-			backgroundColor: '#eee'
-		}
-	};
-	let nestingInfoStyles = {
-		float: 'right',
-		lineHeight: '55px',
-		fontSize: 13,
-		paddingRight: 10
-	};
+	const
+		headerStyles = {
+			fontFamily: 'sans-serif',
+			color: '#666',
+			fontSize: '25px',
+			borderBottom: '1px dashed #ddd',
+			marginBottom: 5
+		},
+		titleStyles = {
+			padding: 15,
+			display: 'inline-block'
+		},
+		nestingBtnStyles = {
+			float: 'right',
+			lineHeight: '55px',
+			cursor: 'pointer',
+			width: 55,
+			textAlign: 'center',
+			':hover': {
+				backgroundColor: '#eee'
+			}
+		},
+		nestingInfoStyles = {
+			float: 'right',
+			lineHeight: '55px',
+			fontSize: 13,
+			paddingRight: 10
+		};
 
 	return (
 		<div>

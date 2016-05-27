@@ -2,13 +2,13 @@ import React from 'react'
 import Helmet from 'react-helmet'
 import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
-import { match } from '../lib/route-reducer'
-import routes from '../routes'
-import name from '../lib/name'
-import LambdaView from './LambdaView'
-import { actions } from '../reducers/ui'
+import { match } from 'lib/route-reducer'
+import routes from 'routes'
+import name from 'lib/name'
+import LambdaView from 'components/LambdaView'
+import { actions } from 'reducers/ui'
 import { createSelector } from 'reselect'
-import getAstDepth from '../ast/getAstDepth'
+import getAstDepth from 'lib/ast/getAstDepth'
 
 const LambdaViewContainer = name('LambdaViewContainer', ({
 	selectedExpId, nestingLimit,
@@ -42,7 +42,6 @@ const lambdaInfoSel = createSelector(
 	},
 	lambda => {
 		let nestingDepth = getAstDepth(lambda.body);
-		console.log(nestingDepth);
 		return { lambda, nestingDepth };
 	}
 );

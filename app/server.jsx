@@ -1,18 +1,20 @@
 import express from 'express'
 import favicon from 'serve-favicon'
 import React from 'react'
-import { renderToString, renderToStaticMarkup } from 'react-dom/server'
+import { renderToString, renderToStaticMarkup }
+	from 'react-dom/server'
 import Helmet from 'react-helmet'
 import { Provider } from 'react-redux'
-import configureStore from './configureStore'
-import Root from './components/Root'
-import HTML from './components/HTML'
-import memoryRouteMiddleware from './lib/route-reducer/middleware/memory'
+import configureStore from 'configureStore'
+import Root from 'containers/Root'
+import HTML from 'containers/HTML'
+import memoryRouteMiddleware
+	from 'lib/route-reducer/middleware/memory'
 
 const
 	app = express(),
 	port = process.env.PORT || 3000,
-	buildDir = require('path').resolve(".") + '/build';
+	buildDir = require('path').resolve("..") + '/build';
 
 // TODO change favicon cache time
 app.use(favicon('./public/img/favicon.ico', '1m'));

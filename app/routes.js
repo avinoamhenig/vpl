@@ -1,4 +1,4 @@
-import { routes, route } from './lib/route-reducer'
+import { routes, route } from 'lib/route-reducer'
 
 const routeNames = {
 	LAMBDA: 'LAMBDA',

@@ -1,11 +1,11 @@
 import React from 'react'
 import { Provider } from 'react-redux'
-import App from './App'
-import name from '../lib/name'
+import App from 'containers/App'
+import name from 'lib/name'
 
 let devTools;
 if (__DEV__){
-	const DevTools = require('./DevTools').default;
+	const DevTools = require('containers/DevTools').default;
 	devTools = <DevTools />;
 }
 

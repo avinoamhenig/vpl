@@ -1,9 +1,10 @@
 import React from 'react'
 import { render } from 'react-dom'
-import Root from './components/Root'
-import { Provider } from 'react-redux';
-import configureStore from './configureStore'
-import historyRouteMiddleware from './lib/route-reducer/middleware/history'
+import Root from 'containers/Root'
+import { Provider } from 'react-redux'
+import configureStore from 'configureStore'
+import historyRouteMiddleware from
+	'lib/route-reducer/middleware/history'
 
 if (module.hot) {
 	module.hot.accept();
