@@ -5,14 +5,25 @@ const getChildPath = (path, parentRoute, partialMatch) => {
 };
 
 const matchRoute = (route, path) => {
+	path = path.replace('%','--');
 	if (route === null) return false;
 
 	const match = route.path.match(path);
-	if (match) return { key: route.key, params: match };
+	if (match) {
+		for (let key of Object.keys(match)) {
+			match[key] = decodeURIComponent(
+				match[key].replace('--', '%'));
+		}
+		return { key: route.key, params: match };
+	}
 
-	const partialMatch = route.path.partialMatch(path);
+	let partialMatch = route.path.partialMatch(path);
 	if (partialMatch) {
 		if (matchOne(route.subroutes, getChildPath(path, route, partialMatch))) {
+			for (let key of Object.keys(partialMatch)) {
+				partialMatch[key] = decodeURIComponent(
+					partialMatch[key].replace('--', '%'));
+			}
 			return { key: route.key, params: partialMatch };
 		}
 	}
@@ -34,7 +45,7 @@ const match = (routes, key, path) => {
 			return matchRoute(route, path);
 		}
 
-		const partialMatch = route.path.partialMatch(path);
+		let partialMatch = route.path.partialMatch(path);
 		if (partialMatch) {
 			const childPath = getChildPath(path, route, partialMatch),
 			      childMatch = match(route.subroutes, key, childPath);

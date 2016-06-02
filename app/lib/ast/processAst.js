@@ -15,9 +15,11 @@ let processAst = (json, isCaseExp = false) => {
 	let id = uuid.v4();
 
 	if (json.body !== undefined) {
+		var name = typeof json.name === 'object' ?
+			json.name.name : json.name;
 		return {
 			syntaxTag: 'function_def', id,
-			args: json.args, name: json.name,
+			args: json.args, name,
 			body: processAst(json.body)
 		};
 	} if (isCaseExp) {

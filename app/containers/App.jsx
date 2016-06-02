@@ -9,7 +9,7 @@ import LambdaViewContainer from 'containers/LambdaViewContainer'
 import Radium from 'radium'
 
 const App = name('App')(Radium(({
-	route, navigate
+	route, navigate, ast
 }) => {
 	let routeMatch = matchOne(routes.desc, route);
 
@@ -22,6 +22,29 @@ const App = name('App')(Radium(({
 		userSelect: 'none',
 		WebkitTapHighlightColor: 'rgba(0,0,0,0)'
 	};
+	let markup = null;
+
+	if (routeMatch.key === routes.LAMBDA) {
+		markup = (<LambdaViewContainer />);
+	} else if (routeMatch.key === routes.FN_LIST) {
+		let listItems = ast.map(fnDef => {
+			return (<li style={{ padding: 10 }} key={fnDef.name}>
+					<a href={`/lambda/${fnDef.name}`}
+					   key={fnDef.name}
+					   style={{
+					   	fontSize: 26,
+					   	textDecoration: 'none',
+					   	color: '#888'
+					   }}
+					   onClick={e => {
+							 e.preventDefault();
+							 navigate(`/lambda/${fnDef.name}`);
+						 }}>{fnDef.name}</a>
+				</li>
+			);
+		});
+		markup = (<ul key="fn_list">{listItems}</ul>);
+	}
 
 	return (
 		<div style={noSelect}>
@@ -37,11 +60,15 @@ const App = name('App')(Radium(({
 						content: 'initial-scale=1, maximum-scale=1' }
 				]}
 				/>
-			{ routeMatch.key === routes.LAMBDA && <LambdaViewContainer />}
+			{ markup }
 		</div>
 	);
 }));
 
-const selector = (state) => ({ route: state.route.current });
-const mapDispatch = (dispatch) => bindActionCreators({navigate}, dispatch);
+const selector = (state) => ({
+	route: state.route.current,
+	ast: state.ast
+});
+const mapDispatch = (dispatch) => bindActionCreators(
+	{navigate}, dispatch);
 export default connect(selector, mapDispatch)(App);

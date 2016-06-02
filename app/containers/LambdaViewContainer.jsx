@@ -12,7 +12,7 @@ import helmet from 'lib/helmetDecorator'
 const lambdaInfoSel = createSelector(
 	state => {
 		let routeMatch = match(
-			routes.desc, routes.LAMBDA, state.route.current);
+			routes.desc, routes.LAMBDA, state.route.current);;
 		return state.ast.filter(l => l.name === routeMatch.params.id)[0];
 	},
 	lambda => {
