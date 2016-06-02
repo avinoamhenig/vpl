@@ -32,8 +32,11 @@ const ExpressionView = compose(
 			lineHeight: '70px',
 			borderRadius: level === 2 ? 3 : 0,
 			marginLeft: notFirst ? 12 : 0,
-			padding: level === 1 ? '12px 12px 0 12px' : '0 7px',
-			marginBottom: 12,
+			padding: level === 1 ?
+				expansionLevel === 0 ? '12px 12px 0 12px'
+				                     : '6px 6px 0 6px'
+				: '0 7px',
+			marginBottom: expansionLevel === 0 ? 12 : 6,
 			backgroundColor: selectedExpId === expr.id
 				? colors.selectedExp : level === 1 ? 'rgba(0,0,0,0)'
 				: colors.exp,
