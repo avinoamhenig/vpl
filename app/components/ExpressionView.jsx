@@ -24,6 +24,7 @@ const ExpressionView = compose(
 		},
 		pieces = exprToPieces(expr),
 		levelStyles = {
+			boxSizing: 'border-box',
 			fontFamily: 'Helvetica Neue, sans-serif',
 			fontSize: 35,
 			fontWeight: '200',
@@ -39,12 +40,34 @@ const ExpressionView = compose(
 			display: 'inline-block',
 			cursor: 'pointer'
 		},
-		expandedLevelStyles = {
+		expandedContainerStyles = {
 			position: 'absolute',
-			width: '100%',
 			left: 0,
-			top: 165,
-			backgroundColor: colors.exp
+			width: '100%',
+			boxSizing: 'border-box',
+			paddingTop: 5,
+			paddingLeft:  expansionLevel === 1 ? 5 : 2,
+			paddingRight: expansionLevel === 1 ? 5 : 2
+		},
+		expandedLevelStyles = {
+			position: 'relative',
+			width: '100%',
+			top: -8,
+			backgroundColor: 'white',
+			borderTop: '3px solid ' + colors.selectedExp,
+			boxShadow: '0 1px 3px 0 rgba(0,0,0,0.6)',
+			borderRadius: 3
+		},
+		arrowStyles = {
+			borderBottom: '9px solid ' + colors.selectedExp,
+			borderLeft: '9px solid transparent',
+			borderRight: '9px solid transparent',
+			borderTop: 'none',
+			position: 'absolute',
+			width: 0,
+			zIndex: 20,
+			top: -12,
+			right: 6
 		},
 		expandedMarkup = null,
 		exprMarkup = pieces.map((piece, i) => {
@@ -108,7 +131,7 @@ const ExpressionView = compose(
 		});
 
 
-	return (
+	const markup = (
 		<div
 			style={[
 				levelStyles,
@@ -119,6 +142,21 @@ const ExpressionView = compose(
 			{ expandedMarkup }
 		</div>
 	);
+
+	if (expansionLevel > 0 && level === 1) {
+		return (
+			<div>
+				<div style={{position: 'relative'}}>
+					<div style={arrowStyles}></div>
+				</div>
+				<div style={expandedContainerStyles}>
+					{markup}
+				</div>
+			</div>
+		);
+	} else {
+		return markup;
+	}
 });
 
 export default ExpressionView;
