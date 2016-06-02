@@ -4,7 +4,6 @@ import Radium from 'radium'
 import colors from 'styles/colors'
 import exprToPieces from 'lib/ast/exprToPieces'
 import { compose } from 'redux'
-import getExpForId from 'lib/ast/getExpForId'
 
 const ExpressionView = compose(
 	name('ExpressionView'), Radium

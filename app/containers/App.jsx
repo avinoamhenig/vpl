@@ -13,10 +13,6 @@ const App = name('App')(Radium(({
 }) => {
 	let routeMatch = matchOne(routes.desc, route);
 
-	if (!routeMatch) {
-		return (<div className="error">Route not found!</div>);
-	}
-
 	let noSelect = {
 		WebkitTouchCallout: 'none',
 		WebkitUserSelect: 'none',
