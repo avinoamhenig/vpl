@@ -8,9 +8,10 @@ import ExpressionView from 'components/ExpressionView'
 const LambdaView = compose(
 	name('LambdaView'), Radium
 )(({
-	lambda, selectedExpId, nestingLimit,
-	nestingDepth, expandedExpId,
-	onExpClicked, setNestingLimit, setExpandedExp
+	lambda, nestedDepth, nestingLimit,
+	selectedExpId, expandedExpIds,
+	onExpClicked, onCollapsedExpClicked,
+	onIncreaseNestingClicked, onDecreaseNestingClicked
 }) => {
 	const
 		headerStyles = {
@@ -32,6 +33,9 @@ const LambdaView = compose(
 			textAlign: 'center',
 			':hover': {
 				backgroundColor: '#eee'
+			},
+			':active': {
+				backgroundColor: '#ddd'
 			}
 		},
 		nestingInfoStyles = {
@@ -39,6 +43,12 @@ const LambdaView = compose(
 			lineHeight: '55px',
 			fontSize: 13,
 			paddingRight: 10
+		},
+		disabledStyles = {
+			color: '#ddd',
+			backgroundColor: 'transparent',
+			':hover': { backgroundColor: 'transparent' },
+			':active': {backgroundColor: 'transparent' }
 		};
 
 	return (
@@ -53,23 +63,30 @@ const LambdaView = compose(
 				</div>
 				<div
 					key="incrementNestingBtn"
-					style={nestingBtnStyles}
-					onClick={() => setNestingLimit(
-						Math.min(nestingLimit + 1, nestingDepth))}>+</div>
+					style={[
+						nestingBtnStyles,
+						nestingLimit === nestedDepth && disabledStyles
+					]}
+					onClick={() => nestingLimit !== nestedDepth
+						&& onIncreaseNestingClicked()}>+</div>
 				<div
 					key="decrementNestingBtn"
-					style={nestingBtnStyles}
-					onClick={() => setNestingLimit(nestingLimit - 1)}>-</div>
+					style={[
+						nestingBtnStyles,
+						nestingLimit === 0 && disabledStyles
+					]}
+					onClick={() => nestingLimit > 0
+						&& onDecreaseNestingClicked()}>-</div>
 				<span style={nestingInfoStyles}>{`(${nestingLimit})`}</span>
 			</div>
 			<ExpressionView
 				expr={lambda.body}
-				level={1}
+				level={1} expansionLevel={0}
 				selectedExpId={selectedExpId}
-				expandedExpId={expandedExpId}
+				expandedExpIds={expandedExpIds}
 				nestingLimit={nestingLimit}
 				onExpClicked={onExpClicked}
-				onCollapsedExpClicked={setExpandedExp} />
+				onCollapsedExpClicked={onCollapsedExpClicked} />
 		</div>
 	);
 });

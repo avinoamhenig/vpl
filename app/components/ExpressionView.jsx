@@ -8,19 +8,19 @@ import { compose } from 'redux'
 const ExpressionView = compose(
 	name('ExpressionView'), Radium
 )(({
-	expr, level, notFirst, selectedExpId,
-	nestingLimit, expandedExpId,
+	expr, level, expansionLevel,
+	notFirst, selectedExpId,
+	nestingLimit, expandedExpIds,
 	onExpClicked, onCollapsedExpClicked
 }) => {
 	let
 		expClicked = function (e, expr) {
 			e.stopPropagation();
-			onExpClicked(expr);
+			onExpClicked(expr, expansionLevel);
 		},
-		expandClicked = function (e, expr) {
+		collapsedExpClicked = function (e, expr) {
 			e.stopPropagation();
-			onExpClicked(expr);
-			onCollapsedExpClicked(expr);
+			onCollapsedExpClicked(expr, expansionLevel);
 		},
 		pieces = exprToPieces(expr),
 		levelStyles = {
@@ -66,17 +66,18 @@ const ExpressionView = compose(
 			}
 
 			if (level >= nestingLimit) {
-				if (piece.id === expandedExpId) {
+				if (piece.id === expandedExpIds[expansionLevel]) {
 					expandedMarkup = (
 						<ExpressionView
-							key={`expand ${piece.id}`}
+							key={`expand_${piece.id}`}
 							expr={piece}
 							level={1}
+							expansionLevel={expansionLevel + 1}
 							selectedExpId={selectedExpId}
 							nestingLimit={nestingLimit}
+							expandedExpIds={expandedExpIds}
 							onExpClicked={onExpClicked}
 							onCollapsedExpClicked={onCollapsedExpClicked}
-							expandedExpId={expandedExpId}
 							/>
 					);
 				}
@@ -84,7 +85,7 @@ const ExpressionView = compose(
 					<span
 						key={piece.id}
 						style={[pieceStyles]}
-						onClick={(e) => expandClicked(e, piece)}>
+						onClick={(e) => collapsedExpClicked(e, piece)}>
 						{'...'}
 					</span>
 				);
@@ -95,12 +96,13 @@ const ExpressionView = compose(
 					key={piece.id}
 					expr={piece}
 					level={level + 1}
+					expansionLevel={expansionLevel}
 					notFirst={i > 0}
 					selectedExpId={selectedExpId}
 					nestingLimit={nestingLimit}
+					expandedExpIds={expandedExpIds}
 					onExpClicked={onExpClicked}
 					onCollapsedExpClicked={onCollapsedExpClicked}
-					expandedExpId={expandedExpId}
 					/>
 			);
 		});
@@ -108,7 +110,10 @@ const ExpressionView = compose(
 
 	return (
 		<div
-			style={[levelStyles, expandedExpId === expr.id && expandedLevelStyles]}
+			style={[
+				levelStyles,
+				expansionLevel > 0 && level === 1 && expandedLevelStyles
+			]}
 			onClick={(e) => expClicked(e, expr)}>
 			{ level > nestingLimit ? '...' : exprMarkup }
 			{ expandedMarkup }

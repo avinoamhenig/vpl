@@ -16,19 +16,24 @@ const lambdaInfoSel = createSelector(
 		return state.ast.filter(l => l.name === routeMatch.params.id)[0];
 	},
 	lambda => {
-		let nestingDepth = getAstDepth(lambda.body);
-		return { lambda, nestingDepth };
+		let nestedDepth = getAstDepth(lambda.body);
+		return { lambda, nestedDepth };
 	}
 );
 const selector = state => ({
 	selectedExpId: state.ui.selectedExpId,
-	expandedExpId: state.ui.expandedExpId,
+	expandedExpIds: state.ui.expandedExpIds,
 	nestingLimit: state.ui.nestingLimit,
 	...lambdaInfoSel(state)
 });
 const mapDispatch = (dispatch) => ({
-	...bindActionCreators(actions, dispatch),
-	onExpClicked: (e) => dispatch(actions.selectExp(e))
+	onIncreaseNestingClicked: () => dispatch(
+		actions.increaseNestingLimit()),
+	onDecreaseNestingClicked: () => dispatch(
+		actions.decreaseNestingLimit()),
+	onExpClicked: (e, eLvl) => dispatch(actions.selectExp(e, eLvl)),
+	onCollapsedExpClicked: (e, eLvl) =>
+		dispatch(actions.toggleExpansion(e, eLvl))
 });
 export default compose(
 	connect(selector, mapDispatch),
