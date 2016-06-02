@@ -8,7 +8,8 @@ import ExpressionView from 'components/ExpressionView'
 const LambdaView = compose(
 	name('LambdaView'), Radium
 )(({
-	lambda, selectedExpId, nestingLimit, nestingDepth,
+	lambda, selectedExpId, nestingLimit,
+	nestingDepth, expandedExpId,
 	onExpClicked, setNestingLimit, setExpandedExp
 }) => {
 	const
@@ -65,6 +66,7 @@ const LambdaView = compose(
 				expr={lambda.body}
 				level={1}
 				selectedExpId={selectedExpId}
+				expandedExpId={expandedExpId}
 				nestingLimit={nestingLimit}
 				onExpClicked={onExpClicked}
 				onCollapsedExpClicked={setExpandedExp} />

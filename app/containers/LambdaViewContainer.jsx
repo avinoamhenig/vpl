@@ -23,6 +23,7 @@ const lambdaInfoSel = createSelector(
 );
 const selector = state => ({
 	selectedExpId: state.ui.selectedExpId,
+	expandedExpId: state.ui.expandedExpId,
 	nestingLimit: state.ui.nestingLimit,
 	...lambdaInfoSel(state)
 });

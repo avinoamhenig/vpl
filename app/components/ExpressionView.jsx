@@ -4,14 +4,16 @@ import Radium from 'radium'
 import colors from 'styles/colors'
 import exprToPieces from 'lib/ast/exprToPieces'
 import { compose } from 'redux'
+import getExpForId from 'lib/ast/getExpForId'
 
 const ExpressionView = compose(
 	name('ExpressionView'), Radium
 )(({
-	expr, level, notFirst, selectedExpId, nestingLimit,
+	expr, level, notFirst, selectedExpId,
+	nestingLimit, expandedExpId,
 	onExpClicked, onCollapsedExpClicked
 }) => {
-	const
+	let
 		expClicked = function (e, expr) {
 			e.stopPropagation();
 			onExpClicked(expr);
@@ -38,6 +40,14 @@ const ExpressionView = compose(
 			display: 'inline-block',
 			cursor: 'pointer'
 		},
+		expandedLevelStyles = {
+			position: 'absolute',
+			width: '100%',
+			left: 0,
+			top: 165,
+			backgroundColor: colors.exp
+		},
+		expandedMarkup = null,
 		exprMarkup = pieces.map((piece, i) => {
 			let pieceStyles = {
 				paddingLeft: i === 0 ? 3 : 10,
@@ -57,6 +67,20 @@ const ExpressionView = compose(
 			}
 
 			if (level >= nestingLimit) {
+				if (piece.id === expandedExpId) {
+					expandedMarkup = (
+						<ExpressionView
+							key={`expand ${piece.id}`}
+							expr={piece}
+							level={1}
+							selectedExpId={selectedExpId}
+							nestingLimit={nestingLimit}
+							onExpClicked={onExpClicked}
+							onCollapsedExpClicked={onCollapsedExpClicked}
+							expandedExpId={expandedExpId}
+							/>
+					);
+				}
 				return (
 					<span
 						key={piece.id}
@@ -77,15 +101,18 @@ const ExpressionView = compose(
 					nestingLimit={nestingLimit}
 					onExpClicked={onExpClicked}
 					onCollapsedExpClicked={onCollapsedExpClicked}
+					expandedExpId={expandedExpId}
 					/>
 			);
 		});
 
+
 	return (
 		<div
-			style={levelStyles}
+			style={[levelStyles, expandedExpId === expr.id && expandedLevelStyles]}
 			onClick={(e) => expClicked(e, expr)}>
 			{ level > nestingLimit ? '...' : exprMarkup }
+			{ expandedMarkup }
 		</div>
 	);
 });

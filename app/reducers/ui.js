@@ -15,13 +15,13 @@ export default createReducer({
 	[a.setNestingLimit]: (state, payload) => ({
 		...state,
 		nestingLimit: Math.max(0, payload),
-		expandedExp: null
+		expandedExpId: null
 	}),
 
 	[a.setExpandedExp]: (state, payload) =>
-		({ ...state, expandedExp: payload.id })
+		({ ...state, expandedExpId: payload.id })
 }, {
 	selectedExpId: null,
-	expandedExp: null,
+	expandedExpId: null,
 	nestingLimit: 3
 });
