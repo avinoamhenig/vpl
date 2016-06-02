@@ -66,8 +66,8 @@ const ExpressionView = compose(
 			position: 'absolute',
 			width: 0,
 			zIndex: 20,
-			top: -12,
-			right: 6
+			top: 10,
+			right: 5
 		},
 		expandedMarkup = null,
 		exprMarkup = pieces.map((piece, i) => {
@@ -110,6 +110,11 @@ const ExpressionView = compose(
 						style={[pieceStyles]}
 						onClick={(e) => collapsedExpClicked(e, piece)}>
 						{'...'}
+						{piece.id === expandedExpIds[expansionLevel] && (
+							<div style={{
+									position: 'relative',
+									display: 'inline-block'
+								}}><div style={arrowStyles}></div></div>)}
 					</span>
 				);
 			}
@@ -146,9 +151,6 @@ const ExpressionView = compose(
 	if (expansionLevel > 0 && level === 1) {
 		return (
 			<div>
-				<div style={{position: 'relative'}}>
-					<div style={arrowStyles}></div>
-				</div>
 				<div style={expandedContainerStyles}>
 					{markup}
 				</div>
