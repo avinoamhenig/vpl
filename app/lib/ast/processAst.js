@@ -1,7 +1,7 @@
 import uuid from 'node-uuid'
 import simpleToString from './simpleToString.js'
 
-const infixFns = '+ - * div mod = != < > <= >='.split(' ');
+const infixFns = '+ - * / % = != < > <= >='.split(' ');
 let isInfixCall = e => {
 	return e.argVals.length === 2
 		&& infixFns.indexOf(simpleToString(e.function)) !== -1;
@@ -33,12 +33,9 @@ let processAst = (json, isCaseExp = false) => {
 			return { syntaxTag: 'else_exp', id, exp: processAst(json) };
 		}
 	} else if (json.tag === 'call') {
-		let infix = false;
-		if (json.tag === 'call' && isInfixCall(json)) {
-			infix = true;
-		}
 		return {
-			syntaxTag: 'expression', id, infix,
+			syntaxTag: 'expression', id,
+			infix: isInfixCall(json),
 			tag: json.tag,
 			function: processAst(json.function),
 			argVals: json.argVals.map(arg => processAst(arg))

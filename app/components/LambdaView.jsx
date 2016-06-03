@@ -17,19 +17,20 @@ const LambdaView = compose(
 		headerStyles = {
 			fontFamily: 'sans-serif',
 			color: '#666',
-			fontSize: '25px',
+			fontSize: '17px',
 			borderBottom: '1px dashed #ddd',
-			marginBottom: 5
+			marginBottom: 5,
+			lineHeight: '35px'
 		},
 		titleStyles = {
-			padding: 15,
+			paddingLeft: 8,
 			display: 'inline-block'
 		},
 		nestingBtnStyles = {
 			float: 'right',
-			lineHeight: '55px',
+			lineHeight: '35px',
 			cursor: 'pointer',
-			width: 55,
+			width: 30,
 			textAlign: 'center',
 			':hover': {
 				backgroundColor: '#eee'
@@ -40,9 +41,9 @@ const LambdaView = compose(
 		},
 		nestingInfoStyles = {
 			float: 'right',
-			lineHeight: '55px',
+			lineHeight: '35px',
 			fontSize: 13,
-			paddingRight: 10
+			paddingRight: 8
 		},
 		disabledStyles = {
 			color: '#ddd',

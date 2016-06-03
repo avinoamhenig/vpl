@@ -28,7 +28,7 @@ const ExpressionView = compose(
 			fontFamily: 'Helvetica Neue, sans-serif',
 			fontSize: 35,
 			fontWeight: '200',
-			height: level === 1 ? 'auto' : 70,
+			minHeight: level === 1 ? 'auto' : 70,
 			lineHeight: '70px',
 			borderRadius: level === 2 ? 3 : 0,
 			marginLeft: notFirst ? 12 : 0,
@@ -36,7 +36,9 @@ const ExpressionView = compose(
 				expansionLevel === 0 ? '12px 12px 0 12px'
 				                     : '6px 6px 0 6px'
 				: '0 7px',
-			marginBottom: expansionLevel === 0 ? 12 : 6,
+			marginBottom: level === 2 ?
+				  expansionLevel === 0 ? 12 : 6
+				: 0,
 			backgroundColor: selectedExpId === expr.id
 				? colors.selectedExp : level === 1 ? 'rgba(0,0,0,0)'
 				: colors.exp,

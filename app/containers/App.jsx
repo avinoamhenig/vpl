@@ -28,7 +28,8 @@ const App = name('App')(Radium(({
 		markup = (<LambdaViewContainer />);
 	} else if (routeMatch.key === routes.FN_LIST) {
 		let listItems = ast.map(fnDef => {
-			return (<li style={{ padding: 10 }} key={fnDef.name}>
+			return (
+				<li style={{ padding: 10 }} key={fnDef.name}>
 					<a href={`/lambda/${fnDef.name}`}
 					   key={fnDef.name}
 					   style={{
