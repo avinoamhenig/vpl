@@ -1,6 +1,6 @@
 import { NAVIGATE, REPLACE } from './action-types'
 
-const encode = p => p.split('/').map(encodeURIComponent).join('/');
+const encode = p => p.split('/').map(decodeURIComponent).map(encodeURIComponent).join('/');
 
 const navigate = (payload) => ({
 	type: NAVIGATE,
