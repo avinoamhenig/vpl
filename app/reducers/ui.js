@@ -10,7 +10,8 @@ export const actions = {
 		(expr, expansionLevel) => ({ expr, expansionLevel })),
 	collapseExpansion: cA('collapse expansion level'),
 	toggleExpansion: cA('toggle expression expansion',
-		(expr, expansionLevel) => ({ expr, expansionLevel }))
+		(expr, expansionLevel) => ({ expr, expansionLevel })),
+	toggleInfix: cA('toggle infix')
 };
 
 const a = actions;
@@ -65,9 +66,13 @@ export default createReducer({
 					payload.expr.id
 				]
 		};
-	}
+	},
+	[a.toggleInfix]: state => ({
+		...state, ignoreInfix: !state.ignoreInfix
+	})
 }, {
 	selectedExpId: null,
 	expandedExpIds: [],
-	nestingLimit: 3
+	nestingLimit: 3,
+	ignoreInfix: false
 });

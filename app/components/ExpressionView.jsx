@@ -9,7 +9,7 @@ const ExpressionView = compose(
 	name('ExpressionView'), Radium
 )(({
 	expr, level, expansionLevel,
-	notFirst, selectedExpId,
+	selectedExpId, notFirst = false, ignoreInfix,
 	nestingLimit, expandedExpIds,
 	onExpClicked, onCollapsedExpClicked
 }) => {
@@ -22,7 +22,7 @@ const ExpressionView = compose(
 			e.stopPropagation();
 			onCollapsedExpClicked(expr, expansionLevel);
 		},
-		pieces = exprToPieces(expr),
+		pieces = exprToPieces(expr, ignoreInfix),
 		levelStyles = {
 			boxSizing: 'border-box',
 			fontFamily: 'Helvetica Neue, sans-serif',
@@ -100,6 +100,7 @@ const ExpressionView = compose(
 							key={`expand_${piece.id}`}
 							expr={piece}
 							level={1}
+							ignoreInfix={ignoreInfix}
 							expansionLevel={expansionLevel + 1}
 							selectedExpId={selectedExpId}
 							nestingLimit={nestingLimit}
@@ -130,7 +131,7 @@ const ExpressionView = compose(
 					expr={piece}
 					level={level + 1}
 					expansionLevel={expansionLevel}
-					notFirst={i > 0}
+					notFirst={i > 0} ignoreInfix={ignoreInfix}
 					selectedExpId={selectedExpId}
 					nestingLimit={nestingLimit}
 					expandedExpIds={expandedExpIds}

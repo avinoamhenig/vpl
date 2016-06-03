@@ -24,6 +24,7 @@ const selector = state => ({
 	selectedExpId: state.ui.selectedExpId,
 	expandedExpIds: state.ui.expandedExpIds,
 	nestingLimit: state.ui.nestingLimit,
+	ignoreInfix: state.ui.ignoreInfix,
 	...lambdaInfoSel(state)
 });
 const mapDispatch = (dispatch) => ({
@@ -33,7 +34,8 @@ const mapDispatch = (dispatch) => ({
 		actions.decreaseNestingLimit()),
 	onExpClicked: (e, eLvl) => dispatch(actions.selectExp(e, eLvl)),
 	onCollapsedExpClicked: (e, eLvl) =>
-		dispatch(actions.toggleExpansion(e, eLvl))
+		dispatch(actions.toggleExpansion(e, eLvl)),
+	onInfixToggleClicked: () => dispatch(actions.toggleInfix())
 });
 export default compose(
 	connect(selector, mapDispatch),

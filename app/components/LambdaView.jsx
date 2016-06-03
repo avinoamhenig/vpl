@@ -9,9 +9,10 @@ const LambdaView = compose(
 	name('LambdaView'), Radium
 )(({
 	lambda, nestedDepth, nestingLimit,
-	selectedExpId, expandedExpIds,
+	selectedExpId, expandedExpIds, ignoreInfix,
 	onExpClicked, onCollapsedExpClicked,
-	onIncreaseNestingClicked, onDecreaseNestingClicked
+	onIncreaseNestingClicked, onDecreaseNestingClicked,
+	onInfixToggleClicked
 }) => {
 	const
 		headerStyles = {
@@ -50,6 +51,9 @@ const LambdaView = compose(
 			backgroundColor: 'transparent',
 			':hover': { backgroundColor: 'transparent' },
 			':active': {backgroundColor: 'transparent' }
+		},
+		infixBtnStyles = {
+			color: ignoreInfix ? '#666' : colors.selectedExp
 		};
 
 	return (
@@ -63,27 +67,38 @@ const LambdaView = compose(
 					</span>
 				</div>
 				<div
+					key="infixBtn"
+					style={[
+						nestingBtnStyles,
+						infixBtnStyles
+					]}
+					className="fa fa-info"
+					onClick={onInfixToggleClicked}></div>
+				<div
 					key="incrementNestingBtn"
 					style={[
 						nestingBtnStyles,
 						nestingLimit === nestedDepth && disabledStyles
 					]}
+					className="fa fa-plus"
 					onClick={() => nestingLimit !== nestedDepth
-						&& onIncreaseNestingClicked()}>+</div>
+						&& onIncreaseNestingClicked()}></div>
 				<div
 					key="decrementNestingBtn"
 					style={[
 						nestingBtnStyles,
 						nestingLimit === 0 && disabledStyles
 					]}
+					className="fa fa-minus"
 					onClick={() => nestingLimit > 0
-						&& onDecreaseNestingClicked()}>-</div>
+						&& onDecreaseNestingClicked()}></div>
 				<span style={nestingInfoStyles}>{`(${nestingLimit})`}</span>
 			</div>
 			<ExpressionView
 				expr={lambda.body}
 				level={1} expansionLevel={0}
 				selectedExpId={selectedExpId}
+				ignoreInfix={ignoreInfix}
 				expandedExpIds={expandedExpIds}
 				nestingLimit={nestingLimit}
 				onExpClicked={onExpClicked}

@@ -13,7 +13,7 @@ const makeSimple = (str, e) => ({
 	isSimple: true, id: e.id, exp: e, string: str, isBlock: true
 });
 
-export default function exprToPieces(expr) {
+export default function exprToPieces(expr, ignoreInfix = false) {
 	let pieces = [];
 	if (expr.syntaxTag === 'case_exp') {
 		pieces.push(expr.condition);
@@ -28,7 +28,7 @@ export default function exprToPieces(expr) {
 		}
 		pieces.push(expr.elseExp);
 	} else if (expr.tag === 'call') {
-		if (expr.infix) {
+		if (!ignoreInfix && expr.infix) {
 			pieces = [
 				handleSimple(expr.argVals[0]),
 				handleSimple(expr.function),

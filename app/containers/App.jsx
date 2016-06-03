@@ -53,7 +53,8 @@ const App = name('App')(Radium(({
 				defaultTitle="VPL"
 				titleTemplate="VPL - %s"
 				link={[
-					{ rel: 'stylesheet', href: 'https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css' }
+					{ rel: 'stylesheet', href: 'https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css' },
+					{ rel: 'stylesheet', href: 'https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css' }
 				]}
 				meta={[
 					{ charset: 'utf-8' },
