@@ -3,8 +3,8 @@ import { render } from 'react-dom'
 import Root from 'containers/Root'
 import { Provider } from 'react-redux'
 import configureStore from 'configureStore'
-import historyRouteMiddleware from
-	'lib/route-reducer/middleware/history'
+import routeMiddleware from
+	'lib/route-reducer/middleware/hash'
 
 if (module.hot) {
 	module.hot.accept();
@@ -12,5 +12,5 @@ if (module.hot) {
 
 const
 	rootEl = document.getElementById('app'),
-	store = configureStore(window.__INITIAL_STATE__, historyRouteMiddleware);
+	store = configureStore(window.__INITIAL_STATE__, routeMiddleware);
 render(<Root store={store} />, rootEl);
