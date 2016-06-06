@@ -1,20 +1,15 @@
 import { createAction as cA, createReducer } from 'redux-act'
-
-// TODO rename to lambdaview or something?
+import m from 'lib/mapParamsToObject'
 
 export const actions = {
-	selectExp: cA('select expression',
-		// TODO get rid of these fns?
-		(expr, expansionLevel) => ({ expr, expansionLevel })),
-	setNestingLimit: cA('set nesting limit'),
-	increaseNestingLimit: cA('increment nesting limit'),
-	decreaseNestingLimit: cA('decrement nesting limit'),
-	expandExp: cA('expand expression',
-		(expr, expansionLevel) => ({ expr, expansionLevel })),
-	collapseExpansion: cA('collapse expansion level'),
-	toggleExpansion: cA('toggle expression expansion',
-		(expr, expansionLevel) => ({ expr, expansionLevel })),
-	toggleInfix: cA('toggle infix')
+	selectExp: cA('SELECT_EXP', m('expr', 'expansionLevel')),
+	setNestingLimit: cA('SET_NESTING_LIMIT'),
+	incNestingLimit: cA('INC_NESTING_LIMIT'),
+	decNestingLimit: cA('DEC_NESTING_LIMIT'),
+	expandExp: cA('EXPAND_EXP', m('expr', 'expansionLevel')),
+	collapseExpansion: cA('COLLAPSE_EXPANSION'),
+	toggleExpansion: cA('TOGGLE_EXPANSION', m('expr', 'expansionLevel')),
+	toggleInfix: cA('TOGGLE_INFIX')
 };
 
 const a = actions;
@@ -31,12 +26,12 @@ export default createReducer({
 		nestingLimit: Math.max(0, payload),
 		expandedExpIds: []
 	}),
-	[a.increaseNestingLimit]: (state, payload) => ({
+	[a.incNestingLimit]: (state, payload) => ({
 		...state,
 		nestingLimit: state.nestingLimit + 1,
 		expandedExpIds: []
 	}),
-	[a.decreaseNestingLimit]: (state, payload) => ({
+	[a.decNestingLimit]: (state, payload) => ({
 		...state,
 		nestingLimit: Math.max(0, state.nestingLimit - 1),
 		expandedExpIds: []

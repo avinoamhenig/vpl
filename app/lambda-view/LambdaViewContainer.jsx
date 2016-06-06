@@ -19,22 +19,12 @@ const lambdaInfoSel = createSelector(
 		return { lambda, nestedDepth };
 	}
 );
-const selector = state => ({
-	selectedExpId: state.lambdaView.selectedExpId,
-	expandedExpIds: state.lambdaView.expandedExpIds,
-	nestingLimit: state.lambdaView.nestingLimit,
-	ignoreInfix: state.lambdaView.ignoreInfix,
+const mapStateToProps = state => ({
+	...state.lambdaView,
 	...lambdaInfoSel(state)
 });
-const mapDispatch = (dispatch) => bindActionCreators({
-	onIncreaseNestingClicked: actions.increaseNestingLimit,
-	onDecreaseNestingClicked: actions.decreaseNestingLimit,
-	onExpClicked: actions.selectExp,
-	onCollapsedExpClicked: actions.toggleExpansion,
-	onFunctionClicked: (...args) => console.log(...args),
-	onInfixToggleClicked: actions.toggleInfix
-}, dispatch);
+const mapDispatchToProps = (dispatch) => bindActionCreators(actions, dispatch);
 export default compose(
-	connect(selector, mapDispatch),
+	connect(mapStateToProps, mapDispatchToProps),
 	helmet(({lambda}) => ({ title: '#' + lambda.name }))
 )(LambdaView);
