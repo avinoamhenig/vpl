@@ -78,7 +78,9 @@ const ExpressionView = compose(
 					<span
 						key={piece.id}
 						style={[pieceStyles]}
-						onClick={sp(p.onExpClicked, piece.exp, p.expansionLevel)}>
+						onClick={piece.isFn ?
+							  sp(p.onFunctionClicked, piece.exp, p.expansionLevel)
+							: sp(p.onExpClicked, piece.exp, p.expansionLevel)}>
 						{piece.string}
 					</span>
 				);

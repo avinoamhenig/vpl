@@ -9,8 +9,6 @@ import { createSelector } from 'reselect'
 import getAstDepth from 'lib/ast/getAstDepth'
 import helmet from 'lib/helmetDecorator'
 
-// TODO Make app.js to import all common files (import * from 'app')
-
 const lambdaInfoSel = createSelector(
 	state => {
 		let routeMatch = match(routes.desc, routes.LAMBDA, state.route.current);
@@ -33,7 +31,7 @@ const mapDispatch = (dispatch) => bindActionCreators({
 	onDecreaseNestingClicked: actions.decreaseNestingLimit,
 	onExpClicked: actions.selectExp,
 	onCollapsedExpClicked: actions.toggleExpansion,
-	onFunctionClicked: (...args) => console.log(args),
+	onFunctionClicked: (...args) => console.log(...args),
 	onInfixToggleClicked: actions.toggleInfix
 }, dispatch);
 export default compose(

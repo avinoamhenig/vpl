@@ -98,7 +98,8 @@ export default compose(
 				expandedExpIds={p.expandedExpIds}
 				nestingLimit={p.nestingLimit}
 				onExpClicked={p.onExpClicked}
-				onCollapsedExpClicked={p.onCollapsedExpClicked} />
+				onCollapsedExpClicked={p.onCollapsedExpClicked}
+				onFunctionClicked={p.onFunctionClicked} />
 		</div>
 	);
 });
