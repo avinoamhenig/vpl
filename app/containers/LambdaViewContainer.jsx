@@ -9,10 +9,11 @@ import { createSelector } from 'reselect'
 import getAstDepth from 'lib/ast/getAstDepth'
 import helmet from 'lib/helmetDecorator'
 
+// TODO Make app.js to import all common files (import * from 'app')
+
 const lambdaInfoSel = createSelector(
 	state => {
-		let routeMatch = match(
-			routes.desc, routes.LAMBDA, state.route.current);;
+		let routeMatch = match(routes.desc, routes.LAMBDA, state.route.current);
 		return state.ast.filter(l => l.name === routeMatch.params.id)[0];
 	},
 	lambda => {
@@ -27,16 +28,14 @@ const selector = state => ({
 	ignoreInfix: state.ui.ignoreInfix,
 	...lambdaInfoSel(state)
 });
-const mapDispatch = (dispatch) => ({
-	onIncreaseNestingClicked: () => dispatch(
-		actions.increaseNestingLimit()),
-	onDecreaseNestingClicked: () => dispatch(
-		actions.decreaseNestingLimit()),
-	onExpClicked: (e, eLvl) => dispatch(actions.selectExp(e, eLvl)),
-	onCollapsedExpClicked: (e, eLvl) =>
-		dispatch(actions.toggleExpansion(e, eLvl)),
-	onInfixToggleClicked: () => dispatch(actions.toggleInfix())
-});
+const mapDispatch = (dispatch) => bindActionCreators({
+	onIncreaseNestingClicked: actions.increaseNestingLimit,
+	onDecreaseNestingClicked: actions.decreaseNestingLimit,
+	onExpClicked: actions.selectExp,
+	onCollapsedExpClicked: actions.toggleExpansion,
+	onFunctionClicked: (...args) => console.log(args),
+	onInfixToggleClicked: actions.toggleInfix
+}, dispatch);
 export default compose(
 	connect(selector, mapDispatch),
 	helmet(({lambda}) => ({ title: '#' + lambda.name }))

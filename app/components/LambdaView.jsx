@@ -5,15 +5,11 @@ import { compose } from 'redux'
 import colors from 'styles/colors'
 import ExpressionView from 'components/ExpressionView'
 
-const LambdaView = compose(
+export default compose(
 	name('LambdaView'), Radium
-)(({
-	lambda, nestedDepth, nestingLimit,
-	selectedExpId, expandedExpIds, ignoreInfix,
-	onExpClicked, onCollapsedExpClicked,
-	onIncreaseNestingClicked, onDecreaseNestingClicked,
-	onInfixToggleClicked
-}) => {
+)(p => {
+	// TODO Move styles out into their own files/functions?
+	// Maybe change dir structure to be by component?
 	const
 		headerStyles = {
 			fontFamily: 'sans-serif',
@@ -53,7 +49,7 @@ const LambdaView = compose(
 			':active': {backgroundColor: 'transparent' }
 		},
 		infixBtnStyles = {
-			color: ignoreInfix ? '#666' : colors.selectedExp
+			color: p.ignoreInfix ? '#666' : colors.selectedExp
 		};
 
 	return (
@@ -61,9 +57,9 @@ const LambdaView = compose(
 			<div className="lambda_header" style={headerStyles}>
 				<div style={titleStyles}>
 					<span style={{ 'color': '#bbb' }}>&lambda;</span>
-					{ ' ' + lambda.name }
+					{ ' ' + p.lambda.name }
 					<span style={{ 'color': colors.identifier }}>
-						{ ' ' + lambda.args.join(' ') }
+						{ ' ' + p.lambda.args.join(' ') }
 					</span>
 				</div>
 				<div
@@ -73,38 +69,36 @@ const LambdaView = compose(
 						infixBtnStyles
 					]}
 					className="fa fa-info"
-					onClick={onInfixToggleClicked}></div>
+					onClick={p.onInfixToggleClicked}></div>
 				<div
 					key="incrementNestingBtn"
 					style={[
 						nestingBtnStyles,
-						nestingLimit === nestedDepth && disabledStyles
+						p.nestingLimit === p.nestedDepth && disabledStyles
 					]}
 					className="fa fa-plus"
-					onClick={() => nestingLimit !== nestedDepth
-						&& onIncreaseNestingClicked()}></div>
+					onClick={() => p.nestingLimit !== p.nestedDepth
+						&& p.onIncreaseNestingClicked()}></div>
 				<div
 					key="decrementNestingBtn"
 					style={[
 						nestingBtnStyles,
-						nestingLimit === 0 && disabledStyles
+						p.nestingLimit === 0 && disabledStyles
 					]}
 					className="fa fa-minus"
-					onClick={() => nestingLimit > 0
-						&& onDecreaseNestingClicked()}></div>
-				<span style={nestingInfoStyles}>{`(${nestingLimit})`}</span>
+					onClick={() => p.nestingLimit > 0
+						&& p.onDecreaseNestingClicked()}></div>
+				<span style={nestingInfoStyles}>{`(${p.nestingLimit})`}</span>
 			</div>
 			<ExpressionView
-				expr={lambda.body}
+				expr={p.lambda.body}
 				level={1} expansionLevel={0}
-				selectedExpId={selectedExpId}
-				ignoreInfix={ignoreInfix}
-				expandedExpIds={expandedExpIds}
-				nestingLimit={nestingLimit}
-				onExpClicked={onExpClicked}
-				onCollapsedExpClicked={onCollapsedExpClicked} />
+				selectedExpId={p.selectedExpId}
+				ignoreInfix={p.ignoreInfix}
+				expandedExpIds={p.expandedExpIds}
+				nestingLimit={p.nestingLimit}
+				onExpClicked={p.onExpClicked}
+				onCollapsedExpClicked={p.onCollapsedExpClicked} />
 		</div>
 	);
 });
-
-export default LambdaView;

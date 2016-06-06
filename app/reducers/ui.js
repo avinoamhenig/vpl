@@ -1,7 +1,10 @@
 import { createAction as cA, createReducer } from 'redux-act'
 
+// TODO rename to lambdaview or something?
+
 export const actions = {
 	selectExp: cA('select expression',
+		// TODO get rid of these fns?
 		(expr, expansionLevel) => ({ expr, expansionLevel })),
 	setNestingLimit: cA('set nesting limit'),
 	increaseNestingLimit: cA('increment nesting limit'),

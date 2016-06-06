@@ -7,41 +7,32 @@ import { compose } from 'redux'
 
 const ExpressionView = compose(
 	name('ExpressionView'), Radium
-)(({
-	expr, level, expansionLevel,
-	selectedExpId, notFirst = false, ignoreInfix,
-	nestingLimit, expandedExpIds,
-	onExpClicked, onCollapsedExpClicked
-}) => {
+)(p => {
 	let
-		expClicked = function (e, expr) {
+		sp = (f, ...args) => e => {
 			e.stopPropagation();
-			onExpClicked(expr, expansionLevel);
+			f(...args);
 		},
-		collapsedExpClicked = function (e, expr) {
-			e.stopPropagation();
-			onCollapsedExpClicked(expr, expansionLevel);
-		},
-		pieces = exprToPieces(expr, ignoreInfix),
+		pieces = exprToPieces(p.expr, p.ignoreInfix),
 		levelStyles = {
 			boxSizing: 'border-box',
 			fontFamily: 'Helvetica Neue, sans-serif',
 			fontSize: 35,
 			fontWeight: '200',
-			minHeight: level === 1 ? 'auto' : 70,
+			minHeight: p.level === 1 ? 'auto' : 70,
 			lineHeight: '70px',
-			borderRadius: level === 2 ? 3 : 0,
-			marginLeft: notFirst ? 12 : 0,
-			padding: level === 1 ?
-				expansionLevel === 0 ? '12px 12px 0 12px'
-				                     : '6px 6px 0 6px'
+			borderRadius: p.level === 2 ? 3 : 0,
+			marginLeft: p.notFirst ? 12 : 0,
+			padding: p.level === 1 ?
+				p.expansionLevel === 0 ? '12px 12px 0 12px'
+				                       : '6px 6px 0 6px'
 				: '0 7px',
-			marginBottom: level === 2 ?
-				  expansionLevel === 0 ? 12 : 6
+			marginBottom: p.level === 2 ?
+				  p.expansionLevel === 0 ? 12 : 6
 				: 0,
-			backgroundColor: selectedExpId === expr.id
-				? colors.selectedExp : level === 1 ? 'rgba(0,0,0,0)'
-				: colors.exp,
+			backgroundColor: p.selectedExpId === p.expr.id ?
+				  colors.selectedExp
+				: p.level === 1 ? 'rgba(0,0,0,0)' : colors.exp,
 			display: 'inline-block',
 			cursor: 'pointer'
 		},
@@ -51,8 +42,8 @@ const ExpressionView = compose(
 			width: '100%',
 			boxSizing: 'border-box',
 			paddingTop: 5,
-			paddingLeft:  expansionLevel === 1 ? 5 : 2,
-			paddingRight: expansionLevel === 1 ? 5 : 2
+			paddingLeft:  p.expansionLevel === 1 ? 5 : 2,
+			paddingRight: p.expansionLevel === 1 ? 5 : 2
 		},
 		expandedLevelStyles = {
 			position: 'relative',
@@ -78,7 +69,7 @@ const ExpressionView = compose(
 		exprMarkup = pieces.map((piece, i) => {
 			let pieceStyles = {
 				paddingLeft: i === 0 ? 3 : 10,
-				color: !piece.isBlock && piece.id === selectedExpId ?
+				color: !piece.isBlock && piece.id === p.selectedExpId ?
 					colors.selectedExp : '#000'
 			};
 
@@ -87,26 +78,19 @@ const ExpressionView = compose(
 					<span
 						key={piece.id}
 						style={[pieceStyles]}
-						onClick={(e) => expClicked(e, piece.exp)}>
+						onClick={sp(p.onExpClicked, piece.exp, p.expansionLevel)}>
 						{piece.string}
 					</span>
 				);
 			}
 
-			if (level >= nestingLimit) {
-				if (piece.id === expandedExpIds[expansionLevel]) {
+			if (p.level >= p.nestingLimit) {
+				if (piece.id === p.expandedExpIds[p.expansionLevel]) {
 					expandedMarkup = (
-						<ExpressionView
+						<ExpressionView {...p}
 							key={`expand_${piece.id}`}
-							expr={piece}
-							level={1}
-							ignoreInfix={ignoreInfix}
-							expansionLevel={expansionLevel + 1}
-							selectedExpId={selectedExpId}
-							nestingLimit={nestingLimit}
-							expandedExpIds={expandedExpIds}
-							onExpClicked={onExpClicked}
-							onCollapsedExpClicked={onCollapsedExpClicked}
+							expr={piece} level={1} notFirst={false}
+							expansionLevel={p.expansionLevel + 1}
 							/>
 					);
 				}
@@ -114,9 +98,9 @@ const ExpressionView = compose(
 					<span
 						key={piece.id}
 						style={[pieceStyles]}
-						onClick={(e) => collapsedExpClicked(e, piece)}>
+						onClick={sp(p.onCollapsedExpClicked, piece, p.expansionLevel)}>
 						{'...'}
-						{piece.id === expandedExpIds[expansionLevel] && (
+						{piece.id === p.expandedExpIds[p.expansionLevel] && (
 							<div style={{
 									position: 'relative',
 									display: 'inline-block'
@@ -126,17 +110,11 @@ const ExpressionView = compose(
 			}
 
 			return (
-				<ExpressionView
+				<ExpressionView {...p}
 					key={piece.id}
 					expr={piece}
-					level={level + 1}
-					expansionLevel={expansionLevel}
-					notFirst={i > 0} ignoreInfix={ignoreInfix}
-					selectedExpId={selectedExpId}
-					nestingLimit={nestingLimit}
-					expandedExpIds={expandedExpIds}
-					onExpClicked={onExpClicked}
-					onCollapsedExpClicked={onCollapsedExpClicked}
+					level={p.level + 1}
+					notFirst={i > 0}
 					/>
 			);
 		});
@@ -146,15 +124,15 @@ const ExpressionView = compose(
 		<div
 			style={[
 				levelStyles,
-				expansionLevel > 0 && level === 1 && expandedLevelStyles
+				p.expansionLevel > 0 && p.level === 1 && expandedLevelStyles
 			]}
-			onClick={(e) => expClicked(e, expr)}>
-			{ level > nestingLimit ? '...' : exprMarkup }
+			onClick={sp(p.onExpClicked, p.expr, p.expansionLevel)}>
+			{ p.level > p.nestingLimit ? '...' : exprMarkup }
 			{ expandedMarkup }
 		</div>
 	);
 
-	if (expansionLevel > 0 && level === 1) {
+	if (p.expansionLevel > 0 && p.level === 1) {
 		return (
 			<div>
 				<div style={expandedContainerStyles}>
