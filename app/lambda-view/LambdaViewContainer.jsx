@@ -5,20 +5,20 @@ import { match } from 'lib/route-reducer'
 import routes from 'routes'
 import LambdaView from './LambdaView'
 import { actions } from './lambdaViewReducer'
-import { createSelector } from 'reselect'
-import { getAstDepth } from 'ast'
+import { getLambdaByName, getAstDepth } from 'ast'
 import helmet from 'lib/helmetDecorator'
 
-const lambdaInfoSel = createSelector(
-	state => {
-		let routeMatch = match(routes.desc, routes.LAMBDA, state.route.current);
-		return state.ast.filter(l => l.name === routeMatch.params.id)[0];
-	},
-	lambda => {
-		let nestedDepth = getAstDepth(lambda.body);
-		return { lambda, nestedDepth };
+const lambdaInfoSel = state => {
+	let routeMatch = match(routes.desc, routes.LAMBDA, state.route.current);
+	if (!routeMatch) {
+		routeMatch = match(routes.desc, routes.LAMBDA, state.route.previous);
 	}
-);
+	const lambda = getLambdaByName(routeMatch.params.id, state.ast);
+	return {
+		lambda,
+		nestedDepth: getAstDepth(lambda)
+	};
+};
 const mapStateToProps = state => ({
 	...state.lambdaView,
 	...lambdaInfoSel(state)
