@@ -1,15 +1,13 @@
 import express from 'express'
 import favicon from 'serve-favicon'
 import React from 'react'
-import { renderToString, renderToStaticMarkup }
-	from 'react-dom/server'
+import { renderToString, renderToStaticMarkup } from 'react-dom/server'
 import Helmet from 'react-helmet'
 import { Provider } from 'react-redux'
 import configureStore from 'configureStore'
-import Root from 'containers/Root'
-import HTML from 'containers/HTML'
-import memoryRouteMiddleware
-	from 'lib/route-reducer/middleware/memory'
+import Root from 'Root'
+import HTML from 'lib/HTML'
+import memoryRouteMiddleware from 'lib/route-reducer/middleware/memory'
 
 const
 	app = express(),

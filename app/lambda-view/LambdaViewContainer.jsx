@@ -3,10 +3,10 @@ import { bindActionCreators, compose } from 'redux'
 import { connect } from 'react-redux'
 import { match } from 'lib/route-reducer'
 import routes from 'routes'
-import LambdaView from 'components/LambdaView'
-import { actions } from 'reducers/ui'
+import LambdaView from './LambdaView'
+import { actions } from './lambdaViewReducer'
 import { createSelector } from 'reselect'
-import getAstDepth from 'lib/ast/getAstDepth'
+import { getAstDepth } from 'ast'
 import helmet from 'lib/helmetDecorator'
 
 const lambdaInfoSel = createSelector(
@@ -20,10 +20,10 @@ const lambdaInfoSel = createSelector(
 	}
 );
 const selector = state => ({
-	selectedExpId: state.ui.selectedExpId,
-	expandedExpIds: state.ui.expandedExpIds,
-	nestingLimit: state.ui.nestingLimit,
-	ignoreInfix: state.ui.ignoreInfix,
+	selectedExpId: state.lambdaView.selectedExpId,
+	expandedExpIds: state.lambdaView.expandedExpIds,
+	nestingLimit: state.lambdaView.nestingLimit,
+	ignoreInfix: state.lambdaView.ignoreInfix,
 	...lambdaInfoSel(state)
 });
 const mapDispatch = (dispatch) => bindActionCreators({

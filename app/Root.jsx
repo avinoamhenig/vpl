@@ -1,11 +1,11 @@
 import React from 'react'
 import { Provider } from 'react-redux'
-import App from 'containers/App'
+import Main from 'main'
 import name from 'lib/name'
 
 let devTools;
 if (__DEV__){
-	const DevTools = require('containers/DevTools').default;
+	const DevTools = require('lib/DevTools').default;
 	devTools = <DevTools />;
 }
 
@@ -23,7 +23,7 @@ export default class Root extends React.Component {
 		return (
 			<Provider store={this.props.store}>
 				<div>
-					<App />
+					<Main />
 					{this.state.isMounted && devTools }
 				</div>
 			</Provider>

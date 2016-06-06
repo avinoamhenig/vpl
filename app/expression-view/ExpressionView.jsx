@@ -2,7 +2,7 @@ import React from 'react'
 import name from 'lib/name'
 import Radium from 'radium'
 import colors from 'styles/colors'
-import exprToPieces from 'lib/ast/exprToPieces'
+import { exprToPieces } from 'ast'
 import { compose } from 'redux'
 
 const ExpressionView = compose(

@@ -3,7 +3,7 @@ import name from 'lib/name'
 import Radium from 'radium'
 import { compose } from 'redux'
 import colors from 'styles/colors'
-import ExpressionView from 'components/ExpressionView'
+import ExpressionView from 'expression-view'
 
 export default compose(
 	name('LambdaView'), Radium

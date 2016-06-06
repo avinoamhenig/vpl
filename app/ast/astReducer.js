@@ -1,7 +1,7 @@
 import { createAction, createReducer } from 'redux-act'
-import processAst from 'lib/ast/processAst.js'
+import processAst from './processAst.js'
 
-import sumAst from 'lib/ast/examples/fns'
+import sumAst from './examples/fns'
 const initialState = processAst(sumAst);
 
 export default createReducer({}, initialState);

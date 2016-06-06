@@ -5,10 +5,10 @@ import { connect } from 'react-redux'
 import { matchOne, navigate } from 'lib/route-reducer'
 import routes from 'routes'
 import name from 'lib/name'
-import LambdaViewContainer from 'containers/LambdaViewContainer'
+import LambdaView from 'lambda-view'
 import Radium from 'radium'
 
-const App = name('App')(Radium(({
+const Main = name('Main')(Radium(({
 	route, navigate, ast
 }) => {
 	let routeMatch = matchOne(routes.desc, route);
@@ -25,7 +25,7 @@ const App = name('App')(Radium(({
 	let markup = null;
 
 	if (routeMatch.key === routes.LAMBDA) {
-		markup = (<LambdaViewContainer />);
+		markup = (<LambdaView />);
 	} else if (routeMatch.key === routes.FN_LIST) {
 		let listItems = ast.map(fnDef => {
 			return (
@@ -71,6 +71,8 @@ const selector = (state) => ({
 	route: state.route.current,
 	ast: state.ast
 });
-const mapDispatch = (dispatch) => bindActionCreators(
-	{navigate}, dispatch);
-export default connect(selector, mapDispatch)(App);
+const mapDispatch = (dispatch) => bindActionCreators({navigate}, dispatch);
+const MainContainer = connect(selector, mapDispatch)(Main);
+
+export default MainContainer;
+export { Main, MainContainer };
