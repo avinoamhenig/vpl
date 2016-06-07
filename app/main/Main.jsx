@@ -34,7 +34,7 @@ const Main = compose(
 				return (
 					<li style={{ padding: 10 }} key={fnDef.name}>
 						<a
-							href={`/lambda/${fnDef.name}`}
+							href={`#/lambda/${fnDef.name}`}
 							key={fnDef.name}
 							style={{
 								fontSize: 26,

@@ -65,7 +65,9 @@ export const computeStyles = p => {
 
 	s.expression = [
 		s.level,
-		p.expansionLevel > 0 && p.level === 1 && s.expandedLevel,
+		(p.expansionLevel > 0 && p.level === 1
+			&& p.expandedExpIds[p.expansionLevel - 1] === p.expr.id) ?
+				s.expandedLevel : null,
 		noSelect
 	];
 

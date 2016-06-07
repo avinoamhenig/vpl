@@ -2,30 +2,70 @@ import React from 'react'
 import name from 'lib/name'
 import sp from 'lib/stopPropagation'
 import Radium from 'radium'
-import { exprToPieces } from 'ast'
+import { exprToPieces, getLambdaByName } from 'ast'
 import { compose } from 'redux'
+import { connect } from 'lib/connect-cancel'
 import { computeStyles, computePieceStyles } from './styles'
+import LambdaView from 'lambda-view'
 
 const ExpressionView = compose(
 	name('ExpressionView'), Radium
 )(p => {
+	const s = computeStyles(p);
+	const expr = p.expr;
+
+	if (expr.syntaxTag === 'function_def') {
+		return (
+			<div style={s.expandedContainer}>
+				<div style={s.expression}>
+					<LambdaView
+						lambda={expr}
+						hideButtons={true}
+						expansionLevel={p.expansionLevel} />
+				</div>
+			</div>
+		);
+	}
+
 	let expandedMarkup = null;
 	const
-		pieces = exprToPieces(p.expr, p.ignoreInfix),
-		s = computeStyles(p),
+		pieces = exprToPieces(expr, p.ignoreInfix),
 
 		piecesMarkup = pieces.map((piece, i) => {
 			const pieceStyles = computePieceStyles(p, piece, i);
+			let hasExpansion = false;
 
 			if (piece.isSimple) {
+				let expandableFn = false;
+				let fn = false;
+				if (piece.isFn) {
+					fn = getLambdaByName(piece.string, p.ast);
+					if (fn) { expandableFn = true; }
+					if (fn && p.expandedExpIds[p.expansionLevel] === fn.id) {
+						expandedMarkup = (
+							<ExpressionView {...p}
+								key={`expand_${piece.id}`}
+								expr={fn}
+								level={1} notFirst={false}
+								expansionLevel={p.expansionLevel + 1}
+								/>
+						);
+						hasExpansion = true;
+					}
+				}
+
 				return (
 					<span
 						key={piece.id}
 						style={[pieceStyles]}
-						onClick={piece.isFn ?
-							  sp(p.onFunctionClicked, piece.exp, p.expansionLevel)
-							: sp(p.onExpClicked, piece.exp, p.expansionLevel)}>
+						onClick={expandableFn ?
+							  sp(p.onCollapsedExpClicked, fn, p.expansionLevel)
+							: sp(p.onExpClicked, piece.exp, p.expansionLevel)
+						}>
 						{piece.string}
+						{hasExpansion && (
+							<div style={s.arrowContainer}><div style={s.arrow}></div></div>
+						)}
 					</span>
 				);
 			}
@@ -39,15 +79,18 @@ const ExpressionView = compose(
 							expansionLevel={p.expansionLevel + 1}
 							/>
 					);
+					hasExpansion = true;
 				}
+
 				return (
 					<span
 						key={piece.id}
 						style={[pieceStyles]}
 						onClick={sp(p.onCollapsedExpClicked, piece, p.expansionLevel)}>
 						{'...'}
-						{piece.id === p.expandedExpIds[p.expansionLevel] && (
-							<div style={s.arrowContainer}><div style={s.arrow}></div></div>)}
+						{hasExpansion && (
+							<div style={s.arrowContainer}><div style={s.arrow}></div></div>
+						)}
 					</span>
 				);
 			}
@@ -65,18 +108,17 @@ const ExpressionView = compose(
 		markup = (
 			<div
 				style={s.expression}
-				onClick={sp(p.onExpClicked, p.expr, p.expansionLevel)}>
+				onClick={sp(p.onExpClicked, expr, p.expansionLevel)}>
 				{ p.level > p.nestingLimit ? '...' : piecesMarkup }
 				{ expandedMarkup }
 			</div>
 		);
 
-	if (p.expansionLevel > 0 && p.level === 1) {
+	if (p.expansionLevel > 0 && p.level === 1
+		&& p.expandedExpIds[p.expansionLevel - 1] === expr.id) {
 		return (
-			<div>
-				<div style={s.expandedContainer}>
-					{markup}
-				</div>
+			<div style={s.expandedContainer}>
+				{markup}
 			</div>
 		);
 	}
@@ -84,4 +126,7 @@ const ExpressionView = compose(
 	return markup;
 });
 
-export default ExpressionView;
+const mapStateToProps = state => ({
+	ast: state.ast
+});
+export default connect(mapStateToProps)(ExpressionView);

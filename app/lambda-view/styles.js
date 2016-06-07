@@ -61,6 +61,8 @@ export default p => {
 
 	s.lambdaIcon = { 'color': '#bbb' },
 
+	s.openLambda = s.nestingBtn,
+
 	s.arg = { 'color': colors.identifier };
 
 	return s;
