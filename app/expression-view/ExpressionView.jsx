@@ -59,7 +59,8 @@ const ExpressionView = compose(
 						key={piece.id}
 						style={[pieceStyles]}
 						onClick={expandableFn ?
-							  sp(p.onCollapsedExpClicked, fn, p.expansionLevel)
+							  sp(p.onCollapsedExpClicked, { fn, expr: piece.exp },
+								   p.expansionLevel)
 							: sp(p.onExpClicked, piece.exp, p.expansionLevel)
 						}>
 						{piece.string}

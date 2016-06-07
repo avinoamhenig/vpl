@@ -37,31 +37,20 @@ export default createReducer({
 		expandedExpIds: []
 	}),
 
-	[a.expandExp]: (state, payload) => ({
-			...state,
-			expandedExpIds: [
-				...state.expandedExpIds.slice(0, payload.expansionLevel),
-				payload.expr.id
-			],
-			selectedExpId: payload.expr.id
-	}),
-	[a.collapseExp]: (state, payload) => ({
-			...state,
-			expandedExpIds: state.expandedExpIds.slice(0, payload),
-			selectedExpId: null
-	}),
 	[a.toggleExpansion]: (state, payload) => {
+		const expanded = payload.expr.fn || payload.expr;
+		const selected = payload.expr.fn ? payload.expr.expr : payload.expr;
 		const shouldCollapse =
 			state.expandedExpIds.length > payload.expansionLevel && state.expandedExpIds[payload.expansionLevel] ===
-				payload.expr.id
+				expanded.id;
 		return {
 			...state,
-			selectedExpId: shouldCollapse ? null : payload.expr.id,
+			selectedExpId: shouldCollapse ? null : selected.id,
 			expandedExpIds: shouldCollapse ?
 				  state.expandedExpIds.slice(0, payload.expansionLevel)
 				: [
 					...state.expandedExpIds.slice(0, payload.expansionLevel),
-					payload.expr.id
+					expanded.id
 				]
 		};
 	},
