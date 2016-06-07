@@ -1,6 +1,6 @@
 import React from 'react'
 import { bindActionCreators, compose } from 'redux'
-import { connect } from 'react-redux'
+import { connect, cancel } from 'lib/connect-cancel'
 import { match } from 'lib/route-reducer'
 import routes from 'routes'
 import LambdaView from './LambdaView'
@@ -10,9 +10,7 @@ import helmet from 'lib/helmetDecorator'
 
 const lambdaInfoSel = state => {
 	let routeMatch = match(routes.desc, routes.LAMBDA, state.route.current);
-	if (!routeMatch) {
-		routeMatch = match(routes.desc, routes.LAMBDA, state.route.previous);
-	}
+	if (!routeMatch) { cancel(); }
 	const lambda = getLambdaByName(routeMatch.params.id, state.ast);
 	return {
 		lambda,
