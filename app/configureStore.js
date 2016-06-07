@@ -1,13 +1,13 @@
 import { applyMiddleware, createStore, compose } from 'redux'
 import { navigate } from 'lib/route-reducer'
-import rootReducer from 'reducers/root'
+import rootReducer from 'rootReducer'
 
 export default (initialState, routeMiddleware, initialUrl) => {
 	let storeEnhancers;
 	if (__DEV__) {
 		storeEnhancers = [
 			applyMiddleware(routeMiddleware),
-			require('containers/DevTools').default.instrument()
+			require('lib/DevTools').default.instrument()
 		];
 	} else {
 		storeEnhancers = [
@@ -24,8 +24,8 @@ export default (initialState, routeMiddleware, initialUrl) => {
 	}
 
 	if (module.hot) {
-		module.hot.accept('reducers/root', () => {
-			store.replaceReducer(require('reducers/root').default)
+		module.hot.accept('rootReducer', () => {
+			store.replaceReducer(require('rootReducer').default)
 		});
 	}
 

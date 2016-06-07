@@ -1,8 +1,10 @@
-export default function getAstDepth(ast) {
+// TODO cache ast derived data?
+
+const getAstDepth = ast => {
 	if (Array.isArray(ast)) {
-		return 1 + ast.map(getAstDepth).reduce(Math.max);
+		return ast.map(getAstDepth).reduce(Math.max);
 	} else if (ast.syntaxTag === 'function_def') {
-		return 1 + getAstDepth(ast.body);
+		return getAstDepth(ast.body);
 	} else if (ast.syntaxTag === 'expression') {
 		if (ast.tag === 'case') {
 			return 1 + Math.max(
@@ -19,3 +21,5 @@ export default function getAstDepth(ast) {
 		return 1 + getAstDepth(ast.exp);
 	}
 };
+
+export default getAstDepth;

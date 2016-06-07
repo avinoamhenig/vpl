@@ -1,10 +1,9 @@
 import React from 'react'
 import { render } from 'react-dom'
-import Root from 'containers/Root'
+import Root from 'Root'
 import { Provider } from 'react-redux'
 import configureStore from 'configureStore'
-import routeMiddleware from
-	'lib/route-reducer/middleware/hash'
+import routeMiddleware from 'lib/route-reducer/middleware/hash'
 
 if (module.hot) {
 	module.hot.accept();
