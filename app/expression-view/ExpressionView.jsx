@@ -71,18 +71,18 @@ const ExpressionView = compose(
 				);
 			}
 
-			if (p.level >= p.nestingLimit) {
-				if (piece.id === p.expandedExpIds[p.expansionLevel]) {
-					expandedMarkup = (
-						<ExpressionView {...p}
-							key={`expand_${piece.id}`}
-							expr={piece} level={1} notFirst={false}
-							expansionLevel={p.expansionLevel + 1}
-							/>
-					);
-					hasExpansion = true;
-				}
+			if (piece.id === p.expandedExpIds[p.expansionLevel]) {
+				expandedMarkup = (
+					<ExpressionView {...p}
+						key={`expand_${piece.id}`}
+						expr={piece} level={1} notFirst={false}
+						expansionLevel={p.expansionLevel + 1}
+						/>
+				);
+				hasExpansion = true;
+			}
 
+			if (p.level >= p.nestingLimit) {
 				return (
 					<span
 						key={piece.id}
@@ -97,12 +97,17 @@ const ExpressionView = compose(
 			}
 
 			return (
-				<ExpressionView {...p}
-					key={piece.id}
-					expr={piece}
-					level={p.level + 1}
-					notFirst={i > 0}
-					/>
+				<span>
+					<ExpressionView {...p}
+						key={piece.id}
+						expr={piece}
+						level={p.level + 1}
+						notFirst={i > 0}
+						/>
+					{hasExpansion && (
+						<div style={s.arrowContainer}><div style={s.arrow}></div></div>
+					)}
+				</span>
 			);
 		}),
 

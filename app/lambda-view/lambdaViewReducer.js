@@ -29,8 +29,7 @@ export default createReducer({
 	}),
 	[a.incNestingLimit]: (state, payload) => ({
 		...state,
-		nestingLimit: state.nestingLimit + 1,
-		expandedExpIds: []
+		nestingLimit: state.nestingLimit + 1
 	}),
 	[a.decNestingLimit]: (state, payload) => ({
 		...state,
