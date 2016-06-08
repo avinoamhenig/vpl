@@ -36,7 +36,10 @@ app.use('/public', express.static(buildDir + '/public'));
 app.use(function (req, res) {
 	if (process.argv.indexOf('--server-render') === -1) {
 		// bypass server render
-		res.send('<div id="app"></div><script src="/public/js/client.js"></script>');
+		res.send(`
+			<div id="app"></div>
+			<script src="/public/js/client.js"></script>
+		`);
 		return;
 	}
 

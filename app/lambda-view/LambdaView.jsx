@@ -33,8 +33,7 @@ export default compose(
 							key="incrementNestingBtn"
 							style={s.incNesting}
 							className="fa fa-plus"
-							onClick={() => p.nestingLimit !== p.nestedDepth
-								&& p.incNestingLimit()}></div>
+							onClick={() => p.incNestingLimit()}></div>
 						<div
 							key="decrementNestingBtn"
 							style={s.decNesting}

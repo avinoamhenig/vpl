@@ -20,8 +20,7 @@ const lambdaInfoSel = (state, props) => {
 	if (!routeMatch) { cancel(); }
 	const lambda = getLambdaByName(routeMatch.params.id, state.ast);
 	return {
-		lambda,
-		nestedDepth: getAstDepth(lambda)
+		lambda
 	};
 };
 const mapStateToProps = (state, props) => ({
