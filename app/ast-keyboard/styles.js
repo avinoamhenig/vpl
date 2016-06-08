@@ -3,7 +3,8 @@ export default props => ({
 		width: '100%',
 		position: 'fixed',
 		bottom: 0,
-		height: 200,
-		background: '#eee'
+		background: '#eee',
+		display: 'flex',
+		flexWrap: 'wrap'
 	}
 });
