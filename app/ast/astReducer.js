@@ -18,7 +18,12 @@ a.replaceSelectedExp = exp => (dispatch, getState) => {
 export const actions = a;
 export default createReducer({
 	[a.replaceExp]: (state, { exp, replaceId }) => {
-		const replaced = replaceExpById(state, exp, replaceId);
-		return replaced;
+		try {
+			const replaced = replaceExpById(state, exp, replaceId);
+			return replaced;
+		} catch (e) {
+			console.error(e);
+			return state;
+		}
 	}
 }, initialState);

@@ -1,5 +1,11 @@
 export default function replaceExpById(ast, exp, replaceId) {
 	if (ast.id === replaceId) {
+		if (ast.syntaxTag !== 'expression'
+		|| exp.syntaxTag !== 'expression') {
+			throw new Error(
+				`Cannot replace ${ast.syntaxTag} with ${exp.syntaxTag}`
+			);
+		}
 		return exp;
 	}
 

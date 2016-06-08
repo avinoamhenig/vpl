@@ -97,9 +97,8 @@ const ExpressionView = compose(
 			}
 
 			return (
-				<span>
+				<span key={piece.id}>
 					<ExpressionView {...p}
-						key={piece.id}
 						expr={piece}
 						level={p.level + 1}
 						notFirst={i > 0}

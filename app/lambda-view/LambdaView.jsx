@@ -4,7 +4,6 @@ import Radium from 'radium'
 import { compose } from 'redux'
 import computeStyles from './styles'
 import ExpressionView from 'expression-view'
-import AstKeyboard from 'ast-keyboard'
 
 export default compose(
 	name('LambdaView'), Radium
@@ -13,7 +12,6 @@ export default compose(
 
 	return (
 		<div>
-			<AstKeyboard />
 			<div className="lambda_header" style={s.header}>
 				<div style={s.title}>
 					<span style={s.lambdaIcon}>&lambda;</span>

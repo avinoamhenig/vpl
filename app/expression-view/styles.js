@@ -76,6 +76,9 @@ export const computeStyles = p => {
 
 export const computePieceStyles = (props, piece, i) => ({
 	paddingLeft: i === 0 ? 3 : 10,
-	color: !piece.isBlock && piece.id === props.selectedExpId ?
-		colors.selectedExp : '#000'
+	color: (
+			!piece.isBlock &&
+			piece.id !== props.expr.id &&
+			piece.id === props.selectedExpId
+		) ? colors.selectedExp : '#000'
 });
