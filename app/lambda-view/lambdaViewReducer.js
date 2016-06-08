@@ -1,5 +1,6 @@
 import { createAction as cA, createReducer } from 'redux-act'
 import m from 'lib/mapParamsToObject'
+import { actions as astActions } from 'ast'
 
 export const actions = {
 	selectExp: cA('SELECT_EXP', m('expr', 'expansionLevel')),
@@ -56,7 +57,15 @@ export default createReducer({
 	},
 	[a.toggleInfix]: state => ({
 		...state, ignoreInfix: !state.ignoreInfix
-	})
+	}),
+
+	[astActions.replaceExp]: (state, { exp, replaceId }) => {
+		if (replaceId === state.selectedExpId) {
+			return { ...state, selectedExpId: exp.id };
+		}
+
+		return state;
+	}
 }, {
 	selectedExpId: null,
 	expandedExpIds: [],
