@@ -1,4 +1,5 @@
 import json
+import re
 
 class SchemetoJSON:
 
@@ -13,7 +14,6 @@ class SchemetoJSON:
         if token == "(":
             if self.peekNextToken() == "define":
                 self.getNextToken() #define
- #               name = self.parse()
                 name = self.getNextToken()
                 assert (self.getNextToken() == '(')
                 assert (self.getNextToken() == 'lambda')
@@ -38,26 +38,46 @@ class SchemetoJSON:
                 cases = []
                 while (self.peekNextToken() != ")"):
                     cases.append(self.parse())
-                self.getNextToken() ##
+                self.getNextToken()
                 elseExp = cases[-1]
                 cases = cases[:-1]
                 return Case(cases, elseExp).__dict__
-                
-            else: #the only cases left are id or call
-                #can never be an id after a parentheses (immediately after)
-                #unless it's an argument but that goes in the lambda case
+            elif self.peekNextToken() == "let":
+                self.getNextToken() #let
+                assert (self.getNextToken() == '(')
+                bindings = []
+                while (self.peekNextToken() != ")"):
+                    assert (self.getNextToken() == '(')
+                    name = self.getNextToken()
+                    value = self.parse()
+                    bindings.append(Let_Binding(name, value).__dict__)
+                    self.getNextToken()
+                self.getNextToken()
+                body = self.parse()
+                return Let(body, bindings).__dict__
+            else:
                 function = self.parse()
                 argVals = []
-                while (self.peekNextToken() != ")"):
+                while (self.peekNextToken() != ")"): #doesn't handle lists w/i lists
                     argVals.append(self.parse())
-                self.getNextToken() ##
+                self.getNextToken()
                 return Call(function, argVals).__dict__
-                
+        elif (token == "'"):
+            ls = []
+            self.getNextToken()
+            while (self.peekNextToken() != ")"):
+                ls.append(self.parse())
+            self.getNextToken()
+            return List(ls).__dict__
         elif isNumber(token):
             return Number(token).__dict__
         else:
             return Identifier(token).__dict__
 
+    def defLetExps(self, other):
+        bindings = []
+        return bindings
+        
     def getNextToken(self):
         self.index += 1
         return self.tokens[self.index-1]
@@ -69,16 +89,6 @@ class SchemetoJSON:
         return self.tokens[n]
 
 
-import re
-
-COMMENT_SYMBOL = ';'
-
-def tokenize(expression):
-    exp = re.sub('([,()])', r' \1 ', expression)
-    tokens = exp.split()
-    return tokens
-
-
 class JSONtoScheme:
 
     def __init__(self, exp):
@@ -87,14 +97,19 @@ class JSONtoScheme:
 
     def parse(self, d):
         if ('tag' in d):
-            if (d['tag'] == 'number'):
+            tag = d['tag']
+            if (tag == 'number'):
                 return eval(d['val'])
-            elif (d['tag'] == 'identifier'):
+            elif (tag== 'identifier'):
                 return d['name']
-            elif (d['tag'] == 'case'):
+            elif (tag == 'case'):
                 return self.setupCond(d)
-            elif (d['tag'] == 'call'):
+            elif (tag == 'call'):
                 return self.setupCall(d)
+            elif (tag == 'list'):
+                return self.setupList(d)
+            elif (tag == 'let'):
+                return self.setupLet(d)
         elif ('condition' in d):
             condition = self.parse(d['condition'])
             expression = self.parse(d['exp'])
@@ -118,15 +133,33 @@ class JSONtoScheme:
             argVals.append(self.parse(exp))
         return [function] + argVals
 
-
     def setupFunctionDef(self, d):
         funDef = ['define']
-        funDef.append(self.parse(d['name']))
+        funDef.append(d['name'])
         lam = ['lambda', d['args']]
         body = self.parse(d['body'])
         lam += [body]
         funDef += [lam]
         return funDef
+
+    def setupList(self, d):
+        items = []
+        items.append("^") #to indicate that this is a list TODO: change
+        for i in d['list']:
+            items.append(self.parse(i))
+        return items
+
+    def setupLet(self, d):
+        let = ['let']
+        bindings = []
+        for binding in d['bindings']:
+            let_binding = []
+            let_binding.append(binding['name'])
+            let_binding.append(self.parse(binding['value']))
+            bindings.append(let_binding)
+        let.append(bindings)
+        let += [self.parse(d['body'])]
+        return let
             
             
     def toScheme(self):
@@ -142,11 +175,17 @@ class JSONtoScheme:
                 scheme += ")"
             elif (i == ","):
                 pass
+            elif (i == "^"):
+                scheme = scheme[:len(scheme)-1] + "'" + scheme[len(scheme)-1:]
             else:
                 scheme += i
         return scheme
     
-        
+#helpers
+def tokenize(expression):
+    exp = re.sub('([,()])', r' \1 ', expression)
+    tokens = exp.split()
+    return tokens
 
 
 def isNumber(n):
@@ -156,10 +195,10 @@ def isNumber(n):
     except ValueError:
         return False
 
-
+#Classes
 class Expression:
     def __init__(self):
-        self.val = 0
+        self.val = 0 #no reason
 
 class Function_Def(Expression):
     def __init__(self, name, args, body):
@@ -193,3 +232,20 @@ class Call(Expression):
         self.tag = "call"
         self.function = function
         self.argVals = argVals #list
+
+class List(Expression):
+    def __init__(self, ls):
+        self.tag = "list"
+        self.list = ls 
+
+class Let(Expression):
+    def __init__(self, body, bindings):
+        self.tag = "let"
+        self.body = body
+        self.bindings = bindings #list
+        
+class Let_Binding(Expression):
+    def __init__(self, binding_identifier, value):
+        self.name = binding_identifier
+        self.value = value
+    

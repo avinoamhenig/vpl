@@ -13,8 +13,9 @@ export default function getExpForId(id, ast) {
 				ast.cases.map(e => getExpForId(id, e)).filter(
 					ast => ast !== false)[0];
 		} else if (ast.tag === 'call') {
-			return ast.argVals.map(e => getExpForId(id, e)).filter(
-				ast => ast !== false)[0];
+			return getExpForId(ast.function) ||
+				ast.argVals.map(e => getExpForId(id, e)).filter(
+					ast => ast !== false)[0];
 		} else {
 			return false;
 		}

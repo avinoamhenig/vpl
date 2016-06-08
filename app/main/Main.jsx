@@ -7,6 +7,7 @@ import routes from 'routes'
 import name from 'lib/name'
 import LambdaView from 'lambda-view'
 import Radium from 'radium'
+import AstKeyboard from 'ast-keyboard'
 
 const Main = compose(
 	name('Main'), Radium,
@@ -28,7 +29,12 @@ const Main = compose(
 
 	switch (routeMatch.key) {
 		case routes.LAMBDA:
-			return (<LambdaView />);
+			return (
+				<div>
+					<LambdaView />
+					<AstKeyboard />
+				</div>
+			);
 		case routes.FN_LIST:
 			let listItems = ast.map(fnDef => {
 				return (
