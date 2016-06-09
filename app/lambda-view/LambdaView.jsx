@@ -11,7 +11,7 @@ export default compose(
 	const s = computeStyles(p);
 
 	return (
-		<div>
+		<div style={s.container}>
 			<div className="lambda_header" style={s.header}>
 				<div style={s.title}>
 					<span style={s.lambdaIcon}>&lambda;</span>
@@ -51,15 +51,17 @@ export default compose(
 						}}></div>
 				)}
 			</div>
-			<ExpressionView
-				expr={p.lambda.body}
-				level={1} expansionLevel={p.expansionLevel || 0}
-				selectedExpId={p.selectedExpId}
-				ignoreInfix={p.ignoreInfix}
-				expandedExpIds={p.expandedExpIds}
-				nestingLimit={p.nestingLimit}
-				onExpClicked={p.selectExp}
-				onCollapsedExpClicked={p.toggleExpansion} />
+			<div style={s.expressionContainer}>
+				<ExpressionView
+					expr={p.lambda.body}
+					level={1} expansionLevel={p.expansionLevel || 0}
+					selectedExpId={p.selectedExpId}
+					ignoreInfix={p.ignoreInfix}
+					expandedExpIds={p.expandedExpIds}
+					nestingLimit={p.nestingLimit}
+					onExpClicked={p.selectExp}
+					onCollapsedExpClicked={p.toggleExpansion} />
+			</div>
 		</div>
 	);
 });

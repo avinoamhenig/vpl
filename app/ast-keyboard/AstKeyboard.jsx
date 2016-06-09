@@ -5,6 +5,7 @@ import Radium from 'radium'
 import computeStyles from './styles'
 import KeyboardButton from './KeyboardButton'
 import ModalInput from './ModalInput'
+import Icon from 'lib/Icon'
 
 export default compose(
 	name('AstKeyboard'), Radium
@@ -15,7 +16,10 @@ export default compose(
 		<div>
 			{ p.showTextInput && (<ModalInput onDone={p.onTextEntered} />) }
 			<div style={s.container}>
-				{ p.buttons.map(({ display, value }) => (
+				<div style={s.toggleButton} onClick={p.onTogglePressed}>
+					<Icon icon={ p.hidden ? 'plus' : 'minus' } />
+				</div>
+				{ !p.hidden && p.buttons.map(({ display, value }) => (
 					<KeyboardButton
 						key={value}
 						onClick={() => p.onButtonPressed(value)}>

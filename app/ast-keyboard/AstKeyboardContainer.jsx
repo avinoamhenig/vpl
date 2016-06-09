@@ -41,6 +41,9 @@ const mapDispatchToProps = (dispatch, props) => ({
 		if (text === '') { return; }
 		const value = /^\d+$/.test(text) ? parseInt(text) : text;
 		dispatch(astActions.replaceSelectedExp(createExpression(value)));
+	},
+	onTogglePressed() {
+		dispatch(actions.toggleKeyboard());
 	}
 });
 

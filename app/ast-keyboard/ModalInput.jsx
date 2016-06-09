@@ -8,17 +8,27 @@ import computeStyles from './modalInputStyles'
 export default class ModalInput extends React.Component {
 	render() {
 		const s = computeStyles(this.props);
+		const doneHandler = () => this.props.onDone(this.refs.input.value);
+		const keyPressHandler = e => {
+			if (e.which === 13) {
+				doneHandler();
+			}
+		};
 
 		return (
 			<div style={s.container}>
 				<input
 					type="text"
+					autoCapitalize="off" autoComplete="off"
+					autoCorrect="off" spellCheck="false"
 					style={s.input}
 					focused={true}
-					ref="input" />
+					onKeyPress={keyPressHandler}
+					ref="input"
+					/>
 				<button
 					style={s.button}
-					onClick={() => this.props.onDone(this.refs.input.value)}
+					onClick={doneHandler}
 					>
 					Done
 				</button>

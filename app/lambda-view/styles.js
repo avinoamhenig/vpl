@@ -3,13 +3,26 @@ import { colors } from 'styles';
 export default p => {
 	let s = {};
 
+	s.container = {
+		display: 'flex',
+		flexDirection: 'column',
+		position: 'absolute',
+		width: '100%', height: '100%'
+	};
+
 	s.header = {
 		fontFamily: 'sans-serif',
 		color: '#666',
 		fontSize: '17px',
 		borderBottom: '1px dashed #ddd',
-		marginBottom: 5,
-		lineHeight: '35px'
+		marginBottom: 0,
+		lineHeight: '35px',
+		flex: '0 0 auto'
+	};
+
+	s.expressionContainer = {
+		flex: '1 1 0',
+		overflow: 'auto'
 	};
 
 	s.title = {

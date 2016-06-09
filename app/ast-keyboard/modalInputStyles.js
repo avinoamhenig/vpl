@@ -8,10 +8,11 @@ export default p => ({
 	input: {
 		borderTop: 'none', borderLeft: 'none', borderRight: 'none',
 		borderBottom: '1px solid white',
+		borderRadius: 0,
 		background: 'transparent',
 		width: '90%',
 		marginLeft: '5%',
-		marginTop: '20%',
+		marginTop: 40,
 		marginBottom: 30,
 		fontSize: 40,
 		padding: 20,
