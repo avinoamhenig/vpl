@@ -1,6 +1,7 @@
 import { createAction as cA, createReducer } from 'redux-act'
 import m from 'lib/mapParamsToObject'
 import { actions as astActions } from 'ast'
+import * as routeActions from 'lib/route-reducer/action-types'
 
 export const actions = {
 	selectExp: cA('SELECT_EXP', m('expr', 'expansionLevel')),
@@ -64,7 +65,12 @@ export default createReducer({
 		}
 
 		return state;
-	}
+	},
+
+	[routeActions.NAVIGATE]: state => ({
+		...state,
+		expandedExpIds: []
+	})
 }, {
 	selectedExpId: null,
 	expandedExpIds: [],
