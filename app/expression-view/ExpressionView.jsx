@@ -16,7 +16,7 @@ const ExpressionView = compose(
 
 	if (expr.syntaxTag === 'function_def') {
 		return (
-			<div style={s.expandedContainer}>
+			<div style={s.expandedContainer} className="expandedContainer">
 				<div style={s.expression}>
 					<LambdaView
 						lambda={expr}
@@ -122,7 +122,7 @@ const ExpressionView = compose(
 	if (p.expansionLevel > 0 && p.level === 1
 		&& p.expandedExpIds[p.expansionLevel - 1] === expr.id) {
 		return (
-			<div style={s.expandedContainer}>
+			<div style={s.expandedContainer} className="expandedContainer">
 				{markup}
 			</div>
 		);

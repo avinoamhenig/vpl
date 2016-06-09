@@ -6,8 +6,9 @@ export default p => {
 	s.container = {
 		display: 'flex',
 		flexDirection: 'column',
-		position: 'absolute',
-		width: '100%', height: '100%'
+		position: p.expansionLevel > 0 ? 'static' : 'absolute',
+		width: '100%', height: '100%',
+		overflow: 'hidden'
 	};
 
 	s.header = {
@@ -21,7 +22,8 @@ export default p => {
 	};
 
 	s.expressionContainer = {
-		flex: '1 1 0',
+		flex: p.expansionLevel > 0 ? '0 0 auto' : '1 1 0',
+		position: p.expansionLevel > 0 ? 'static' : 'relative',
 		overflow: 'auto'
 	};
 

@@ -43,7 +43,12 @@ const Main = compose(
 					}}><LambdaView /></div>
 					<div style={{
 							flex: '0 0 auto'
-					}}><AstKeyboard /></div>
+					}}>
+						<div style={{
+							position: 'relative',
+							zIndex: 100
+						}}><AstKeyboard /></div>
+					</div>
 				</div>
 			);
 		case routes.FN_LIST:

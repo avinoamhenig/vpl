@@ -75,7 +75,9 @@ export const computeStyles = p => {
 };
 
 export const computePieceStyles = (props, piece, i) => ({
-	paddingLeft: i === 0 ? 3 : 10,
+	// border: piece.isFn ? '1px dashed rgba(0,0,0,0.1)' : 'none',
+	// borderRadius: 5,
+	marginLeft: i === 0 ? 3 : 10,
 	color: (
 			!piece.isBlock &&
 			piece.id !== props.expr.id &&
