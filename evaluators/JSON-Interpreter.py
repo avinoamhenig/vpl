@@ -46,7 +46,7 @@ def evaluate(obj):
             if (function['name'] in builtInFuns):
                 arg1 = evaluate(argVals[0])
                 arg2 = evaluate(argVals[1])
-                index = builtInFuns.index(obj['function']['name'])
+                index = builtInFuns.index(function['name'])
                 return builtIn(arg1, arg2, index)
             else:
                 arguments = []

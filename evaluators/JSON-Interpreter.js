@@ -15,8 +15,13 @@ function loadJSON(json_fun_defs) {
 
 function main(forest, exp) {
   loadJSON(forest);
-  return evaluate(exp);
+  if (exp.args === undefined) {
+    return evaluate(exp);
+  } else {
+    return evaluate(exp.body);
+  }
 }
+
 
 function evaluate(d) {
   if('tag' in d) {
@@ -29,8 +34,7 @@ function evaluate(d) {
         return environment[environment.length-1][name];
       }
       else {
-        console.log("Undefined Identifier" + name);
-        return "Unidentified Identifier"
+        return "Unidentified Identifier: " + name;
       }
     } else if (tag === 'case') {
       var cases = d.cases;
@@ -39,7 +43,7 @@ function evaluate(d) {
         var condition = evaluate(case_exp.condition);
         if (condition) return evaluate(case_exp.exp);
       }
-      return evaluate(d.elseExp); //but what if the thing above returns?
+      return evaluate(d.elseExp);
     } else if (tag === 'call') {
       var fun = d.function;
       var argVals = d.argVals;
@@ -56,11 +60,15 @@ function evaluate(d) {
         }*/
         var args = argVals.map(function (arg) {return evaluate(arg);});
         if (functions.indexOf(fun.name) === -1) {
-          return "ERROR: function is undefined" //how to do this nicer
+          return "ERROR: function " + fun.name + " is undefined";
         }
         var called_fun = fun_def_dicts[functions.indexOf(fun.name)];
         var called_fun_args = called_fun.args;
         var new_env = {};
+        if (args.length != called_fun_args.length) {
+          return "ERROR: " + called_fun.name + " requires " + called_fun_args.length +
+          " arguments and was given " + args.length;
+        }
       /*  for (var i = 0; i < called_fun_args.length; i++) {
           new_env[called_fun_args[i]] = arguments[i];
         }*/
