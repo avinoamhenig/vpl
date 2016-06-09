@@ -64,7 +64,13 @@ export default class LambdaView extends React.Component {
 							expandedExpIds={p.expandedExpIds}
 							nestingLimit={p.nestingLimit}
 							onExpClicked={p.selectExp}
-							onCollapsedExpClicked={p.toggleExpansion} />
+							onCollapsedExpClicked={(exp, ...args) => {
+								if (!exp.fn || exp.fn.id !== p.lambda.id) {
+									p.toggleExpansion(exp, ...args);
+								} else {
+									p.selectExp(exp.expr, ...args);
+								}
+							}} />
 					</div>
 				</div>
 			</div>
