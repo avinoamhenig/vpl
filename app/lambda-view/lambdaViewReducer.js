@@ -68,6 +68,6 @@ export default createReducer({
 }, {
 	selectedExpId: null,
 	expandedExpIds: [],
-	nestingLimit: 3,
+	nestingLimit: 10,
 	ignoreInfix: false
 });

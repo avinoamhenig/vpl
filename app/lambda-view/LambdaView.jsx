@@ -72,25 +72,31 @@ export default class LambdaView extends React.Component {
 	}
 
 	componentDidMount() {
-		const container = $(this.refs.expressionScrollContainer);
+		if (this.props.expansionLevel === 0) {
+			const container = $(this.refs.expressionScrollContainer);
 
-		$(window).on('resize.popupContainerSizing', debounce(() => {
-			const containerTop = container.offset().top;
-			const lastPop = $('.expandedContainer').last();
-			if (lastPop.length > 0) {
-				const popBottom = lastPop.offset().top + lastPop.height();
-				container.height(popBottom - containerTop);
-			} else {
-				container.css('height', 'auto');
-			}
-		}, 100));
+			$(window).on('resize.popupContainerSizing', debounce(() => {
+				const containerTop = container.offset().top;
+				const lastPop = $('.expandedContainer').last();
+				if (lastPop.length > 0) {
+					const popBottom = lastPop.offset().top + lastPop.height();
+					container.height(popBottom - containerTop);
+				} else {
+					container.css('height', 'auto');
+				}
+			}, 100));
+		}
 	}
 
 	componentDidUpdate() {
-		$(window).trigger('resize.popupContainerSizing');
+		if (this.props.expansionLevel === 0) {
+			$(window).trigger('resize.popupContainerSizing');
+		}
 	}
 
 	componentWillUnmount() {
-		$(window).off('resize.popupContainerSizing');
+		if (this.props.expansionLevel === 0) {
+			$(window).off('resize.popupContainerSizing');
+		}
 	}
 };

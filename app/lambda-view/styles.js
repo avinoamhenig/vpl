@@ -24,7 +24,8 @@ export default p => {
 	s.expressionContainer = {
 		flex: p.expansionLevel > 0 ? '0 0 auto' : '1 1 0',
 		position: p.expansionLevel > 0 ? 'static' : 'relative',
-		overflow: 'auto'
+		overflow: 'auto',
+		WebkitOverflowScrolling: 'touch'
 	};
 
 	s.title = {
