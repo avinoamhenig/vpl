@@ -6,8 +6,9 @@ import getLambdaByName from './getLambdaByName';
 import processAst from './processAst';
 import simpleToString from './simpleToString';
 import createExpression from './createExpression';
+import getExpForId from './getExpForId';
 export {
 	astReducer, actions, exprToPieces, getAstDepth,
 	getLambdaByName, processAst, simpleToString,
-	createExpression
+	createExpression, getExpForId
 };

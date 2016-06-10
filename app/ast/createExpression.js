@@ -1,7 +1,7 @@
 import uuid from 'node-uuid';
 
 export default function createExpression(val = 0) {
-	if (val === '?') {
+	if (val === '__--case--__') {
 		return {
 			syntaxTag: 'expression',
 			tag: 'case',
@@ -25,6 +25,13 @@ export default function createExpression(val = 0) {
 			id: uuid.v4(),
 			function: createExpression('f'),
 			argVals: [createExpression()]
+		};
+	} else if (val === '__--case_exp--__') {
+		return {
+			syntaxTag: 'case_exp',
+			id: uuid.v4(),
+			condition: createExpression(),
+			exp: createExpression()
 		};
 	}
 

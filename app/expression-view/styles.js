@@ -74,11 +74,19 @@ export const computeStyles = p => {
 	return s;
 };
 
-export const computePieceStyles = (props, piece, i) => ({
-	paddingLeft: i === 0 ? 3 : 10,
-	color: (
-			!piece.isBlock &&
-			piece.id !== props.expr.id &&
-			piece.id === props.selectedExpId
-		) ? colors.selectedExp : '#000'
-});
+export const computePieceStyles = (props, piece, i) => {
+	const shouldHighlight = (
+		!piece.isBlock &&
+		piece.id !== props.expr.id &&
+		piece.id === props.selectedExpId
+	);
+
+	return {
+		borderBottom: piece.isFn ?
+			  shouldHighlight ? '1px dashed ' + colors.selectedExp
+				                : '1px dashed rgba(0,0,0,0.2)'
+			: 'none',
+		marginLeft: i === 0 ? 3 : 10,
+		color: shouldHighlight ? colors.selectedExp : '#000'
+	};
+};

@@ -30,9 +30,25 @@ const Main = compose(
 	switch (routeMatch.key) {
 		case routes.LAMBDA:
 			return (
-				<div>
-					<LambdaView />
-					<AstKeyboard />
+				<div style={{
+					display: 'flex',
+					flexDirection: 'column',
+					alignItems: 'stretch',
+					height: '100%'
+				}}>
+					<div style={{
+							minHeight: 0,
+							flex: '1 1 0',
+							position: 'relative'
+					}}><LambdaView /></div>
+					<div style={{
+							flex: '0 0 auto'
+					}}>
+						<div style={{
+							position: 'relative',
+							zIndex: 100
+						}}><AstKeyboard /></div>
+					</div>
 				</div>
 			);
 		case routes.FN_LIST:

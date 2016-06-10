@@ -6,13 +6,13 @@ export default p => ({
 		background: '#fff',
 		fontFamily: 'sans-serif',
 		fontSize: 22,
-		color: '#333',
-		borderRadius: 5,
+		color: '#777',
+		borderRadius: 2,
 		cursor: 'pointer',
 		flexGrow: 1,
-		margin: 5,
-		// maxWidth: 40,
+		margin: 2,
 		textAlign: 'center',
+		fontWeight: '600',
 
 		':hover': {
 			background: colors.selectedExp,
