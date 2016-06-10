@@ -33,6 +33,14 @@ export default function createExpression(val = 0) {
 			condition: createExpression(),
 			exp: createExpression()
 		};
+	} else if (val === '__--function_def--__') {
+		return {
+			syntaxTag: 'function_def',
+			id: uuid.v4(),
+			name: 'f',
+			args: ['x'],
+			body: createExpression()
+		};
 	}
 
 	switch (typeof val) {
