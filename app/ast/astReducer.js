@@ -4,6 +4,8 @@ import processAst from './processAst'
 import replaceExpById from './replaceExpById'
 import appendPieceToExp from './appendPieceToExp'
 import removeExp from './removeExp'
+import createExpression from './createExpression'
+import { navigate } from 'lib/route-reducer'
 
 import exampleFns from './examples/fns'
 const initialState = processAst(exampleFns);
@@ -29,6 +31,11 @@ a.removeSelectedExp = () => (dispatch, getState) => {
 	if (selectedExpId) {
 		dispatch(a.removeExp(selectedExpId));
 	}
+};
+a.addFunctionDef = cA('ADD_FUNCTION_DEF');
+a.newFunction = () => dispatch => {
+	const fn = createExpression('__--function_def--__');
+	dispatch(a.addFunctionDef(fn));
 };
 
 export const actions = a;
@@ -57,4 +64,5 @@ export default createReducer({
 			return state;
 		}
 	},
+	[a.addFunctionDef]: (state, fnDef) => [...state, fnDef]
 }, initialState);
