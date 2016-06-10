@@ -1,26 +1,60 @@
 import { colors } from 'styles'
 import { noSelect } from 'styles'
 
-export default props => ({
-	container: [{
+export default p => {
+	const s = {};
+
+	s.container = [{
 		width: '100%',
 		boxSizing: 'border-box',
 		padding: 2,
-		background: '#eee',
+		background: '#eee'
+	}, noSelect];
+
+	s.toolbar = {
+		overflow: 'hidden',
+		padding: '0 8px'
+	};
+
+	s.buttonContainer = {
 		display: 'flex',
-		flexWrap: 'wrap'
-	}, noSelect],
-	toggleButton: {
-		width: '100%',
-		padding: 6,
-		textAlign: 'center',
-		fontSize: 13,
+		flexWrap: 'wrap',
+		clear: 'both',
+		maxHeight: p.hidden ? 0 : '100%',
+		opacity: p.hidden ? 0 : 1,
+		overflow: 'hidden',
+		transition: 'opacity ease-in 0.2s, max-height ease-in-out 0.2s'
+	};
+
+	s.toolbarButton = {
+		padding: '8px 8px',
+		fontSize: 16,
 		fontFamily: 'sans-serif',
 		color: '#aaa',
 		cursor: 'pointer',
+		transition: 'visibility 0.2s, opacity 0.2s',
 
 		':hover': {
 			color: colors.selectedExp
 		}
-	}
-});
+	};
+
+	s.toggleButton = [s.toolbarButton, {
+		float: 'left',
+		visibility: 'visible',
+		opacity: 1
+	}];
+
+	s.rightButton = [s.toolbarButton, {
+		float: 'right'
+	}];
+
+	s.addBtn = [...s.rightButton, {
+		visibility: p.showAddBtn ? 'visible' : 'hidden',
+		opacity: p.showAddBtn ? 1 : 0
+	}];
+
+	s.rmBtn = s.rightButton;
+
+	return s;
+};

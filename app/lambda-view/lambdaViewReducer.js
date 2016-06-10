@@ -65,7 +65,12 @@ export default createReducer({
 		if (replaceId === state.selectedExpId) {
 			return { ...state, selectedExpId: exp.id };
 		}
-
+		return state;
+	},
+	[astActions.removeExp]: (state, expId) => {
+		if (expId === state.selectedExpId) {
+			return { ...state, selectedExpId: null };
+		}
 		return state;
 	},
 

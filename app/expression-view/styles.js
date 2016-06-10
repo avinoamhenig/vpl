@@ -84,7 +84,7 @@ export const computePieceStyles = (props, piece, i) => {
 	return {
 		borderBottom: piece.isFn ?
 			  shouldHighlight ? '1px dashed ' + colors.selectedExp
-				                : '1px dashed rgba(0,0,0,0.1)'
+				                : '1px dashed rgba(0,0,0,0.2)'
 			: 'none',
 		marginLeft: i === 0 ? 3 : 10,
 		color: shouldHighlight ? colors.selectedExp : '#000'

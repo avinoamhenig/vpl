@@ -4,29 +4,41 @@ import AstKeyboard from './AstKeyboard'
 import { actions as astActions, createExpression } from 'ast'
 import { actions } from './astKeyboardReducer'
 import Icon from 'lib/Icon'
+import { getExpForId } from 'ast'
 
-const mapStateToProps = state => ({
-	...state.astKeyboard,
-	ast: state.ast,
-	buttons: [
-		{ display: 0, value: 0 },
-		{ display: 1, value: 1 },
-		{ display: '+', value: '+' },
-		{ display: '-', value: '-' },
-		{ display: '*', value: '*' },
-		{ display: '/', value: '/' },
-		{ display: '%', value: '%' },
-		{ display: '=', value: '=' },
-		{ display: '≠', value: '!=' },
-		{ display: '<', value: '<' },
-		{ display: '≤', value: '<=' },
-		{ display: '>', value: '>' },
-		{ display: '≥', value: '>=' },
-		{ display: (<Icon icon="question" />), value: '?' },
-		{ display: 'fn()', value: '__--call--__' },
-		{ display: (<Icon icon="keyboard-o" />), value: '__--keybd--__' }
-	]
-});
+const mapStateToProps = state => {
+	let showAddBtn = false;
+	const selectedId = state.lambdaView.selectedExpId;
+	if (selectedId) {
+		const selectedExp = getExpForId(selectedId, state.ast);
+		showAddBtn = selectedExp.tag === 'call'
+		             || selectedExp.tag === 'case';
+	}
+
+	return {
+		...state.astKeyboard,
+		ast: state.ast,
+		showAddBtn,
+		buttons: [
+			{ display: 0, value: 0 },
+			{ display: 1, value: 1 },
+			{ display: '+', value: '+' },
+			{ display: '-', value: '-' },
+			{ display: '*', value: '*' },
+			{ display: '/', value: '/' },
+			{ display: '%', value: '%' },
+			{ display: '=', value: '=' },
+			{ display: '≠', value: '!=' },
+			{ display: '<', value: '<' },
+			{ display: '≤', value: '<=' },
+			{ display: '>', value: '>' },
+			{ display: '≥', value: '>=' },
+			{ display: (<Icon icon="question" />), value: '__--case--__' },
+			{ display: 'fn()', value: '__--call--__' },
+			{ display: (<Icon icon="keyboard-o" />), value: '__--keybd--__' }
+		]
+	};
+};
 
 const mapDispatchToProps = (dispatch, props) => ({
 	onButtonPressed(value) {
@@ -44,6 +56,12 @@ const mapDispatchToProps = (dispatch, props) => ({
 	},
 	onTogglePressed() {
 		dispatch(actions.toggleKeyboard());
+	},
+	onAddPressed() {
+		dispatch(astActions.appendPieceToSelectedExp());
+	},
+	onRemovePressed() {
+		dispatch(astActions.removeSelectedExp());
 	}
 });
 

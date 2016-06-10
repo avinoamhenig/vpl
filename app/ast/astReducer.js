@@ -2,6 +2,8 @@ import { createAction as cA, createReducer } from 'redux-act'
 import m from 'lib/mapParamsToObject'
 import processAst from './processAst'
 import replaceExpById from './replaceExpById'
+import appendPieceToExp from './appendPieceToExp'
+import removeExp from './removeExp'
 
 import exampleFns from './examples/fns'
 const initialState = processAst(exampleFns);
@@ -14,16 +16,45 @@ a.replaceSelectedExp = exp => (dispatch, getState) => {
 		dispatch(a.replaceExp(exp, selectedExpId));
 	}
 };
+a.appendPieceToExp = cA('APPEND_PIECE_TO_EXP');
+a.appendPieceToSelectedExp = () => (dispatch, getState) => {
+	const { selectedExpId } = getState().lambdaView;
+	if (selectedExpId) {
+		dispatch(a.appendPieceToExp(selectedExpId));
+	}
+};
+a.removeExp = cA('REMOVE_EXP');
+a.removeSelectedExp = () => (dispatch, getState) => {
+	const { selectedExpId } = getState().lambdaView;
+	if (selectedExpId) {
+		dispatch(a.removeExp(selectedExpId));
+	}
+};
 
 export const actions = a;
 export default createReducer({
 	[a.replaceExp]: (state, { exp, replaceId }) => {
 		try {
-			const replaced = replaceExpById(state, exp, replaceId);
-			return replaced;
+			return replaceExpById(state, exp, replaceId);
 		} catch (e) {
 			console.error(e);
 			return state;
 		}
-	}
+	},
+	[a.appendPieceToExp]: (state, expId) => {
+		try {
+			return appendPieceToExp(state, expId);
+		} catch (e) {
+			console.error(e);
+			return state;
+		}
+	},
+	[a.removeExp]: (state, expId) => {
+		try {
+			return removeExp(state, expId);
+		} catch (e) {
+			console.error(e);
+			return state;
+		}
+	},
 }, initialState);
