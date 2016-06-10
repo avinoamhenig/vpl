@@ -25,7 +25,7 @@ function loadJSON(json_fun_defs) {
   for (var i = 0; i < json_fun_defs.length; i++) {
     G.fun_def_dicts[i] = JSON.parse(json_fun_defs[i]);
   }
-  fs = G.fun_def_dicts.map(function (d) {
+  var fs = G.fun_def_dicts.map(function (d) {
     return d.name;
   })
   G.functions = fs.concat(G.functions);
@@ -46,16 +46,18 @@ function evaluateStep(exp, callback, uponFail) {
         callback(G.environment[G.environment.length-1][name]);
       } else if (tag === 'case') {
         var cases = exp.cases;
-        var case_exp = cases[0]; //
-        setTO(case_exp.condition, function (x) {
-          if (x) {
-            setTO(case_exp.exp, function (y) {
-              callback(y);}, uponFail);
+        eval_cond(cases, exp.elseExp, callback);
+        function eval_cond(exps, elseExp, callback) {
+          if (exps.length === 0) {
+            setTO(elseExp, callback, uponFail);
           } else {
-            setTO(exp.elseExp, function (z) {
-              callback(z);}, uponFail);
-          }
-        }, uponFail);
+            setTO(exps[0].condition, function (cond) {
+                    if (cond) setTO(exps[0].exp, callback, uponFail);
+                    else eval_cond(exps.slice(1, exps.length), elseExp, callback);
+                  },
+                  uponFail);
+            }
+        }
       } else if (tag === 'call') {
         var fun = exp.function;
         var argVals = exp.argVals;
@@ -64,8 +66,7 @@ function evaluateStep(exp, callback, uponFail) {
           setTO(argVals[0], function (x) {
             setTO(argVals[1], function (y) {
               callback(builtIn(x, y, builtInFuns.indexOf(fun.name)));
-            },
-            uponFail);
+            }, uponFail);
           }, uponFail);
         } else {
           var called_fun = G.fun_def_dicts[G.functions.indexOf(fun.name)];
@@ -75,7 +76,8 @@ function evaluateStep(exp, callback, uponFail) {
             n_e = extend(called_fun_args, binding_vals);
             G.environment.push(n_e);
             setTO(called_fun.body, function (b) {
-              callback(b); G.environment.pop();}, uponFail);
+              callback(b); G.environment.pop();
+            }, uponFail);
             });
           }
       } else if (tag === 'list') {
@@ -117,14 +119,11 @@ function eval_star(exps, callback) { //uponFail??
   if (exps.length === 0) {
     callback([]);
   } else {
-    setTO(exps[0],
-      function (x) {
-        eval_star(exps.slice(1, exps.length),
-                  function (y) {
+    setTO(exps[0], function (x) {
+        eval_star(exps.slice(1, exps.length), function (y) {
                     callback(y.concat(x)); //gives it to you in reverse order
                   });
-                }
-      , uponFail);
+                }, uponFail);
   }
 }
 
