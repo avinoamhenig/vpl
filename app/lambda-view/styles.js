@@ -86,6 +86,8 @@ export default p => {
 		display: 'inline',
 		marginLeft: 10,
 		color: 'green'
+	}, p.evalFailed && {
+		color: 'red'
 	}];
 
 	s.arg = { 'color': colors.identifier };
