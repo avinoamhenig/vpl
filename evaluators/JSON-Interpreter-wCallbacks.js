@@ -36,9 +36,7 @@ function setTO(e, callback, fail) {
 }
 
 function evaluateStep(exp, callback, uponFail) {
-  // console.log(uponFail);
   if (G.continue) {
-    console.log('Eval Step: ', exp);
     if ('tag' in exp) {
       var tag = exp.tag;
       if (tag === 'number') {
@@ -117,7 +115,7 @@ function extend(new_syms, new_vals) {
 
 
 //this will give you back a list of evaluated results
-function eval_star(exps, callback, uponFail) { //uponFail??
+function eval_star(exps, callback) { //uponFail??
   if (exps.length === 0) {
     callback([]);
   } else {

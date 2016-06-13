@@ -67,7 +67,7 @@ export default createReducer({
 		...state, evaluating: true, evalResult: '', evalFailed: false
 	}),
 	[a.setEvalResult]: (state, payload) => ({
-		...state, evalResult: payload, evaluating: false
+		...state, evalResult: JSON.stringify(payload), evaluating: false
 	}),
 	[a.evalFail]: (state) => ({
 		...state, evalResult: '', evaluating: false, evalFailed: true

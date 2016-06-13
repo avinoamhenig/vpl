@@ -8,7 +8,18 @@ import createExpression from './createExpression'
 import { navigate } from 'lib/route-reducer'
 
 import exampleFns from './examples/fns'
-const initialState = processAst(exampleFns);
+const STORAGE_KEY = 'vpl_ast_forest';
+const save = newState => {
+	window.localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+	return newState
+};
+let initialState = window.localStorage.getItem(STORAGE_KEY);
+if (initialState === null) {
+	initialState = processAst(exampleFns);
+	save(initialState);
+} else {
+	initialState = JSON.parse(initialState);
+}
 
 const a = {};
 a.replaceExp = cA('REPLACE_EXP', m('exp', 'replaceId'));
@@ -42,7 +53,7 @@ export const actions = a;
 export default createReducer({
 	[a.replaceExp]: (state, { exp, replaceId }) => {
 		try {
-			return replaceExpById(state, exp, replaceId);
+			return save(replaceExpById(state, exp, replaceId));
 		} catch (e) {
 			console.error(e);
 			return state;
@@ -50,7 +61,7 @@ export default createReducer({
 	},
 	[a.appendPieceToExp]: (state, expId) => {
 		try {
-			return appendPieceToExp(state, expId);
+			return save(appendPieceToExp(state, expId));
 		} catch (e) {
 			console.error(e);
 			return state;
@@ -58,11 +69,11 @@ export default createReducer({
 	},
 	[a.removeExp]: (state, expId) => {
 		try {
-			return removeExp(state, expId);
+			return save(removeExp(state, expId));
 		} catch (e) {
 			console.error(e);
 			return state;
 		}
 	},
-	[a.addFunctionDef]: (state, fnDef) => [...state, fnDef]
+	[a.addFunctionDef]: (state, fnDef) => save([...state, fnDef])
 }, initialState);
