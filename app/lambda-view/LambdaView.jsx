@@ -53,14 +53,20 @@ export default class LambdaView extends React.Component {
 									`fa fa-${p.evaluating ? 'stop' : 'play'}`}
 								onClick={(e) => {
 									e.stopPropagation();
-									p.startEval();
-									run(p.ast, val => {
-										p.setEvalResult(val)
-									}, () => {
-										p.setEvalResult('fail!');
-									});
+									if (p.evaluating) {
+										stop();
+									} else {
+										p.startEval();
+										run(p.ast, val => {
+											p.setEvalResult(val)
+										}, () => {
+											p.evalFail();
+										});
+									}
 								}}></div>
-							<div style={s.evalResult}>{p.evalResult}</div>
+							<div style={s.evalResult}>
+								{p.evalFailed ? 'Fail!' : p.evalResult }
+							</div>
 						</span>
 					)}
 					{ p.hideButtons && (

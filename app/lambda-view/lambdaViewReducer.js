@@ -12,7 +12,8 @@ export const actions = {
 	collapseExpansion: cA('COLLAPSE_EXPANSION'),
 	toggleExpansion: cA('TOGGLE_EXPANSION', m('expr', 'expansionLevel')),
 	toggleInfix: cA('TOGGLE_INFIX'),
-  startEval: cA('START_EVAL'),
+	startEval: cA('START_EVAL'),
+	evalFail: cA('EVAL_FAIL'),
 	setEvalResult: cA('SET_EVAL_RESULT')
 };
 
@@ -63,10 +64,13 @@ export default createReducer({
 		...state, ignoreInfix: !state.ignoreInfix
 	}),
 	[a.startEval]: state => ({
-		...state, evaluating: true, evalResult: ''
+		...state, evaluating: true, evalResult: '', evalFailed: false
 	}),
 	[a.setEvalResult]: (state, payload) => ({
 		...state, evalResult: payload, evaluating: false
+	}),
+	[a.evalFail]: (state) => ({
+		...state, evalResult: '', evaluating: false, evalFailed: true
 	}),
 
 	[astActions.replaceExp]: (state, { exp, replaceId }) => {
@@ -91,6 +95,7 @@ export default createReducer({
 	expandedExpIds: [],
 	nestingLimit: 10,
 	ignoreInfix: false,
-  evaluating: false,
-	evalResult: ''
+	evaluating: false,
+	evalResult: '',
+	evalFailed: false
 });
