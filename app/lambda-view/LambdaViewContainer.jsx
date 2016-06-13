@@ -7,7 +7,7 @@ import { actions } from './lambdaViewReducer'
 import helmet from 'lib/helmetDecorator'
 
 const mapStateToProps = (state, props) => ({
-	...state.lambdaView
+	...state.lambdaView, ast: state.ast
 });
 const mapDispatchToProps = (dispatch) => bindActionCreators({
 	...actions, navigate

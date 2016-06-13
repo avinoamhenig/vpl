@@ -6,6 +6,7 @@ import computeStyles from './styles'
 import ExpressionView from 'expression-view'
 import $ from 'jquery'
 import debounce from 'debounce'
+import { run, stop } from 'ast'
 
 @Radium
 export default class LambdaView extends React.Component {
@@ -42,6 +43,24 @@ export default class LambdaView extends React.Component {
 								onClick={() => p.nestingLimit > 0
 									&& p.decNestingLimit()}></div>
 								<span style={s.nestingInfo}>{`(${p.nestingLimit})`}</span>
+						</span>
+					)}
+					{ p.lambda.name === 'main' && (
+						<span>
+							<div
+								style={s.runBtn}
+								className={
+									`fa fa-${p.evaluating ? 'stop' : 'play'}`}
+								onClick={(e) => {
+									e.stopPropagation();
+									p.startEval();
+									run(p.ast, val => {
+										p.setEvalResult(val)
+									}, () => {
+										p.setEvalResult('fail!');
+									});
+								}}></div>
+							<div style={s.evalResult}>{p.evalResult}</div>
 						</span>
 					)}
 					{ p.hideButtons && (

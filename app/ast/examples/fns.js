@@ -1,4 +1,5 @@
 export default [
+	{	"name": "main", "args": [], "body": { "tag": "number", "val": 0 } },
 	{	"name": "sum",
 		"args": ["n"],
 		"body": {
@@ -18,7 +19,7 @@ export default [
 				"tag": "call",
 				"function": { "tag": "identifier", "name": "+" },
 				"argVals": [
-					{ "tag": "number", "val": 1 },
+					{ "tag": "identifier", "name": "n" },
 					{	"tag": "call",
 						"function": { "tag": "identifier", "name": "sum" },
 						"argVals": [{

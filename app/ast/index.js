@@ -7,8 +7,10 @@ import processAst from './processAst';
 import simpleToString from './simpleToString';
 import createExpression from './createExpression';
 import getExpForId from './getExpForId';
+import { run, stop } from './run';
 export {
 	astReducer, actions, exprToPieces, getAstDepth,
 	getLambdaByName, processAst, simpleToString,
-	createExpression, getExpForId
+	createExpression, getExpForId,
+	run, stop
 };
