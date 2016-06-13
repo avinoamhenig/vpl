@@ -76,6 +76,18 @@ export default p => {
 
 	s.openLambda = s.nestingBtn;
 
+	s.runBtn = [s.nestingBtn, {
+		float: 'none',
+		marginLeft: 10
+	}];
+
+	s.evalResult = [s.nestingInfo, {
+		float: 'none',
+		display: 'inline',
+		marginLeft: 10,
+		color: 'green'
+	}];
+
 	s.arg = { 'color': colors.identifier };
 
 	return s;

@@ -73,7 +73,7 @@ function evaluateStep(exp, callback, uponFail) {
           var called_fun_args = called_fun.args; //binding_names
           eval_star(argVals, function (binding_vals) {
             binding_vals = binding_vals.reverse();
-            n_e = extend(called_fun_args, binding_vals);
+            var n_e = extend(called_fun_args, binding_vals);
             G.environment.push(n_e);
             setTO(called_fun.body, function (b) {
               callback(b); G.environment.pop();
@@ -106,7 +106,7 @@ function evaluateStep(exp, callback, uponFail) {
 }
 
 function extend(new_syms, new_vals) {
-  new_env = {};
+  var new_env = {};
   for (var i = 0; i < new_syms.length; i++) {
     new_env[new_syms[i]] = new_vals[i];
   }
