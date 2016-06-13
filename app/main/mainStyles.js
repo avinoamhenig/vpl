@@ -5,7 +5,7 @@ export default props => {
 		display: 'flex',
 		flexDirection: 'column',
 		alignItems: 'stretch',
-		height: '100%'
+		height: '100vh'
 	};
 
 	s.lambdaContainer = {
