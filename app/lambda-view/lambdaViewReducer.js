@@ -1,6 +1,6 @@
 import { createAction as cA, createReducer } from 'redux-act'
 import m from 'lib/mapParamsToObject'
-import { actions as astActions } from 'ast'
+import { actions as astActions } from 'oldast'
 import * as routeActions from 'lib/route-reducer/action-types'
 
 export const actions = {

@@ -6,7 +6,7 @@ import computeStyles from './styles'
 import ExpressionView from 'expression-view'
 import $ from 'jquery'
 import debounce from 'debounce'
-import { run, stop } from 'ast'
+import { run, stop } from 'oldast'
 
 @Radium
 export default class LambdaView extends React.Component {
