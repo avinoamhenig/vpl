@@ -1,12 +1,7 @@
 import uuid from 'node-uuid';
-import { astType, nodeType, expressionType } from './typeNames'
-
-function _assertEq (actual, expected, msg) {
-	msg = msg || `Expected ${expected}, found ${actual}.`;
-	if (actual !== expected) {
-		throw msg;
-	}
-}
+import assert from 'assert';
+import { astType, nodeType, expressionType } from './typeNames';
+import { rootNode } from './accessors';
 
 function _createNode (nodeType, props) {
 	return Object.assign({
@@ -25,31 +20,32 @@ function _createExpression (expressionType, props) {
 }
 
 function _createProgramFragment (rootNode, ...frags) {
-	const nodes = Object.assign({}, ...frags.map(frag => frag.nodes));
-	const identifiers =  Object.assign({}, ...frags.map(frag => frag.identifiers));
+	const nodes = Object.assign({},
+		...frags.map(frag => frag.nodes));
+	const identifiers =  Object.assign({},
+		...frags.map(frag => frag.identifiers));
+
+	nodes[rootNode.id] = rootNode;
 
 	return {
 		astType: astType.PROGRAM_FRAGMENT,
-		rootNode: rootNode,
+		rootNode: rootNode.id,
 		nodes, identifiers
 	};
 }
 
-export function attachIdentifiersToFragment (programFragment, identifiers) {
-	const fragCopy = Object.assign({}, programFragment);
+function _attachIdentifiersToFragment (programFragment, identifiers) {
+	const fragCopy = { ...programFragment };
 	for (const identifier of identifiers) {
-		fragCopy[identifier.id] = identifier;
+		fragCopy.identifiers[identifier.id] = identifier;
 	}
 	return fragCopy;
 }
 
 // ProgramFragment -> Program
 export function createProgram (programFragment) {
-	_assertEq(programFragment.astType, astType.PROGRAM_FRAGMENT);
-
-	const rootNode = programFragment.nodes[programFragment.rootNode];
-	_assertEq(rootNode.nodeType, nodeType.EXPRESSION,
-		`Cannot create a program with root of type ${rootNode.nodeType }`);
+	assert.strictEqual(programFragment.astType, astType.PROGRAM_FRAGMENT);
+	assert.strictEqual(rootNode(programFragment).nodeType, nodeType.EXPRESSION);
 
 	return {
 		astType: astType.PROGRAM,
@@ -60,21 +56,18 @@ export function createProgram (programFragment) {
 }
 
 // Maybe String, Maybe Uid Node, Maybe Uid Expression -> Identifier
-export function createIdentifier (
-		displayName = null,
-		scope = null,
-		value = null
-	) {
+export function createIdentifier (name = null, scope = null, value = null) {
 	return {
 		astType: astType.IDENTIFIER,
 		id: uuid.v4(),
-		displayName, scope, value
+		displayName: name,
+		scope, value
 	};
 }
 
 // Number -> ProgramFragment
 export function createNumberExpression (value = 0) {
-	_assertEq(typeof value, 'number');
+	assert.strictEqual(typeof value, 'number');
 
 	return _createProgramFragment(
 		_createExpression(expressionType.NUMBER, { value })
@@ -83,9 +76,9 @@ export function createNumberExpression (value = 0) {
 
 // Identifier -> ProgramFragment
 export function createIdentifierExpression (identifier) {
-	_assertEq(identifier.astType, astType.IDENTIFIER);
+	assert.strictEqual(identifier.astType, astType.IDENTIFIER);
 
-	return attachIdentifiersToFragment(
+	return _attachIdentifiersToFragment(
 		_createProgramFragment(_createExpression(expressionType.IDENTIFIER, {
 			identifier: identifier.id
 		})),
@@ -97,13 +90,13 @@ export function createIdentifierExpression (identifier) {
 // This function copies all the Identifiers (preserving their uid's) and
 // sets their scope to the LambdaExpression before attaching them to the
 // resulting ProgramFragment.
-export function createLambdaExpression(argumentIdentifiers, bodyFragment) {
-	for (argIdent of argumentIdentifiers) {
-		_assertEq(argIdent.astType, astType.IDENTIFIER);
+export function createLambdaExpression (argumentIdentifiers, bodyFragment) {
+	for (const argIdent of argumentIdentifiers) {
+		assert.strictEqual(argIdent.astType, astType.IDENTIFIER);
 	}
 
-	_assertEq(bodyFragment.astType, astType.PROGRAM_FRAGMENT);
-	_assertEq(bodyFragment.rootNode.nodeType, nodeType.EXPRESSION);
+	assert.strictEqual(bodyFragment.astType, astType.PROGRAM_FRAGMENT);
+	assert.strictEqual(rootNode(bodyFragment).nodeType, nodeType.EXPRESSION);
 
 	const frag = _createProgramFragment(
 		_createExpression(expressionType.LAMBDA, {
@@ -114,71 +107,73 @@ export function createLambdaExpression(argumentIdentifiers, bodyFragment) {
 	);
 	const newArgIdents = [];
 	for (const identifier of argumentIdentifiers) {
-		newArgIdents.push(
-			Object.assign({}, identifier, { scope: frag.rootNode.id })
-		);
+		newArgIdents.push({
+			...identifier,
+			scope: frag.rootNode
+		});
 	}
-	return attachIdentifiersToFragment(frag, newArgIdents);
+	return _attachIdentifiersToFragment(frag, newArgIdents);
 };
 
 // ProgramFragment, [ProgramFragment] -> ProgramFragment
-export function createApplicationExpression(lambdaFrag, argFrags) {
-	_assertEq(lambdaFrag.astType, astType.PROGRAM_FRAGMENT);
-	_assertEq(lambdaFrag.rootNode.nodeType, nodeType.EXPRESSION);
-	for (argFrag of argFrags) {
-		_assertEq(argFrag.astType, astType.PROGRAM_FRAGMENT);
-		_assertEq(argFrag.rootNode.nodeType, nodeType.EXPRESSION);
+export function createApplicationExpression (lambdaFrag, argFrags) {
+	assert.strictEqual(lambdaFrag.astType, astType.PROGRAM_FRAGMENT);
+	assert.strictEqual(rootNode(lambdaFrag).nodeType, nodeType.EXPRESSION);
+	for (const argFrag of argFrags) {
+		assert.strictEqual(argFrag.astType, astType.PROGRAM_FRAGMENT);
+		assert.strictEqual(rootNode(argFrag).nodeType, nodeType.EXPRESSION);
 	}
 
 	return _createProgramFragment(
 		_createExpression(expressionType.APPLICATION, {
-			lambda: lambdaFrag.rootNode.id,
-			arguments: argFrags.map(argFrag => argFrag.rootNode.id)
+			lambda: lambdaFrag.rootNode,
+			arguments: argFrags.map(argFrag => argFrag.rootNode)
 		}),
 		lambdaFrag, ...argFrags
 	);
 };
 
 // [ProgramFragment], ProgramFragment -> ProgramFragment
-export function createCaseExpression(caseFrags, elseExpFrag) {
-	for (caseFrag of caseFrags) {
-		_assertEq(caseFrag.astType, astType.PROGRAM_FRAGMENT);
-		_assertEq(caseFrag.rootNode.nodeType, nodeType.CASE_BRANCH);
+export function createCaseExpression (caseFrags, elseExpFrag) {
+	assert(caseFrags.length > 0, 'CaseExpression must have 1 or more cases');
+	for (const caseFrag of caseFrags) {
+		assert.strictEqual(caseFrag.astType, astType.PROGRAM_FRAGMENT);
+		assert.strictEqual(rootNode(caseFrag).nodeType, nodeType.CASE_BRANCH);
 	}
-	_assertEq(elseExpFrag.astType, astType.PROGRAM_FRAGMENT);
-	_assertEq(elseExpFrag.rootNode.nodeType, nodeType.EXPRESSION);
+	assert.strictEqual(elseExpFrag.astType, astType.PROGRAM_FRAGMENT);
+	assert.strictEqual(rootNode(elseExpFrag).nodeType, nodeType.EXPRESSION);
 
 	const elseBranchFrag = _createElseBranch(elseExpFrag);
 	return _createProgramFragment(
 		_createExpression(expressionType.CASE, {
-			caseBrances: caseFrags.map(caseFrag => caseFrag.rootNode.id),
-			elseBranch: elseBranchFrag.rootNode.id
+			caseBrances: caseFrags.map(caseFrag => caseFrag.rootNode),
+			elseBranch: elseBranchFrag.rootNode
 		}),
 		elseBranchFrag, ...caseFrags
 	);
 };
 
 // ProgramFragment, ProgramFragment -> ProgramFragment
-export function createCaseBranch(condFrag, expFrag) {
-	_assertEq(condFrag.astType, astType.PROGRAM_FRAGMENT);
-	_assertEq(condFrag.rootNode.nodeType, nodeType.EXPRESSION);
-	_assertEq(expFrag.astType, astType.PROGRAM_FRAGMENT);
-	_assertEq(expFrag.rootNode.nodeType, nodeType.EXPRESSION);
+export function createCaseBranch (condFrag, expFrag) {
+	assert.strictEqual(condFrag.astType, astType.PROGRAM_FRAGMENT);
+	assert.strictEqual(rootNode(condFrag).nodeType, nodeType.EXPRESSION);
+	assert.strictEqual(expFrag.astType, astType.PROGRAM_FRAGMENT);
+	assert.strictEqual(rootNode(expFrag).nodeType, nodeType.EXPRESSION);
 
 	return _createProgramFragment(
 		_createNode(nodeType.CASE_BRANCH, {
-			condition: condFrag.rootNode.id,
-			expression: expFrag.rootNode.id
+			condition: condFrag.rootNode,
+			expression: expFrag.rootNode
 		}),
 		condFrag, expFrag
 	);
 };
 
 // ProgramFragment -> ProgramFragment
-function _createElseBranch(expFrag) {
+function _createElseBranch (expFrag) {
 	return _createProgramFragment(
 		_createNode(nodeType.CASE_BRANCH, {
-			expression: expFrag.rootNode.id
+			expression: expFrag.rootNode
 		}),
 		expFrag
 	);
