@@ -51,7 +51,7 @@ module.exports = [
 		target: 'web'
 	}),
 	Object.assign({}, common, {
-		plugins: isDev ? [ constants ] : [ constants ],
+		plugins: [ constants ],
 		entry: {
 			'server' : './app/server.jsx'
 		},
