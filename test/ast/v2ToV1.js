@@ -13,7 +13,9 @@ export default program => {
 
 	for (const identId of Object.keys(program.identifiers)) {
 		const identifier = getIdentifier(program, identId);
-		if (identifier.scope !== null || !identifier.value) continue;
+		if (identifier.scope !== null || !identifier.value) {
+			continue;
+		}
 		const valueExp = getNode(program, identifier.value);
 		if (getExpressionType(valueExp) === expressionType.LAMBDA) {
 			fnDefs.push({
@@ -46,6 +48,9 @@ const convertNode = (node, prog) => {
 			tag: 'identifier',
 			name: getIdentifier(prog, node.identifier).displayName
 		};
+
+		case expressionType.LAMBDA:
+			throw 'AST V1 cannot represent lambda expressions';
 
 		case expressionType.APPLICATION: return {
 			tag: 'call',
