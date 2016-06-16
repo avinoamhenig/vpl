@@ -1,4 +1,5 @@
-export default {	"name": "sum",
+export default [
+	{	"name": "sum",
 	"args": ["n"],
 	"body": {
 		"tag": "case",
@@ -32,4 +33,5 @@ export default {	"name": "sum",
 			]
 		}
 	}
-};
+},
+{	"name": "main", "args": [], "body": { "tag": "number", "val": 0 }}];

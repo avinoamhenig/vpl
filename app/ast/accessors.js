@@ -10,7 +10,7 @@ export function rootNode(frag) {
 // Program -> Expression
 export function root(program) {
 	assert.strictEqual(program.astType, astType.PROGRAM);
-	return program.expression;
+	return program.nodes[program.expression];
 }
 
 export const getAstType = x => x.astType;
@@ -25,3 +25,5 @@ export const getNodeOrExpType = x => {
 
 export const getIdentifier = (program, identId) =>
 	program.identifiers[identId];
+export const getNode = (program, nodeId) =>
+	program.nodes[nodeId];

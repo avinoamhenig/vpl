@@ -16,7 +16,7 @@ export {
 export {
 	root, rootNode,
 	getAstType, getNodeType, getExpressionType, getNodeOrExpType,
-	getIdentifier
+	getIdentifier, getNode
 } from './accessors';
 
 export {

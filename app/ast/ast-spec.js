@@ -72,7 +72,7 @@ const ApplicationExpression = {
 
 const CaseExpression = {
   ...extend(Expression),
-  caseBrances : nonempty([Uid(CaseBranch)]),
+  caseBranches : nonempty([Uid(CaseBranch)]),
   elseBranch  : Uid(ElseBranch)
 };
 

@@ -19,9 +19,21 @@ function _createExpression (expressionType, props) {
 	));
 }
 
+function _setParent (node, parentId) {
+	return Object.assign({}, node, { parent: parentId });
+}
+
 function _createProgramFragment (rootNode, ...frags) {
+
 	const nodes = Object.assign({},
-		...frags.map(frag => frag.nodes));
+		...frags.map(frag => ({
+			...frag.nodes,
+			[frag.rootNode]: _setParent(
+				frag.nodes[frag.rootNode],
+				rootNode.id
+			)
+		}))
+	);
 	const identifiers =  Object.assign({},
 		...frags.map(frag => frag.identifiers));
 
@@ -146,7 +158,7 @@ export function createCaseExpression (caseFrags, elseExpFrag) {
 	const elseBranchFrag = _createElseBranch(elseExpFrag);
 	return _createProgramFragment(
 		_createExpression(expressionType.CASE, {
-			caseBrances: caseFrags.map(caseFrag => caseFrag.rootNode),
+			caseBranches: caseFrags.map(caseFrag => caseFrag.rootNode),
 			elseBranch: elseBranchFrag.rootNode
 		}),
 		elseBranchFrag, ...caseFrags
@@ -172,7 +184,7 @@ export function createCaseBranch (condFrag, expFrag) {
 // ProgramFragment -> ProgramFragment
 function _createElseBranch (expFrag) {
 	return _createProgramFragment(
-		_createNode(nodeType.CASE_BRANCH, {
+		_createNode(nodeType.ELSE_BRANCH, {
 			expression: expFrag.rootNode
 		}),
 		expFrag

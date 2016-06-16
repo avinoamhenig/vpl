@@ -1,10 +1,9 @@
 import test from 'ava';
 import createSum from './create_sum';
 import oldSum from './old_sum';
+import v2ToV1 from './v2ToV1';
 
-test('construct-ast', t => {
-	const sum = createSum();
-	console.log(JSON.stringify(sum, null, 2));
-
-	t.pass();
+test('v2 sum program is deep-equal to v1 sum program', t => {
+	const newSum = v2ToV1(createSum());
+	t.deepEqual(newSum, oldSum);
 });

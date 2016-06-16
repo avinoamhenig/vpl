@@ -40,10 +40,7 @@ export default () => {
 			])
 		)
 	);
-	const rootExp = createApplicationExpression(
-		createIdentifierExpression(sumIdent), [
-		createNumberExpression(5)
-	]);
+	const rootExp = createNumberExpression(0);
 	return createProgram(
 		bindIdentifier(rootExp, sumIdent, sumLambda)
 	);

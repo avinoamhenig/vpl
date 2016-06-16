@@ -1,20 +1,41 @@
-// TODO in progress, will be used to test that v2 is working properly
-
 import assert from 'assert';
 import {
 	root,
-	getAstType, getNodeOrExpType,
+	getAstType, getNodeOrExpType, getExpressionType,
 	astType, nodeType, expressionType,
-	getIdentifier
+	getIdentifier, getNode
 } from '../../app/ast';
 
 export default program => {
 	assert.strictEqual(getAstType(program), astType.PROGRAM);
 
-	return convertNode(root(program), program);
+	const fnDefs = [];
+
+	for (const identId of Object.keys(program.identifiers)) {
+		const identifier = getIdentifier(program, identId);
+		if (identifier.scope !== null || !identifier.value) continue;
+		const valueExp = getNode(program, identifier.value);
+		if (getExpressionType(valueExp) === expressionType.LAMBDA) {
+			fnDefs.push({
+				name: identifier.displayName,
+				args: valueExp.arguments.map(argId =>
+					getIdentifier(program, argId).displayName
+				),
+				body: convertNode(getNode(program, valueExp.body), program)
+			});
+		}
+	}
+
+	fnDefs.push({
+		name: 'main',
+		args: [],
+		body: convertNode(root(program), program)
+	});
+
+	return fnDefs;
 }
 
-const convertNode = (node, program) => {
+const convertNode = (node, prog) => {
 	switch (getNodeOrExpType(node)) {
 		case expressionType.NUMBER: return {
 			tag: 'number',
@@ -23,20 +44,30 @@ const convertNode = (node, program) => {
 
 		case expressionType.IDENTIFIER: return {
 			tag: 'identifier',
-			identifier: getIdentifier(program, node.identifier).displayName
+			name: getIdentifier(prog, node.identifier).displayName
 		};
 
-		case expressionType.LAMBDA: return {
-
+		case expressionType.APPLICATION: return {
+			tag: 'call',
+			function: convertNode(getNode(prog, node.lambda), prog),
+			argVals: node.arguments.map(argId =>
+				convertNode(getNode(prog, argId), prog))
 		};
 
-		case expressionType.APPLICATION:
+		case expressionType.CASE: return {
+			tag: 'case',
+			cases: node.caseBranches.map(branchId =>
+				convertNode(getNode(prog, branchId), prog)),
+			elseExp: convertNode(getNode(prog, node.elseBranch), prog)
+		};
 
-		case expressionType.CASE:
-
-		case nodeType.CASE_BRANCH:
+		case nodeType.CASE_BRANCH: return {
+			condition: convertNode(getNode(prog, node.condition), prog),
+			exp: convertNode(getNode(prog, node.expression), prog)
+		};
 
 		case nodeType.ELSE_BRANCH:
+			return convertNode(getNode(prog, node.expression), prog);
 
 		default:
 			throw `Unexpected node: ${getNodeOrExpType(node)}.`;
