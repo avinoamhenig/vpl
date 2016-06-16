@@ -69,7 +69,6 @@ const ApplicationExpression = {
   arguments : [Uid(Expression)]
 };
 
-
 const CaseExpression = {
   ...extend(Expression),
   caseBranches : nonempty([Uid(CaseBranch)]),
