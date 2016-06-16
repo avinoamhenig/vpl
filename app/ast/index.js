@@ -1,16 +1,24 @@
-import astReducer from './astReducer';
-import { actions } from './astReducer';
-import exprToPieces from './exprToPieces';
-import getAstDepth from './getAstDepth';
-import getLambdaByName from './getLambdaByName';
-import processAst from './processAst';
-import simpleToString from './simpleToString';
-import createExpression from './createExpression';
-import getExpForId from './getExpForId';
-import { run, stop } from './run';
 export {
-	astReducer, actions, exprToPieces, getAstDepth,
-	getLambdaByName, processAst, simpleToString,
-	createExpression, getExpForId,
-	run, stop
-};
+	createProgram,
+	createIdentifier,
+	createNumberExpression,
+	createIdentifierExpression,
+	createLambdaExpression,
+	createApplicationExpression,
+	createCaseExpression,
+	createCaseBranch
+} from './constructors';
+
+export {
+	bindIdentifier
+} from './modifiers';
+
+export {
+	root, rootNode,
+	getAstType, getNodeType, getExpressionType, getNodeOrExpType,
+	getIdentifier, getNode
+} from './accessors';
+
+export {
+	astType, nodeType, expressionType
+} from './typeNames';

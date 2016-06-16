@@ -1,6 +1,6 @@
 import { applyMiddleware, createStore, compose } from 'redux'
 import { navigate } from 'lib/route-reducer'
-import rootReducer from 'rootReducer'
+import rootReducer from './rootReducer'
 import thunk from 'redux-thunk';
 
 export default (initialState, routeMiddleware, initialUrl) => {
@@ -25,8 +25,8 @@ export default (initialState, routeMiddleware, initialUrl) => {
 	}
 
 	if (module.hot) {
-		module.hot.accept('rootReducer', () => {
-			store.replaceReducer(require('rootReducer').default)
+		module.hot.accept('root/rootReducer', () => {
+			store.replaceReducer(require('root/rootReducer').default)
 		});
 	}
 

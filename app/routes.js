@@ -3,7 +3,7 @@ import { routes, route } from 'lib/route-reducer'
 const routeNames = {
 	FN_LIST: 'FN_LIST',
 	LAMBDA: 'LAMBDA',
-	EXPR: 'EXPR'
+	EXPR: 'EXPR' // TODO make this work
 }
 
 export default {

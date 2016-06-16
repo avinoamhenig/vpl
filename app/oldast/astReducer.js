@@ -10,10 +10,14 @@ import { navigate } from 'lib/route-reducer'
 import exampleFns from './examples/fns'
 const STORAGE_KEY = 'vpl_ast_forest';
 const save = newState => {
+	if (typeof window === 'undefined') {
+		return newState;
+	}
 	window.localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
-	return newState
+	return newState;
 };
-let initialState = window.localStorage.getItem(STORAGE_KEY);
+let initialState = typeof window !== 'undefined'
+	? window.localStorage.getItem(STORAGE_KEY) : null;
 if (initialState === null) {
 	initialState = processAst(exampleFns);
 	save(initialState);

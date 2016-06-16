@@ -13,7 +13,7 @@ import computeStyles from './mainStyles.js'
 import {
 	getLambdaByName,
 	actions as astActions
-} from 'ast'
+} from 'oldast'
 
 const Main = compose(
 	name('Main'),

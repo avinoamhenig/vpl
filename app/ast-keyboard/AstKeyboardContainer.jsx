@@ -1,10 +1,10 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import AstKeyboard from './AstKeyboard'
-import { actions as astActions, createExpression } from 'ast'
+import { actions as astActions, createExpression } from 'oldast'
 import { actions } from './astKeyboardReducer'
 import Icon from 'lib/Icon'
-import { getExpForId } from 'ast'
+import { getExpForId } from 'oldast'
 
 const mapStateToProps = state => {
 	let showAddBtn = false;
