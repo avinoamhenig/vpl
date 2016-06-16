@@ -2,7 +2,7 @@ import assert from 'assert';
 import { rootNode } from './accessors';
 import { astType, nodeType, expressionType } from './typeNames';
 
-// Program | ProgramFragment, Identifier, ProgramFragment
+// Program | ProgramFragment, Identifier, ProgramFragment -> Program | ProgramFragment
 export function bindIdentifier(program, identifier, valueExpFrag) {
 	assert([astType.PROGRAM, astType.PROGRAM_FRAGMENT].includes(program.astType),
 		`Cannot set binding on ${program.astType}.`);
