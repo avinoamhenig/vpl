@@ -1,4 +1,4 @@
-import {
+const {
 	createProgram,
 	createIdentifier,
 	createNumberExpression,
@@ -8,9 +8,9 @@ import {
 	createCaseExpression,
 	createCaseBranch,
 	bindIdentifier
-} from '../../app/ast';
+} = require('../../app/ast');
 
-export default () => {
+module.exports = () => {
 	const plus = createIdentifier('+');
 	const minus = createIdentifier('-');
 	const eq = createIdentifier('=');
