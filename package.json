@@ -20,37 +20,24 @@
     "react-redux": "^4.4.5",
     "redux": "^3.5.2",
     "redux-act": "^0.4.2",
-    "redux-thunk": "^2.1.0",
-    "serve-favicon": "^2.3.0"
+    "redux-thunk": "^2.1.0"
   },
   "devDependencies": {
     "ava": "^0.15.2",
     "babel-core": "^6.9.0",
     "babel-loader": "^6.2.4",
     "babel-plugin-transform-decorators-legacy": "^1.3.4",
-    "babel-plugin-webpack-loaders": "^0.5.0",
     "babel-preset-es2015": "^6.9.0",
     "babel-preset-react": "^6.5.0",
-    "babel-preset-stage-2": "^6.5.0",
-    "redux-devtools": "^3.3.1",
-    "redux-devtools-dock-monitor": "^1.1.1",
-    "redux-devtools-log-monitor": "^1.0.11",
-    "webpack": "^1.13.1",
-    "webpack-dev-middleware": "^1.6.1",
-    "webpack-hot-middleware": "^2.10.0",
-    "webpack-node-externals": "^1.2.0"
+    "babel-preset-stage-0": "^6.5.0",
+    "webpack": "^1.13.1"
   },
   "scripts": {
     "clean": "rm -rf build",
-    "watch": "npm run clean; webpack -d --watch --progress --colors",
-    "dev-build": "npm run clean; webpack -d --progress --colors",
-    "build": "npm run clean; webpack -p --progress --colors | grep -vE 'Dropping|Condition|unused|\\!|WARNING'",
-    "serve": "sudo PORT=80 node build/server.js",
-    "serve-w": "sudo PORT=80 nodemon build/server.js --server-render --delay 3.5",
-    "build-gh": "npm run build; cp build/public/js/client.js gh-pages/client.js",
-    "dev": "npm run dev-build; npm run serve",
-    "test": "CONFIG=$(pwd)/webpack.config.ava.js BABEL_DISABLE_CACHE=1 NODE_ENV=TEST ava --require babel-register --watch",
-    "start": "npm run dev"
+    "build": "webpack -p --progress --colors | grep -vE 'Dropping|Condition|unused|\\!|WARNING'",
+    "postbuild": "npm run clean",
+    "test": "ava --watch",
+    "start": "webpack-dev-server --inline --colors"
   },
   "author": "Avinoam Henig, Juliet Slade, Michael Siff",
   "license": "ISC",
@@ -59,9 +46,6 @@
     "url": "git@github.com:avinoamhenig/vpl.git"
   },
   "ava": {
-    "files": [
-      "test/**/*.test.js"
-    ],
-    "babel": "inherit"
+    "files": [ "test/**/*.test.js" ]
   }
 }

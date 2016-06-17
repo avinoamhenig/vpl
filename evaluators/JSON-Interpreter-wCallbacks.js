@@ -1,6 +1,7 @@
 /*for testing independently*/
 function uponComplete(i) {
-  console.log("Success: " + i);
+  G.elapsedTime = Date.now() - G.InitialTime;
+  console.log("Success: " + JSON.stringify(i));
 }
 
 function uponFail() {
@@ -10,14 +11,17 @@ function uponFail() {
 
 var G = {};
 
-G.fun_def_dicts = []
-G.functions = ['+', '-', '*', 'div', 'modulo', '=', '!=','<', '>', '<=', '>=']
-G.environment = []
-G.DELAY = 10;
+G.fun_def_dicts = [];
+G.functions = ['+', '-', '*', '/', 'div', '%', '=', '!=','<', '>', '<=', '>=', 'cons', 'null?', 'car', 'cdr', 'cddr', 'cadr', 'list'];
+G.environment = [];
+G.DELAY = 0;
+G.fast = false;
 
 function main(forest, exp, uponComplete, uponFail) {
   loadJSON(forest);
   G.continue = true;
+  G.environment = [];
+  G.InitialTime = Date.now();
   evaluateStep(exp, uponComplete, uponFail);
 }
 
@@ -29,6 +33,15 @@ function loadJSON(json_fun_defs) {
     return d.name;
   })
   G.functions = fs.concat(G.functions);
+}
+
+
+function R(f, exp, callback, fail) {
+  if (G.fast || exp.tag == "number" || exp.tag == "identifier") {
+    return f(exp, callback, fail);
+  } else {
+    setTimeout(f, G.DELAY, exp, callback, fail);
+  }
 }
 
 function setTO(e, callback, fail) {
@@ -43,45 +56,61 @@ function evaluateStep(exp, callback, uponFail) {
         callback(Number(exp.val));
       } else if (tag === 'identifier') {
         var name = exp.name;
-        callback(G.environment[G.environment.length-1][name]);
+        if (lookup(name, G.environment)) {
+          callback(getVariable(name, G.environment));
+        } else {
+          G.continue = false;
+          uponFail();
+        }
       } else if (tag === 'case') {
         var cases = exp.cases;
         eval_cond(cases, exp.elseExp, callback);
         function eval_cond(exps, elseExp, callback) {
           if (exps.length === 0) {
-            setTO(elseExp, callback, uponFail);
+            R(evaluateStep, elseExp, callback, uponFail);
           } else {
-            setTO(exps[0].condition, function (cond) {
-                    if (cond) setTO(exps[0].exp, callback, uponFail);
-                    else eval_cond(exps.slice(1, exps.length), elseExp, callback);
-                  },
-                  uponFail);
-            }
+            R(evaluateStep, exps[0].condition, function (cond) {
+              if (cond) R(evaluateStep, exps[0].exp, callback, uponFail);
+              else eval_cond(exps.slice(1, exps.length), elseExp, callback);
+            }, uponFail);
+          }
         }
       } else if (tag === 'call') {
         var fun = exp.function;
         var argVals = exp.argVals;
-        var builtInFuns = ["+", '-', '*', 'div', 'modulo', '=', '!=','<', '>', '<=', '>='];
+        var builtInFuns = ["+", '-', '*', '/' , 'div', '%', '=', '!=','<', '>', '<=', '>=', 'cons', 'null?', 'car', 'cdr', 'cddr', 'cadr', 'list'];
         if (builtInFuns.indexOf(fun.name) != -1) {
-          setTO(argVals[0], function (x) {
-            setTO(argVals[1], function (y) {
-              callback(builtIn(x, y, builtInFuns.indexOf(fun.name)));
+          if (argVals.length === 2) {
+            R(evaluateStep, argVals[0], function (x) {
+              R(evaluateStep, argVals[1], function (y) {
+                callback(builtIn(builtInFuns.indexOf(fun.name), x, y));
+              },
+              uponFail);
             }, uponFail);
-          }, uponFail);
+          } else if (argVals.length === 1) {
+              R(evaluateStep, argVals[0], function (x) {
+                callback(builtIn(builtInFuns.indexOf(fun.name), x));
+              }, uponFail);
+          } else {
+             callback([]);
+          }
         } else {
+          if (G.functions.indexOf(fun.name) === -1) {
+            G.continue = false;
+            uponFail();
+          }
           var called_fun = G.fun_def_dicts[G.functions.indexOf(fun.name)];
-          var called_fun_args = called_fun.args; //binding_names
+          var called_fun_args = called_fun.args;
           eval_star(argVals, function (binding_vals) {
-            binding_vals = binding_vals.reverse();
-            var n_e = extend(called_fun_args, binding_vals);
+            //check for same number of arguments?
+            n_e = extend(called_fun_args, binding_vals);
             G.environment.push(n_e);
-            setTO(called_fun.body, function (b) {
-              callback(b); G.environment.pop();
+            R(evaluateStep, called_fun.body, function (b) {
+              G.environment.pop();
+              callback(b);
             }, uponFail);
             });
           }
-      } else if (tag === 'list') {
-          callback(exp.list); //?
       } else if (tag === 'let') {
           var bindings = exp.bindings;
           var binding_names = [];
@@ -92,11 +121,12 @@ function evaluateStep(exp, callback, uponFail) {
             binding_expressions.push(bindings[i].value);
           }
           eval_star(binding_expressions, function (binding_vals) {
-            binding_vals = binding_vals.reverse();
-            n_e = extend(binding_names, binding_vals);
+            var n_e = extend(binding_names, binding_vals);
             G.environment.push(n_e);
-            setTO(body, function (b) {
-              callback(b); G.environment.pop();}, uponFail);
+            R(evaluateStep, body, function (b) {
+              G.environment.pop();
+              callback(b);
+            }, uponFail);
             });
         }
       }
@@ -115,33 +145,76 @@ function extend(new_syms, new_vals) {
 
 
 //this will give you back a list of evaluated results
-function eval_star(exps, callback) { //uponFail??
+function eval_star(exps, callback) {
   if (exps.length === 0) {
     callback([]);
   } else {
-    setTO(exps[0], function (x) {
-        eval_star(exps.slice(1, exps.length), function (y) {
-                    callback(y.concat(x)); //gives it to you in reverse order
+    R(evaluateStep, exps[0],
+      function (x) {
+        eval_star(exps.slice(1, exps.length),
+                  function (y) {
+                    callback([x].concat(y));
                   });
-                }, uponFail);
+                }
+      , uponFail);
   }
 }
 
 
-function builtIn(a1, a2, i) {
-  if (i === 0) return a1 + a2;
-  else if (i === 1) return a1 - a2;
-  else if (i === 2) return a1 * a2;
-  else if (i === 3) return Math.floor(a1/a2);
-  else if (i === 4) return a1 % a2;
-  else if (i === 5) return a1 === a2;
-  else if (i === 6) return a1 != a2;
-  else if (i === 7) return a1 < a2;
-  else if (i === 8) return a1 > a2;
-  else if (i === 9) return a1 <= a2;
-  else return a1 >= a2;
+function lookup(val, env) {
+  if (env.length === 0) {
+    return false;
+  } else if (env.length === 1) {
+    return (val in env[0]);
+  } else {
+    return (val in env[env.length-1]) || lookup(val, env.slice(0,env.length-1));
+  }
+}
+
+function getVariable(val, env) {
+  if (val in env[env.length-1]) {
+    return env[env.length-1][val];
+  } else {
+    return getVariable(val, env.slice(0,env.length-1));
+  }
+}
+
+function builtIn(i, a1, a2) {
+  if (arguments.length === 3) {
+    if (i === 0) return a1 + a2;
+    else if (i === 1) return a1 - a2;
+    else if (i === 2) return a1 * a2;
+    else if (i === 3) return a1 / a2;
+    else if (i === 4) return Math.floor(a1/a2);
+    else if (i === 5) return a1 % a2;
+    else if (i === 6) return a1 === a2;
+    else if (i === 7) return a1 != a2;
+    else if (i === 8) return a1 < a2;
+    else if (i === 9) return a1 > a2;
+    else if (i === 10) return a1 <= a2;
+    else if (i === 11) return a1 >= a2;
+    else { return a2.concat([a1]);};
+  } else if (arguments.length === 2) {
+    //"null?", "car", "cdr", "cddr", "cadr"
+    if (i === 13) return a1.length === 0;
+    else if (i === 14) return a1[a1.length-1];
+    else if (i === 15) return a1.slice(0, a1.length-1);
+    else if (i === 16) return a1.slice(0, a1.length-2);
+    else return a1[a1.length-2];
+  }
 }
 
 function stopEval() {
   G.continue = false;
+}
+
+function switchSpeed() {
+  G.fast = !G.fast;
+}
+
+function displayEnv() {
+  console.log("Current Environment:")
+  for (var i = 0; i < G.environment.length; i++) {
+    console.log(i + ": " + JSON.stringify(G.environment[i]));
+  }
 }

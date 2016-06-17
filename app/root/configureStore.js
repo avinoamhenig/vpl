@@ -1,23 +1,11 @@
-import { applyMiddleware, createStore, compose } from 'redux'
+import { applyMiddleware, createStore } from 'redux'
 import { navigate } from 'lib/route-reducer'
 import rootReducer from './rootReducer'
 import thunk from 'redux-thunk';
 
 export default (initialState, routeMiddleware, initialUrl) => {
-	let storeEnhancers;
-	if (__DEV__) {
-		storeEnhancers = [
-			applyMiddleware(thunk, routeMiddleware),
-			require('lib/DevTools').default.instrument()
-		];
-	} else {
-		storeEnhancers = [
-			applyMiddleware(thunk, routeMiddleware)
-		];
-	}
-
-	const store = compose(
-		...storeEnhancers
+	const store = applyMiddleware(
+		thunk, routeMiddleware
 	)(createStore)(rootReducer, initialState);
 
 	if (typeof initialUrl !== 'undefined') {

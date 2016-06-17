@@ -1,17 +1,17 @@
-export const astType = {
+module.exports.astType = {
 	PROGRAM          : 'Program',
 	PROGRAM_FRAGMENT : 'ProgramFragment',
 	IDENTIFIER       : 'Identifier',
 	NODE             : 'Node'
 };
 
-export const nodeType = {
+module.exports.nodeType = {
 	EXPRESSION  : 'Expression',
 	CASE_BRANCH : 'CaseBranch',
 	ELSE_BRANCH : 'ElseBranch'
 };
 
-export const expressionType = {
+module.exports.expressionType = {
 	NUMBER      : 'NumberExpression',
 	IDENTIFIER  : 'IdentifierExpression',
 	LAMBDA      : 'LambdaExpression',

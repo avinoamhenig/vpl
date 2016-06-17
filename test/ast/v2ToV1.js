@@ -1,12 +1,12 @@
-import assert from 'assert';
-import {
+const assert = require('assert');
+const {
 	root,
 	getAstType, getNodeOrExpType, getExpressionType,
 	astType, nodeType, expressionType,
 	getIdentifier, getNode
-} from '../../app/ast';
+} = require('../../app/ast');
 
-export default program => {
+module.exports = program => {
 	assert.strictEqual(getAstType(program), astType.PROGRAM);
 
 	const fnDefs = [];
