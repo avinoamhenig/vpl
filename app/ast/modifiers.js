@@ -27,4 +27,11 @@ function bindIdentifier(program, identifier, valueExpFrag) {
 	return newProgram;
 }
 
-module.exports = { bindIdentifier };
+// Identifier, Uid Expression -> Identifier
+function setIdentifierScope(identifier, scopeId = null) {
+	assert.strictEqual(identifier.astType, astType.IDENTIFIER);
+
+	return Object.assign({}, identifier, { scope: scopeId });
+}
+
+module.exports = { bindIdentifier, setIdentifierScope };
