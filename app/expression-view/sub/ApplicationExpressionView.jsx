@@ -32,10 +32,10 @@ export default compose(
 					style={s.expression}
 					onClick={sp(p.onClick, p.expressionId, p.expansionLevel)}
 					>
-					{ args[0] }
-		 			{ lambda  }
-		 			{ args[1] }
-		 		</div>
+					<div style={s.first}>{ args[0] }</div>
+					{ lambda  }
+					{ args[1] }
+				</div>
 			);
 		}
 	}
@@ -45,7 +45,7 @@ export default compose(
 			style={s.expression}
 			onClick={sp(p.onClick, p.expressionId, p.expansionLevel)}
 			>
-			{ lambda }
+			<div style={s.first}>{ lambda }</div>
 			{ args }
 		</div>
 	);

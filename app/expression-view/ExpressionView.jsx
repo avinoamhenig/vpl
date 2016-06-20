@@ -59,9 +59,5 @@ export default compose(
 		}
 	}
 
-	return (
-		<div style={s.expressionContainer}>
-			{ view }
-		</div>
-	);
+	return view;
 });

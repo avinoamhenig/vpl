@@ -24,8 +24,10 @@ export default compose(
 			style={s.expression}
 			onClick={sp(p.onClick, p.expressionId, p.expansionLevel)}
 			>
-			<div style={s.piece}>
-				<Icon icon="question" />
+			<div style={[s.leaf, s.first]}>
+				<div style={s.piece}>
+					<Icon icon="question" />
+				</div>
 			</div>
 			{ children }
 		</div>
