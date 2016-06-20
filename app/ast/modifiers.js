@@ -21,9 +21,31 @@ function bindIdentifier(program, identifier, valueExpFrag) {
 	);
 	newProgram.nodes = Object.assign({},
 		newProgram.nodes,
-		valueExpFrag.nodes,
-		{ [rootNode(valueExpFrag).id]: rootNode(valueExpFrag) }
+		valueExpFrag.nodes
 	);
+	return newProgram;
+}
+
+// Program | ProgramFragment, [[Identifier, ProgramFragment]] -> Program | ProgramFragment
+function bindIdentifiers(program, identMap) {
+	assert([astType.PROGRAM, astType.PROGRAM_FRAGMENT].includes(program.astType),
+		`Cannot set bindings on ${program.astType}.`);
+
+	const newProgram = Object.assign({}, program);
+	newProgram.identifiers = Object.assign({}, newProgram.identifiers);
+	newProgram.nodes = Object.assign({}, newProgram.nodes);
+
+	for (const [_, valFrag] of identMap) {
+		Object.assign(newProgram.identifiers, valFrag.identifiers);
+		Object.assign(newProgram.nodes, valFrag.nodes);
+	}
+
+	for (const [ident, valFrag] of identMap) {
+		newProgram.identifiers[ident.id] = Object.assign({}, ident, {
+			value: rootNode(valFrag).id
+		});
+	}
+
 	return newProgram;
 }
 
@@ -34,4 +56,4 @@ function setIdentifierScope(identifier, scopeId = null) {
 	return Object.assign({}, identifier, { scope: scopeId });
 }
 
-module.exports = { bindIdentifier, setIdentifierScope };
+module.exports = { bindIdentifier, bindIdentifiers, setIdentifierScope };

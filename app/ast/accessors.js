@@ -28,8 +28,34 @@ const getIdentifier = (program, identId) =>
 const getNode = (program, nodeId) =>
 	program.nodes[nodeId];
 
+const isLeafExpression = node => [
+	expressionType.IDENTIFIER, expressionType.NUMBER
+].includes(getNodeOrExpType(node));
+
+// Program -> [Identifier]
+function getRootScopeLambdaIdentifiers(program) {
+	const result = [];
+	for (const identId of Object.keys(program.identifiers)) {
+		const identifier = getIdentifier(program, identId);
+		if (identifier.scope !== null || !identifier.value) {
+			continue;
+		}
+		const valueExp = getNode(program, identifier.value);
+		if (getExpressionType(valueExp) === expressionType.LAMBDA) {
+			result.push(identifier);
+		}
+	}
+	return result;
+}
+
+// Identifier -> Boolean
+function isInfixOperator(identifier) {
+	return /^[^a-z0-9\s]+$/.test(identifier.displayName);
+}
+
 module.exports = {
 	rootNode, root, getAstType, getNodeType,
 	getExpressionType, getNodeOrExpType,
-	getIdentifier, getNode
+	getIdentifier, getNode, getRootScopeLambdaIdentifiers,
+	isInfixOperator, isLeafExpression
 };
