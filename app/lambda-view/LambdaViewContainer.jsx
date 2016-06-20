@@ -6,13 +6,11 @@ import LambdaView from './LambdaView'
 import { actions } from './lambdaViewReducer'
 import helmet from 'lib/helmetDecorator'
 
-const mapStateToProps = (state, props) => ({
-	...state.lambdaView, ast: state.ast
-});
+const mapStateToProps = state => state.lambdaView;
 const mapDispatchToProps = (dispatch) => bindActionCreators({
 	...actions, navigate
 }, dispatch);
 export default compose(
 	connect(mapStateToProps, mapDispatchToProps),
-	helmet(({lambda}) => ({ title: '#' + lambda.name }))
+	helmet(({identifier}) => ({ title: '#' + identifier.displayName }))
 )(LambdaView);

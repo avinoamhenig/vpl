@@ -6,22 +6,31 @@ import computeStyles from './styles'
 import ExpressionView from 'expression-view'
 import $ from 'jquery'
 import debounce from 'debounce'
-import { run, stop } from 'oldast'
+import {
+	getNode,
+	getIdentifier
+} from 'ast'
 
 @Radium
 export default class LambdaView extends React.Component {
 	render() {
 		const p = this.props;
 		const s = computeStyles(p);
+		const prog = p.program;
+		const ident = p.identifier;
+		const lambda = getNode(prog, ident.value);
 
 		return (
 			<div style={s.container}>
 				<div className="lambda_header" style={s.header}>
 					<div style={s.title}>
 						<span style={s.lambdaIcon}>&lambda;</span>
-						{ ' ' + p.lambda.name }
+						{ ' ' + ident.displayName }
 						<span style={s.arg}>
-							{ ' ' + p.lambda.args.join(' ') }
+							{ ' '
+							+ lambda.arguments.map(arg =>
+									getIdentifier(prog, arg).displayName
+								).join(' ') }
 						</span>
 					</div>
 					{ !p.hideButtons && (
@@ -45,7 +54,8 @@ export default class LambdaView extends React.Component {
 								<span style={s.nestingInfo}>{`(${p.nestingLimit})`}</span>
 						</span>
 					)}
-					{ p.lambda.name === 'main' && (
+					{/* TODO deal with 'main' and run */}
+					{ ident.displayName === 'main' && (
 						<span>
 							<div
 								style={s.runBtn}
@@ -75,27 +85,23 @@ export default class LambdaView extends React.Component {
 							className="fa fa-external-link"
 							onClick={(e) => {
 								e.stopPropagation();
-								p.navigate(`/lambda/${p.lambda.name}`);
+								p.navigate(`/fn/${ident.id}`);
 							}}></div>
 					)}
 				</div>
 				<div style={s.expressionContainer}>
 					<div ref="expressionScrollContainer">
 						<ExpressionView
-							expr={p.lambda.body}
-							level={1} expansionLevel={p.expansionLevel || 0}
+							expressionId={lambda.body}
+							program={prog}
+							nestedLevel={0}
+							expansionLevel={p.expansionLevel || 0}
 							selectedExpId={p.selectedExpId}
 							ignoreInfix={p.ignoreInfix}
 							expandedExpIds={p.expandedExpIds}
 							nestingLimit={p.nestingLimit}
-							onExpClicked={p.selectExp}
-							onCollapsedExpClicked={(exp, ...args) => {
-								if (!exp.fn || exp.fn.id !== p.lambda.id) {
-									p.toggleExpansion(exp, ...args);
-								} else {
-									p.selectExp(exp.expr, ...args);
-								}
-							}} />
+							onClick={p.selectExp}
+							onExpand={p.toggleExpansion} />
 					</div>
 				</div>
 			</div>
@@ -127,6 +133,7 @@ export default class LambdaView extends React.Component {
 
 	componentWillUnmount() {
 		if (this.props.expansionLevel === 0) {
+			// TODO use actual fn reference here? (in case of multiple instances)
 			$(window).off('resize.popupContainerSizing');
 		}
 	}

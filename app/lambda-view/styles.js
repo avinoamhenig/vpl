@@ -25,7 +25,8 @@ export default p => {
 		flex: p.expansionLevel > 0 ? '0 0 auto' : '1 1 0',
 		position: p.expansionLevel > 0 ? 'static' : 'relative',
 		overflow: 'auto',
-		WebkitOverflowScrolling: 'touch'
+		WebkitOverflowScrolling: 'touch',
+		paddingTop: 5
 	};
 
 	s.title = {

@@ -1,23 +1,24 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import AstKeyboard from './AstKeyboard'
-import { actions as astActions, createExpression } from 'oldast'
 import { actions } from './astKeyboardReducer'
 import Icon from 'lib/Icon'
-import { getExpForId } from 'oldast'
+import { actions as astActions } from 'program'
+import {
+	getNode, getNodeOrExpType, expressionType
+} from 'ast'
 
 const mapStateToProps = state => {
 	let showAddBtn = false;
 	const selectedId = state.lambdaView.selectedExpId;
 	if (selectedId) {
-		const selectedExp = getExpForId(selectedId, state.ast);
-		showAddBtn = selectedExp.tag === 'call'
-		             || selectedExp.tag === 'case';
+		const selectedExp = getNode(state.program, selectedId);
+		showAddBtn = getNodeOrExpType(selectedExp) === expressionType.APPLICATION
+		          || getNodeOrExpType(selectedExp) === expressionType.CASE;
 	}
 
 	return {
 		...state.astKeyboard,
-		ast: state.ast,
 		showAddBtn,
 		buttons: [
 			{ display: 0, value: 0 },
@@ -41,6 +42,7 @@ const mapStateToProps = state => {
 };
 
 const mapDispatchToProps = (dispatch, props) => ({
+	// TODO make ast keyboard editing work
 	onButtonPressed(value) {
 		if (value === '__--keybd--__') {
 			dispatch(actions.toggleTextInput());
