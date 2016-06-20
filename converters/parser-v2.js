@@ -16,6 +16,13 @@ G.tokens = [];
 G.index = 0;
 G.scope = [];
 
+function translate(exp) {
+	tokenize(exp);
+	var translated = parse();
+	reset();
+	return translated;
+}
+
 function tokenize(exp) {
   exp = exp.replace(/[\)]/g, " ) ");
   exp = exp.replace(/[\(]/g, " ( ");
@@ -206,4 +213,4 @@ built_in_env['list'] = list;
 
 G.scope.push(built_in_env);
 
-module.exports = {tokenize, reset, parse};
+module.exports = {translate, tokenize, reset, parse};
