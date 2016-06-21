@@ -41,12 +41,15 @@ function unparse(program) {
 
 
 function unparseExp(node, program, sb) {
-  const boundIds = getIdentifiersScopedToNode(program, node.id);
+  const boundIds =
+    getIdentifiersScopedToNode(program, node.id)
+    .filter(id => id.value != null);
   if (boundIds.length > 0) {
     sb.push();
     sb.add('let');
     sb.nl();
     sb.push();
+    console.log(boundIds);
     boundIds.forEach(id => unparseBinding(id, program, sb));
     sb.pop();
     sb.nl();
@@ -134,8 +137,8 @@ function unparseElseBranch(node, program, sb) {
 }
 
 
-function unparseBinding(identifier, program, sb) {
-  const id = getIdentifier(program, identifier);
+function unparseBinding(id, program, sb) {
+  console.log(id);
   if (id.displayName && id.value) {
     sb.push();
     sb.add(id.displayName);
@@ -144,7 +147,7 @@ function unparseBinding(identifier, program, sb) {
     sb.pop();
     sb.nl();
   } else {
-    throw `Ill-bound identifier: ${identifier}.`;
+    throw `Ill-bound identifier: ${id}.`;
   }
 }
 

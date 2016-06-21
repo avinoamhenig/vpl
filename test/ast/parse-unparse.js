@@ -1,11 +1,12 @@
-const {parseProgram} = require('../../converters/parser-v2v2');
+const {parseProgram} = require('../../converters/parser-v2');
 const {unparse} = require('../../converters/unparse');
 
 const ulamNext = `
-(define (ulam-next n)
-  (cond
-    ((zero? (remainder n 2)) (/ n 2))
-    (else (+ (* 3 n) 1))))
+(define ulam-next
+  (lambda (n)
+    (cond
+      ((= (% n 2) 0) (/ n 2))
+      (else (+ (* 3 n) 1)))))
 `
 
 const sourceText = ulamNext + `
