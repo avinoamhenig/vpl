@@ -33,7 +33,7 @@ const Main = compose(
 		]
 	}),
 	Radium
-)(({ route, navigate, program, newFunction }) => {
+)(({ route, navigate, program, newFunction, loadSchemeProgram }) => {
 	const s = computeStyles();
 	const routeMatch = matchOne(routes.desc, route);
 	const onAddLambdaClicked = () => {
@@ -82,6 +82,14 @@ const Main = compose(
 							<Icon icon="plus" />
 						</span>
 					</li>
+					<li style={s.lambdaListItem}>
+						<span
+							key="load_scheme"
+							style={s.addLambdaButton}
+							onClick={() => loadSchemeProgram(prompt('Scheme code:'))}>
+							Import Scheme Code
+						</span>
+					</li>
 				</ul>
 			);
 		default:
@@ -95,7 +103,8 @@ const mapStateToProps = (state) => ({
 });
 const mapDispatchToProps = (dispatch) => bindActionCreators({
 	navigate,
-	newFunction: astActions.newFunction
+	newFunction: astActions.newFunction,
+	loadSchemeProgram: astActions.loadSchemeProgram
 }, dispatch);
 const MainContainer = connect(mapStateToProps, mapDispatchToProps)(Main);
 

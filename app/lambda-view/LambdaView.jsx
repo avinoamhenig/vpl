@@ -91,6 +91,7 @@ export default compose(
 			<div style={s.expressionContainer}>
 				<ExpressionView
 					expressionId={lambda.body}
+					lambdaIdentId={ident.id}
 					program={prog}
 					nestedLevel={0}
 					expansionLevel={p.expansionLevel || 0}
@@ -98,8 +99,8 @@ export default compose(
 					ignoreInfix={p.ignoreInfix}
 					expandedExpIds={p.expandedExpIds}
 					nestingLimit={p.nestingLimit}
-					onClick={p.selectExp}
-					onExpand={p.toggleExpansion}
+					onClick={p.onClick || p.selectExp}
+					onExpand={p.onExpand || p.toggleExpansion}
 					navigate={p.navigate}
 					/>
 			</div>

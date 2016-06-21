@@ -29,6 +29,7 @@ export default compose(
 
 	let isExpandable = isAppliedFn
 		&& i.value
+		&& i.id !== p.lambdaIdentId
 		&& getExpressionType(getNode(p.program, i.value)) === expressionType.LAMBDA;
 
 	return (

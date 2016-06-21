@@ -8,6 +8,7 @@ import {
 	removeNode, replaceNode,
 	appendPieceToExp
 } from 'ast'
+import { parseProgram } from '../../converters/parser-v2'
 
 const STORAGE_KEY = 'vpl_ast_v2_forest';
 const save = newState => {
@@ -57,6 +58,7 @@ a.newFunction = () => dispatch => {
 	);
 	dispatch(a.addFunction(lambdaIdent, lambdaFrag));
 };
+a.loadSchemeProgram = cA('LOAD_SCHEME_PROGRAM');
 
 export const actions = a;
 export default createReducer({
@@ -86,5 +88,8 @@ export default createReducer({
 	},
 	[a.addFunction]: (ast, { identifier, lambda }) => {
 		return save(bindIdentifier(ast, identifier, lambda));
+	},
+	[a.loadSchemeProgram]: (ast, scheme) => {
+		return scheme ? parseProgram(scheme) : ast;
 	}
 }, initialState);
