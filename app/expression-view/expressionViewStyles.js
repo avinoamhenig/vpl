@@ -81,7 +81,8 @@ export default p => {
 		borderTop: '3px solid black',
 		boxShadow: '0 1px 3px 0 rgba(0,0,0,0.6)',
 		borderRadius: radius,
-		marginTop: -5
+		marginTop: -5,
+		marginBottom: 10
 	};
 
 	s.arrow = {

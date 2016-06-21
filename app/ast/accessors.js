@@ -73,7 +73,7 @@ function getChildrenIds(node) {
 		case expressionType.APPLICATION: return [node.lambda, ...node.arguments];
 		case expressionType.CASE: return [...node.caseBranches, node.elseBranch];
 		case nodeType.CASE_BRANCH: return [node.condition, node.expression];
-		case nodeType.ELSE_BRANCH: return [node.expression]
+		case nodeType.ELSE_BRANCH: return [node.expression];
 		default: throw `Unexpected node: ${getNodeOrExpType(node)}.`;
 	}
 }

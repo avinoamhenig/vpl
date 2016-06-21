@@ -6,6 +6,7 @@ export default p => ({
 		zIndex: 20
 	},
 	input: {
+		boxSizing: 'border-box',
 		borderTop: 'none', borderLeft: 'none', borderRight: 'none',
 		borderBottom: '1px solid white',
 		borderRadius: 0,

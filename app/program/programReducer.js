@@ -4,7 +4,9 @@ import {
 	createIdentifier,
 	createLambdaExpression,
 	createNumberExpression,
-	bindIdentifier
+	bindIdentifier,
+	removeNode, replaceNode,
+	appendPieceToExp
 } from 'ast'
 
 const STORAGE_KEY = 'vpl_ast_v2_forest';
@@ -25,7 +27,7 @@ if (initialState === null) {
 }
 
 const a = {};
-a.replaceExp = cA('REPLACE_EXP', m('exp', 'replaceId'));
+a.replaceExp = cA('REPLACE_EXP', m('exp', 'idToReplace'));
 a.replaceSelectedExp = exp => (dispatch, getState) => {
 	const { selectedExpId } = getState().lambdaView;
 	if (selectedExpId) {
@@ -58,20 +60,29 @@ a.newFunction = () => dispatch => {
 
 export const actions = a;
 export default createReducer({
-	[a.replaceExp]: (ast, { exp, replaceId }) => {
-		// TODO replaceExp
-		console.error('replaceExp not implemented');
-		return state;
+	[a.replaceExp]: (ast, { exp, idToReplace }) => {
+		try {
+			return save(replaceNode(ast, idToReplace, exp));
+		} catch (e) {
+			console.error(e);
+			return ast;
+		}
 	},
 	[a.appendPieceToExp]: (ast, expId) => {
-		// TODO appendPieceToExp
-		console.error('appendPieceToExp not implemented');
-		return ast;
+		try {
+			return save(appendPieceToExp(ast, expId));
+		} catch (e) {
+			console.error(e);
+			return ast;
+		}
 	},
-	[a.removeExp]: (state, expId) => {
-		// TODO appendPieceToExp
-		console.error('appendPieceToExp not implemented');
-		return ast;
+	[a.removeExp]: (ast, expId) => {
+		try {
+			return save(removeNode(ast, expId));
+		} catch (e) {
+			console.error(e);
+			return ast;
+		}
 	},
 	[a.addFunction]: (ast, { identifier, lambda }) => {
 		return save(bindIdentifier(ast, identifier, lambda));

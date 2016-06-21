@@ -73,9 +73,9 @@ export default createReducer({
 		...state, evalResult: '', evaluating: false, evalFailed: true
 	}),
 
-	[astActions.replaceExp]: (state, { exp, replaceId }) => {
-		if (replaceId === state.selectedExpId) {
-			return { ...state, selectedExpId: exp.id };
+	[astActions.replaceExp]: (state, { exp, idToReplace }) => {
+		if (idToReplace === state.selectedExpId) {
+			return { ...state, selectedExpId: exp.rootNode };
 		}
 		return state;
 	},
