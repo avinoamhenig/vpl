@@ -89,7 +89,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 		onTextEntered(text) {
 			dispatch(actions.toggleTextInput());
 			if (text === '') { return; }
-
+			valueToExp(text);
 		},
 		buttons: [
 			{ display: 0, value: () => valueToExp(0) },
