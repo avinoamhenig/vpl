@@ -23,11 +23,13 @@ export default compose(
 			style={s.expression}
 			onClick={sp(p.onClick, p.expressionId, p.expansionLevel)}
 			>
-			<div style={s.smallPiece}>
-				else
+			<div style={s.leaf}>
+				<div style={s.smallPiece}>else</div>
 			</div>
-			<div style={[s.smallPiece, s.light]}>
-				<Icon icon="arrow-right" />
+			<div style={s.leaf}>
+				<div style={[s.smallPiece, s.light]}>
+					<Icon icon="arrow-right" />
+				</div>
 			</div>
 			{ exp }
 		</div>

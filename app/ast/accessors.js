@@ -53,9 +53,35 @@ function isInfixOperator(identifier) {
 	return /^[^a-z0-9\s]+$/.test(identifier.displayName);
 }
 
+// Program, Uid Node -> [Identifier]
+function getIdentifiersScopedToNode(program, nodeId) {
+	const idents = [];
+	for (const ident of Object.keys(program.identifiers)) {
+		if (program.identifiers[ident].scope === nodeId) {
+			idents.push(program.identifiers[ident]);
+		}
+	}
+	return idents;
+}
+
+// Node -> [Uid Node]
+function getChildrenIds(node) {
+	switch (getNodeOrExpType(node)) {
+		case expressionType.NUMBER: return [];
+		case expressionType.IDENTIFIER: return [];
+		case expressionType.LAMBDA: return [node.body]
+		case expressionType.APPLICATION: return [node.lambda, ...node.arguments];
+		case expressionType.CASE: return [...node.caseBranches, node.elseBranch];
+		case nodeType.CASE_BRANCH: return [node.condition, node.expression];
+		case nodeType.ELSE_BRANCH: return [node.expression]
+		default: throw `Unexpected node: ${getNodeOrExpType(node)}.`;
+	}
+}
+
 module.exports = {
 	rootNode, root, getAstType, getNodeType,
 	getExpressionType, getNodeOrExpType,
 	getIdentifier, getNode, getRootScopeLambdaIdentifiers,
-	isInfixOperator, isLeafExpression
+	isInfixOperator, isLeafExpression,
+	getIdentifiersScopedToNode, getChildrenIds
 };

@@ -15,10 +15,12 @@ export default compose(
 	const s = computeStyles(p);
 
 	return (
-		<div style={[s.piece, s.selectable]}>
-			<span
-				onClick={sp(p.onClick, p.expressionId, p.expansionLevel)}
-				>{ e.value }</span>
+		<div style={s.leaf}>
+			<div style={[s.piece, s.selectable]}>
+				<span
+					onClick={sp(p.onClick, p.expressionId, p.expansionLevel)}
+					>{ e.value }</span>
+			</div>
 		</div>
 	);
 });

@@ -101,7 +101,9 @@ export default class LambdaView extends React.Component {
 							expandedExpIds={p.expandedExpIds}
 							nestingLimit={p.nestingLimit}
 							onClick={p.selectExp}
-							onExpand={p.toggleExpansion} />
+							onExpand={p.toggleExpansion}
+							navigate={p.navigate}
+							/>
 					</div>
 				</div>
 			</div>
