@@ -32,9 +32,9 @@ function unparse(program) {
       unparseExp(getNode(program, identifier.value), program, sb);
       sb.pop();
       sb.nl();
+      sb.nl();
     }
   }
-  sb.nl();
   unparseExp(getNode(program, program.expression), program, sb);
   return sb.toString();
 }
@@ -45,11 +45,11 @@ function unparseExp(node, program, sb) {
     getIdentifiersScopedToNode(program, node.id)
     .filter(id => id.value != null);
   if (boundIds.length > 0) {
+    sb.nl();
     sb.push();
     sb.add('let');
     sb.nl();
     sb.push();
-    console.log(boundIds);
     boundIds.forEach(id => unparseBinding(id, program, sb));
     sb.pop();
     sb.nl();
@@ -97,12 +97,10 @@ function unparseExp(node, program, sb) {
           sb.nl();
       }
       unparseElseBranch(getNode(program, node.elseBranch), program, sb);
-      sb.nl();
       sb.pop();
       break;
 
 		default:
-      console.log(sb.toString());
 			throw `Unexpected node: ${getNodeOrExpType(node)}.`;
 	}
 
@@ -138,7 +136,6 @@ function unparseElseBranch(node, program, sb) {
 
 
 function unparseBinding(id, program, sb) {
-  console.log(id);
   if (id.displayName && id.value) {
     sb.push();
     sb.add(id.displayName);
