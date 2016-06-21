@@ -39,7 +39,6 @@ function parseDefine() {
   new_scope[name] = nameId;
   G.scope.push(new_scope);
   const body = parseExp();
-  //pop scope?
   eat(getNextToken(), ')');
   return [nameId, body];
 }
@@ -98,6 +97,7 @@ function parseExp() {
         names[i] = setIdentifierScope(names[i], body.rootNode);
         body = bindIdentifier(body, names[i], values[i]);
       }
+			eat(getNextToken(), ')');
       return body;
     } else {
       const lambdaFrag = parseExp();
@@ -160,10 +160,6 @@ function getNextToken() {
   return G.tokens[G.index-1];
 }
 
-function hasNextToken() {
-  return G.tokens.length > 0;
-}
-
 function lookAhead(i) {
   return G.tokens[G.index+i];
 }
@@ -216,7 +212,7 @@ built_in_env['>='] = gte;
 const cons = createIdentifier('cons');
 built_in_env['cons'] = cons;
 const nil = createIdentifier('null?');
-built_in_env['car'] = nil;
+built_in_env['null?'] = nil;
 const car = createIdentifier('car');
 built_in_env['car'] = car;
 const cdr = createIdentifier('cdr');

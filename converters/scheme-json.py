@@ -45,8 +45,8 @@ class SchemetoJSON:
             elif self.peekNextToken() == "let":
                 self.getNextToken() #let
                 assert (self.getNextToken() == '(')
-                bindings = []
                 while (self.peekNextToken() != ")"):
+                    print(bindings)
                     assert (self.getNextToken() == '(')
                     name = self.getNextToken()
                     value = self.parse()
