@@ -4,7 +4,6 @@
 //
 // converts (unparses) v2 AST representation to Scheme
 
-// not yet implemented: let expressions
 
 
 const assert = require('assert');
@@ -13,6 +12,7 @@ const {
   expressionType,
   getAstType,
 	getIdentifier,
+  getIdentifiersScopedToNode,
   getNode,
   getNodeOrExpType,
   nodeType
@@ -21,7 +21,7 @@ const {
 
 function unparse(program) {
   assert.strictEqual(getAstType(program), astType.PROGRAM);
-  var sb = makeSb();
+  var sb = makeStringBuilder();
   for (const identId of Object.keys(program.identifiers)) {
     const identifier = getIdentifier(program, identId);
     if (identifier.scope === null && identifier.value) {
@@ -41,6 +41,16 @@ function unparse(program) {
 
 
 function unparseExp(node, program, sb) {
+  const boundIds = getIdentifiersScopedToNode(program, node.id);
+  if (boundIds.length > 0) {
+    sb.push();
+    sb.add('let');
+    sb.nl();
+    sb.push();
+    boundIds.forEach(id => unparseBinding(id, program, sb));
+    sb.pop();
+    sb.nl();
+  }
 	switch (getNodeOrExpType(node)) {
 		case expressionType.NUMBER:
       sb.add(node.value);
@@ -92,7 +102,11 @@ function unparseExp(node, program, sb) {
       console.log(sb.toString());
 			throw `Unexpected node: ${getNodeOrExpType(node)}.`;
 	}
-};
+
+  if (boundIds.length > 0) {
+    sb.pop();
+  }
+}
 
 
 function unparseCaseBranch(node, program, sb) {
@@ -107,6 +121,7 @@ function unparseCaseBranch(node, program, sb) {
   }
 }
 
+
 function unparseElseBranch(node, program, sb) {
   if (getNodeOrExpType(node) === nodeType.ELSE_BRANCH) {
     sb.push();
@@ -119,9 +134,24 @@ function unparseElseBranch(node, program, sb) {
 }
 
 
+function unparseBinding(identifier, program, sb) {
+  const id = getIdentifier(program, identifier);
+  if (id.displayName && id.value) {
+    sb.push();
+    sb.add(id.displayName);
+    sb.add(' ');
+    unparseExp(getNode(program, id.value), program, sb);
+    sb.pop();
+    sb.nl();
+  } else {
+    throw `Ill-bound identifier: ${identifier}.`;
+  }
+}
+
+
 // ----------------------
 // a simple string builder object
-function makeSb() {
+function makeStringBuilder() {
   const TAB = '  ';
   return {
     a: [],
@@ -151,4 +181,4 @@ function makeSb() {
 
 
 
-module.exports = unparse;
+module.exports = {unparse};
