@@ -93,7 +93,7 @@ export default p => {
 		position: 'absolute',
 		width: 0,
 		zIndex: 20,
-		top: 25,
+		top: 26,
 		left: -2
 	};
 
