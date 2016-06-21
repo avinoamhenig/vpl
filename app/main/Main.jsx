@@ -10,10 +10,12 @@ import Radium from 'radium'
 import AstKeyboard from 'ast-keyboard'
 import Icon from 'lib/Icon'
 import computeStyles from './mainStyles.js'
+import { actions as astActions } from 'program'
 import {
-	getLambdaByName,
-	actions as astActions
-} from 'oldast'
+	getRootScopeLambdaIdentifiers,
+	getIdentifier,
+	getNode
+} from 'ast'
 
 const Main = compose(
 	name('Main'),
@@ -31,7 +33,7 @@ const Main = compose(
 		]
 	}),
 	Radium
-)(({ route, navigate, ast, newFunction }) => {
+)(({ route, navigate, program, newFunction }) => {
 	const s = computeStyles();
 	const routeMatch = matchOne(routes.desc, route);
 	const onAddLambdaClicked = () => {
@@ -39,12 +41,15 @@ const Main = compose(
 	};
 
 	switch (routeMatch.key) {
-		case routes.LAMBDA:
+		case routes.FN:
+			const identifier = getIdentifier(program, routeMatch.params.id);
 			return (
 				<div style={s.lambdaEditContainer}>
 					<div style={s.lambdaContainer}>
 						<LambdaView
-							lambda={getLambdaByName(routeMatch.params.id, ast)}
+							identifier={identifier}
+							lambdaId={identifier.value}
+							program={program}
 							/>
 					</div>
 					<div style={s.keyboardContainer}>
@@ -53,20 +58,19 @@ const Main = compose(
 				</div>
 			);
 		case routes.FN_LIST:
-			let listItems = ast.map(fnDef => {
-				return (
-					<li style={s.lambdaListItem} key={fnDef.name}>
-						<a
-							href={`#/lambda/${fnDef.name}`}
-							key={fnDef.name}
-							style={s.lambdaLink}
-							onClick={e => {
-								e.preventDefault();
-								navigate(`/lambda/${fnDef.name}`);
-							}}>{fnDef.name}</a>
-					</li>
-				);
-			});
+			// TODO display the root expression
+			let listItems = getRootScopeLambdaIdentifiers(program).map(ident => (
+				<li style={s.lambdaListItem} key={ident.id}>
+					<a
+						href={`#/fn/${ident.id}`}
+						key={ident.displayName}
+						style={s.lambdaLink}
+						onClick={e => {
+							e.preventDefault();
+							navigate(`/fn/${ident.id}`);
+						}}>{ident.displayName}</a>
+				</li>
+			));
 			return (
 				<ul key="fn_list">
 					{listItems}
@@ -87,7 +91,7 @@ const Main = compose(
 
 const mapStateToProps = (state) => ({
 	route: state.route.current,
-	ast: state.ast
+	program: state.program
 });
 const mapDispatchToProps = (dispatch) => bindActionCreators({
 	navigate,

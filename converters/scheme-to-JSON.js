@@ -6,7 +6,7 @@ function tokenize(exp) {
   exp = exp.replace(/[\)]/g, " ) ");
   exp = exp.replace(/[\(]/g, " ( ");
   exp = exp.trim();
-  G.tokens = exp.split(/\s+/); //definitely way too tedious
+  G.tokens = exp.split(/\s+/);
 }
 
 function reset() {
@@ -30,14 +30,14 @@ function parse() {
         var body = parse();
         if (getNextToken() === ")") {
           return {"name": name, "args": args, "body": body};
-        } //ELSE??
+        }
     } else if (peekNextToken() === '(') {
         var condition = parse();
         var exp = parse();
         if (getNextToken() === ")") {
           return {"condition": condition, "exp": exp};
-        } // ELSE??
-    } else if (peekNextToken() === 'else') { /**/
+        }
+    } else if (peekNextToken() === 'else') {
         getNextToken();
         return parse();
     } else if (peekNextToken() === 'cond') {
@@ -58,7 +58,7 @@ function parse() {
           getNextToken();
           var name = getNextToken();
           var value = parse();
-          bindings.push({"name":name, "value":value}); ///
+          bindings.push({"name":name, "value":value});
           getNextToken();
         }
         getNextToken();
@@ -73,14 +73,6 @@ function parse() {
         getNextToken();
         return {"tag":"call", "function":func, "argVals":argVals};
     }
-  } else if (token === "'") {
-      var ls = [];
-      getNextToken();
-      while (peekNextToken() != ")") {
-        ls.append(parse());
-      }
-      getNextToken();
-      return {"tag":"list","list":ls};
   } else if (Number(token) || token === '0') {
       return {"tag":"number", "val":token};
   } else {

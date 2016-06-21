@@ -1,14 +1,15 @@
 import { createAction as cA, createReducer } from 'redux-act'
 import m from 'lib/mapParamsToObject'
-import processAst from './processAst'
-import replaceExpById from './replaceExpById'
-import appendPieceToExp from './appendPieceToExp'
-import removeExp from './removeExp'
-import createExpression from './createExpression'
-import { navigate } from 'lib/route-reducer'
+import {
+	createIdentifier,
+	createLambdaExpression,
+	createNumberExpression,
+	bindIdentifier,
+	removeNode, replaceNode,
+	appendPieceToExp
+} from 'ast'
 
-import exampleFns from './examples/fns'
-const STORAGE_KEY = 'vpl_ast_forest';
+const STORAGE_KEY = 'vpl_ast_v2_forest';
 const save = newState => {
 	if (typeof window === 'undefined') {
 		return newState;
@@ -19,14 +20,14 @@ const save = newState => {
 let initialState = typeof window !== 'undefined'
 	? window.localStorage.getItem(STORAGE_KEY) : null;
 if (initialState === null) {
-	initialState = processAst(exampleFns);
+	initialState = require('../../test/ast/create_sum')();
 	save(initialState);
 } else {
 	initialState = JSON.parse(initialState);
 }
 
 const a = {};
-a.replaceExp = cA('REPLACE_EXP', m('exp', 'replaceId'));
+a.replaceExp = cA('REPLACE_EXP', m('exp', 'idToReplace'));
 a.replaceSelectedExp = exp => (dispatch, getState) => {
 	const { selectedExpId } = getState().lambdaView;
 	if (selectedExpId) {
@@ -47,37 +48,43 @@ a.removeSelectedExp = () => (dispatch, getState) => {
 		dispatch(a.removeExp(selectedExpId));
 	}
 };
-a.addFunctionDef = cA('ADD_FUNCTION_DEF');
+a.addFunction = cA('ADD_FUNCTION', m('identifier', 'lambda'));
 a.newFunction = () => dispatch => {
-	const fn = createExpression('__--function_def--__');
-	dispatch(a.addFunctionDef(fn));
+	const arg = createIdentifier('x');
+	const lambdaIdent = createIdentifier('f');
+	const lambdaFrag = createLambdaExpression([arg],
+		createNumberExpression(0)
+	);
+	dispatch(a.addFunction(lambdaIdent, lambdaFrag));
 };
 
 export const actions = a;
 export default createReducer({
-	[a.replaceExp]: (state, { exp, replaceId }) => {
+	[a.replaceExp]: (ast, { exp, idToReplace }) => {
 		try {
-			return save(replaceExpById(state, exp, replaceId));
+			return save(replaceNode(ast, idToReplace, exp));
 		} catch (e) {
 			console.error(e);
-			return state;
+			return ast;
 		}
 	},
-	[a.appendPieceToExp]: (state, expId) => {
+	[a.appendPieceToExp]: (ast, expId) => {
 		try {
-			return save(appendPieceToExp(state, expId));
+			return save(appendPieceToExp(ast, expId));
 		} catch (e) {
 			console.error(e);
-			return state;
+			return ast;
 		}
 	},
-	[a.removeExp]: (state, expId) => {
+	[a.removeExp]: (ast, expId) => {
 		try {
-			return save(removeExp(state, expId));
+			return save(removeNode(ast, expId));
 		} catch (e) {
 			console.error(e);
-			return state;
+			return ast;
 		}
 	},
-	[a.addFunctionDef]: (state, fnDef) => save([...state, fnDef])
+	[a.addFunction]: (ast, { identifier, lambda }) => {
+		return save(bindIdentifier(ast, identifier, lambda));
+	}
 }, initialState);

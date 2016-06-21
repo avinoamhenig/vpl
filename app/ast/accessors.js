@@ -28,8 +28,60 @@ const getIdentifier = (program, identId) =>
 const getNode = (program, nodeId) =>
 	program.nodes[nodeId];
 
+const isLeafExpression = node => [
+	expressionType.IDENTIFIER, expressionType.NUMBER
+].includes(getNodeOrExpType(node));
+
+// Program -> [Identifier]
+function getRootScopeLambdaIdentifiers(program) {
+	const result = [];
+	for (const identId of Object.keys(program.identifiers)) {
+		const identifier = getIdentifier(program, identId);
+		if (identifier.scope !== null || !identifier.value) {
+			continue;
+		}
+		const valueExp = getNode(program, identifier.value);
+		if (getExpressionType(valueExp) === expressionType.LAMBDA) {
+			result.push(identifier);
+		}
+	}
+	return result;
+}
+
+// Identifier -> Boolean
+function isInfixOperator(identifier) {
+	return /^[^a-z0-9\s]+$/.test(identifier.displayName);
+}
+
+// Program, Uid Node -> [Identifier]
+function getIdentifiersScopedToNode(program, nodeId) {
+	const idents = [];
+	for (const ident of Object.keys(program.identifiers)) {
+		if (program.identifiers[ident].scope === nodeId) {
+			idents.push(program.identifiers[ident]);
+		}
+	}
+	return idents;
+}
+
+// Node -> [Uid Node]
+function getChildrenIds(node) {
+	switch (getNodeOrExpType(node)) {
+		case expressionType.NUMBER: return [];
+		case expressionType.IDENTIFIER: return [];
+		case expressionType.LAMBDA: return [node.body]
+		case expressionType.APPLICATION: return [node.lambda, ...node.arguments];
+		case expressionType.CASE: return [...node.caseBranches, node.elseBranch];
+		case nodeType.CASE_BRANCH: return [node.condition, node.expression];
+		case nodeType.ELSE_BRANCH: return [node.expression];
+		default: throw `Unexpected node: ${getNodeOrExpType(node)}.`;
+	}
+}
+
 module.exports = {
 	rootNode, root, getAstType, getNodeType,
 	getExpressionType, getNodeOrExpType,
-	getIdentifier, getNode
+	getIdentifier, getNode, getRootScopeLambdaIdentifiers,
+	isInfixOperator, isLeafExpression,
+	getIdentifiersScopedToNode, getChildrenIds
 };

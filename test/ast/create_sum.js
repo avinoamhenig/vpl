@@ -7,7 +7,7 @@ const {
 	createApplicationExpression,
 	createCaseExpression,
 	createCaseBranch,
-	bindIdentifier
+	bindIdentifiers
 } = require('../../app/ast');
 
 module.exports = () => {
@@ -42,6 +42,6 @@ module.exports = () => {
 	);
 	const rootExp = createNumberExpression(0);
 	return createProgram(
-		bindIdentifier(rootExp, sumIdent, sumLambda)
+		bindIdentifiers(rootExp, [[sumIdent, sumLambda]])
 	);
 }

@@ -1,11 +1,14 @@
-import { applyMiddleware, createStore } from 'redux'
+import { applyMiddleware, createStore, compose } from 'redux'
 import { navigate } from 'lib/route-reducer'
 import rootReducer from './rootReducer'
 import thunk from 'redux-thunk';
 
 export default (initialState, routeMiddleware, initialUrl) => {
-	const store = applyMiddleware(
-		thunk, routeMiddleware
+	const store = compose(
+		applyMiddleware(thunk, routeMiddleware),
+		(typeof window === 'object'
+		 && typeof window.devToolsExtension !== 'undefined'
+			? window.devToolsExtension() : f => f)
 	)(createStore)(rootReducer, initialState);
 
 	if (typeof initialUrl !== 'undefined') {

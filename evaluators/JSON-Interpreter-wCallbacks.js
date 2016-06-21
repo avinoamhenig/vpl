@@ -35,17 +35,12 @@ function loadJSON(json_fun_defs) {
   G.functions = fs.concat(G.functions);
 }
 
-
 function R(f, exp, callback, fail) {
   if (G.fast || exp.tag == "number" || exp.tag == "identifier") {
     return f(exp, callback, fail);
   } else {
     setTimeout(f, G.DELAY, exp, callback, fail);
   }
-}
-
-function setTO(e, callback, fail) {
-  setTimeout(evaluateStep, G.DELAY, e, callback, fail);
 }
 
 function evaluateStep(exp, callback, uponFail) {
@@ -79,7 +74,7 @@ function evaluateStep(exp, callback, uponFail) {
         var fun = exp.function;
         var argVals = exp.argVals;
         var builtInFuns = ["+", '-', '*', '/' , 'div', '%', '=', '!=','<', '>', '<=', '>=', 'cons', 'null?', 'car', 'cdr', 'cddr', 'cadr', 'list'];
-        if (builtInFuns.indexOf(fun.name) != -1) {
+        if (builtInFuns.indexOf(fun.name) !== -1) {
           if (argVals.length === 2) {
             R(evaluateStep, argVals[0], function (x) {
               R(evaluateStep, argVals[1], function (y) {
@@ -103,7 +98,7 @@ function evaluateStep(exp, callback, uponFail) {
           var called_fun_args = called_fun.args;
           eval_star(argVals, function (binding_vals) {
             //check for same number of arguments?
-            n_e = extend(called_fun_args, binding_vals);
+            var n_e = extend(called_fun_args, binding_vals);
             G.environment.push(n_e);
             R(evaluateStep, called_fun.body, function (b) {
               G.environment.pop();

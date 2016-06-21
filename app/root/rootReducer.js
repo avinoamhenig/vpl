@@ -1,6 +1,6 @@
 import { combineReducers } from 'redux'
 import { routeReducer as route } from 'lib/route-reducer'
-import { astReducer as ast } from 'oldast'
+import { programReducer as program } from 'program'
 import { lambdaViewReducer as lambdaView } from 'lambda-view'
 import { astKeyboardReducer as astKeyboard } from 'ast-keyboard'
 import { types as actionTypes } from 'redux-act';
@@ -10,5 +10,5 @@ import { types as actionTypes } from 'redux-act';
 actionTypes.clear();
 
 export default combineReducers({
-	route, ast, lambdaView, astKeyboard
+	route, program, lambdaView, astKeyboard
 });

@@ -1,58 +1,40 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import AstKeyboard from './AstKeyboard'
-import { actions as astActions, createExpression } from 'oldast'
 import { actions } from './astKeyboardReducer'
 import Icon from 'lib/Icon'
-import { getExpForId } from 'oldast'
+import { actions as astActions } from 'program'
+import {
+	getNode, getNodeOrExpType, expressionType,
+	createNumberExpression, createIdentifier, createIdentifierExpression,
+	createApplicationExpression, createCaseExpression, createCaseBranch,
+	createElseBranch
+} from 'ast'
 
 const mapStateToProps = state => {
 	let showAddBtn = false;
 	const selectedId = state.lambdaView.selectedExpId;
 	if (selectedId) {
-		const selectedExp = getExpForId(selectedId, state.ast);
-		showAddBtn = selectedExp.tag === 'call'
-		             || selectedExp.tag === 'case';
+		const selectedExp = getNode(state.program, selectedId);
+		showAddBtn = getNodeOrExpType(selectedExp) === expressionType.APPLICATION
+		          || getNodeOrExpType(selectedExp) === expressionType.CASE;
 	}
 
 	return {
 		...state.astKeyboard,
-		ast: state.ast,
 		showAddBtn,
-		buttons: [
-			{ display: 0, value: 0 },
-			{ display: 1, value: 1 },
-			{ display: '+', value: '+' },
-			{ display: '-', value: '-' },
-			{ display: '*', value: '*' },
-			{ display: '/', value: '/' },
-			{ display: '%', value: '%' },
-			{ display: '=', value: '=' },
-			{ display: '≠', value: '!=' },
-			{ display: '<', value: '<' },
-			{ display: '≤', value: '<=' },
-			{ display: '>', value: '>' },
-			{ display: '≥', value: '>=' },
-			{ display: (<Icon icon="question" />), value: '__--case--__' },
-			{ display: 'fn()', value: '__--call--__' },
-			{ display: (<Icon icon="keyboard-o" />), value: '__--keybd--__' }
-		]
+		program: state.program
 	};
 };
 
 const mapDispatchToProps = (dispatch, props) => ({
+	dispatch,
 	onButtonPressed(value) {
 		if (value === '__--keybd--__') {
 			dispatch(actions.toggleTextInput());
 		} else {
-			dispatch(astActions.replaceSelectedExp(createExpression(value)));
+			value();
 		}
-	},
-	onTextEntered(text) {
-		dispatch(actions.toggleTextInput());
-		if (text === '') { return; }
-		const value = /^\d+$/.test(text) ? parseInt(text) : text;
-		dispatch(astActions.replaceSelectedExp(createExpression(value)));
 	},
 	onTogglePressed() {
 		dispatch(actions.toggleKeyboard());
@@ -65,4 +47,71 @@ const mapDispatchToProps = (dispatch, props) => ({
 	}
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(AstKeyboard);
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+	const dispatch = dispatchProps.dispatch;
+	const program = stateProps.program;
+
+	const valueToExp = value => {
+		value = /^\d+$/.test(value) ? parseInt(value) : value;
+		if (typeof value === 'number') {
+			dispatch(astActions.replaceSelectedExp(createNumberExpression(value)));
+		} else {
+			let identId = Object.keys(program.identifiers).filter(id =>
+				program.identifiers[id].displayName === value)[0];
+			let identExp;
+			if (!identId) {
+				identExp = createIdentifierExpression(createIdentifier(value));
+			} else {
+				identExp = createIdentifierExpression(program.identifiers[identId]);
+			}
+			dispatch(astActions.replaceSelectedExp(identExp));
+		}
+	};
+
+	const caseExp = () => dispatch(astActions.replaceSelectedExp(
+		createCaseExpression(
+			[createCaseBranch(createNumberExpression(0), createNumberExpression(0))],
+			createNumberExpression(0)
+		)
+	));
+
+	const appExp = () => dispatch(astActions.replaceSelectedExp(
+		createApplicationExpression(
+			createNumberExpression(0), []
+		)
+	));
+
+	return {
+		...ownProps,
+		...stateProps,
+		...dispatchProps,
+		state: undefined, dispatch: undefined,
+		onTextEntered(text) {
+			dispatch(actions.toggleTextInput());
+			if (text === '') { return; }
+
+		},
+		buttons: [
+			{ display: 0, value: () => valueToExp(0) },
+			{ display: 1, value: () => valueToExp(1) },
+			{ display: '+', value: () => valueToExp('+') },
+			{ display: '-', value: () => valueToExp('-') },
+			{ display: '*', value: () => valueToExp('*') },
+			{ display: '/', value: () => valueToExp('/') },
+			{ display: '%', value: () => valueToExp('%') },
+			{ display: '=', value: () => valueToExp('=') },
+			{ display: '≠', value: () => valueToExp('!=') },
+			{ display: '<', value: () => valueToExp('<') },
+			{ display: '≤', value: () => valueToExp('<=') },
+			{ display: '>', value: () => valueToExp('>') },
+			{ display: '≥', value: () => valueToExp('>=') },
+			{ display: (<Icon icon="question" />), value: caseExp },
+			{ display: 'fn()', value: appExp },
+			{ display: (<Icon icon="keyboard-o" />), value: '__--keybd--__' }
+		]
+	};
+};
+
+export default connect(
+	mapStateToProps, mapDispatchToProps, mergeProps
+)(AstKeyboard);
