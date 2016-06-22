@@ -3,9 +3,9 @@ import { colors, noSelect } from 'styles'
 export default p => {
 	const s = {};
 
-	const inset = 5;
-	const spacing = 7;
-	const radius = inset - 2;
+	const inset = 7;
+	const spacing = 15;
+	const radius = 4;
 	s.expression = [noSelect, {
 		display: 'inline-block',
 		fontFamily: 'Helvetica Neue, sans-serif',
@@ -41,8 +41,8 @@ export default p => {
 
 	s.piece = {
 		lineHeight: '40px',
-		paddingTop: 15,
-		paddingBottom: 15,
+		paddingTop: 20,
+		paddingBottom: 20,
 		display: 'inline-block',
 		verticalAlign: 'top'
 	};
@@ -50,8 +50,8 @@ export default p => {
 	s.smallPiece = [s.piece, {
 		fontSize: 17,
 		lineHeight: '40px',
-		paddingTop: 17,
-		paddingBottom: 13
+		paddingTop: 22,
+		paddingBottom: 18
 	}];
 
 	s.light = {
@@ -93,7 +93,7 @@ export default p => {
 		position: 'absolute',
 		width: 0,
 		zIndex: 20,
-		top: 26,
+		top: 36,
 		left: -2
 	};
 
