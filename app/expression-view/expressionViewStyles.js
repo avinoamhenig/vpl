@@ -3,19 +3,21 @@ import { colors, noSelect } from 'styles'
 export default p => {
 	const s = {};
 
+	s.expressionWrapper = {
+		display: p.nestedLevel === 0 ? 'block' : 'inline-block'
+	};
+
 	const inset = 7;
 	const radius = 4;
 	s.expression = [noSelect, {
-		display: 'inline-block',
+		display: p.nestedLevel === 0 ? 'block' : 'inline-block',
 		fontFamily: 'Helvetica Neue, sans-serif',
 		fontSize: 35,
 		fontWeight: '200',
 		cursor: 'pointer',
 		background:p.selectedExpId === p.expressionId
-			? p.expansionLevel > 0 && p.nestedLevel === 0 ? 'none' : colors.selectedExp
-			: p.nestedLevel === 0
-				? 'none'
-				: colors.exp,
+			? colors.selectedExp
+			: p.nestedLevel === 0 ? 'none' : colors.exp,
 		borderRadius: p.nestedLevel === 1 ? radius : 0,
 		paddingRight: inset,
 		paddingTop: p.nestedLevel === 0 ? inset : 0,
@@ -30,6 +32,8 @@ export default p => {
 	};
 
 	s.leaf = [s.expression, {
+		border: 'none',
+		display: 'inline-block',
 		paddingRight: 0,
 		paddingTop: 0, paddingBottom : 0,
 		marginTop: 0,
@@ -74,14 +78,11 @@ export default p => {
 
 	s.expandedContainer = {
 		position: 'absolute',
-		left: p.expansionLevel === 0 ? inset : inset/2,
-		right: p.expansionLevel === 0 ? inset : inset/2,
 		backgroundColor: 'white',
 		borderTop: '3px solid black',
 		boxShadow: '0 1px 3px 0 rgba(0,0,0,0.6)',
 		borderRadius: radius,
-		marginTop: -5,
-		marginBottom: 10
+		marginBottom: 15
 	};
 
 	s.arrow = {
@@ -91,14 +92,31 @@ export default p => {
 		borderTop: 'none',
 		position: 'absolute',
 		width: 0,
-		zIndex: 20,
-		top: 36,
-		left: -2
+		zIndex: 20
 	};
 
-	s.arrowContainer = {
-		position: 'relative',
-		display: 'inline-block'
+	s.scopedIdentContainer = {
+		display: 'inline-block',
+		position: 'absolute',
+		marginLeft: 10,
+		marginTop: -4
+	};
+
+	s.scopedIdentifier = {
+		float: 'left',
+		top: 0,
+		fontSize: 15,
+		padding: '3px 7px',
+		background: 'white',
+		border: '1px solid #555',
+		color: '#555',
+		borderRadius: 6,
+		marginRight: 7
+	};
+
+	s.selectedIdentifier = {
+		background: colors.selectedExp,
+		color: 'white'
 	};
 
 	return s;

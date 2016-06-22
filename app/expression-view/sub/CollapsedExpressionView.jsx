@@ -18,7 +18,11 @@ export default compose(
 	return (
 		<div style={s.leaf}>
 			{ p.expandedExpIds[p.expansionLevel] === p.expressionId && (
-				<ExpandedExpressionView {...p} />
+				<ExpandedExpressionView
+					{...p}
+					popupOffsetTop={-10}
+					expandedFn={false}
+					/>
 			) }
 			<div style={s.expandPiece}>
 				<span
