@@ -134,17 +134,21 @@ function parseCase() {
   }
 }
 
-function tokenize(exp) {
-  exp = exp.replace(/[\)]/g, " ) ");
-  exp = exp.replace(/[\(]/g, " ( ");
-  exp = exp.trim();
-  G.tokens = exp.split(/\s+/);
-}
-
 function reset() {
   G.index = 0;
   G.tokens = [];
   G.parsed_program = [];
+}
+
+//Token Operations
+function tokenize(exp) {
+	exp = exp.replace('zero?', 'null?');
+	exp = exp.replace(/;.*$/gm, '');
+	exp = exp.replace(/\n/g, ' ');
+	exp = exp.replace(/[\)]/g, " ) ");
+  exp = exp.replace(/[\(]/g, " ( ");
+  exp = exp.trim();
+  G.tokens = exp.split(/\s+/);
 }
 
 function eat(token, expectedToken) {
@@ -164,6 +168,7 @@ function lookAhead(i) {
   return G.tokens[G.index+i];
 }
 
+//Environment Operations
 function lookup(sym, env) {
   if (env.length === 0) {
     return false;
@@ -182,7 +187,7 @@ function getUID(sym, env) {
   }
 }
 
-
+//Set up built in environment
 var built_in_env = {};
 
 const plus = createIdentifier('+');
@@ -213,8 +218,6 @@ const cons = createIdentifier('cons');
 built_in_env['cons'] = cons;
 const nil = createIdentifier('null?');
 built_in_env['null?'] = nil;
-const zero = createIdentifier('zero?');
-built_in_env['zero?'] = zero;
 const car = createIdentifier('car');
 built_in_env['car'] = car;
 const cdr = createIdentifier('cdr');

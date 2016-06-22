@@ -61,9 +61,6 @@ function R(f, exp, program, callback, fail) {
 
 //Evaluate expression precursor (takes care of let bindings)
 function evaluateStep(node, program, callback, fail) {
-	console.log("node: " + node.id);
-	console.log("node type: " + getNodeOrExpType(node));
-	console.log("environment step: " + JSON.stringify(G.environment));
   if (G.continue) {
 		const boundIds = getIdentifiersScopedToNode(program, node.id).filter(id => id.value != null);
 		if (boundIds.length > 0) {
@@ -93,7 +90,6 @@ function evaluateStep(node, program, callback, fail) {
 
 //Evaluate expression
 function evaluateBody(node, program, callback, fail) {
-	console.log("environment body: " + JSON.stringify(G.environment));
   switch (getNodeOrExpType(node)) {
     case expressionType.NUMBER:
       callback(node.value);
