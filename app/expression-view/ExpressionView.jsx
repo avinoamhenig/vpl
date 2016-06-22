@@ -10,12 +10,15 @@ import ApplicationExpressionView from './sub/ApplicationExpressionView'
 import NumberExpressionView from './sub/NumberExpressionView'
 import IdentifierExpressionView from './sub/IdentifierExpressionView'
 import CollapsedExpressionView from './sub/CollapsedExpressionView'
+import ExpandedExpressionView from './sub/ExpandedExpressionView'
 import Icon from 'lib/Icon'
+import sp from 'lib/stopPropagation'
 import {
 	getNode,
 	getNodeOrExpType,
 	expressionType, nodeType,
-	isLeafExpression
+	isLeafExpression,
+	getIdentifiersScopedToNode
 } from 'ast'
 
 export default compose(
@@ -59,5 +62,41 @@ export default compose(
 		}
 	}
 
-	return view;
+	return (
+		<span id={
+				p.nestedLevel === 0
+					? `exp_cont_${p.lambdaIdentId}_${p.expansionLevel}`
+					: ''
+			}
+			style={s.expressionWrapper}
+			onClick={e => e.stopPropagation()}>
+			<div style={s.scopedIdentContainer}>
+				{ p.nestedLevel <= p.nestingLimit &&
+					getIdentifiersScopedToNode(p.program, p.expressionId).map(ident => (
+					<div
+						key={ident.id}
+						style={[
+							s.scopedIdentifier,
+							p.selectedExpId === ident.id && s.selectedIdentifier
+						]}
+						onClick={ sp(p.onExpand, {
+							select: ident.id,
+							expand: ident.value },
+						p.expansionLevel) }
+						>
+						{ p.expandedExpIds[p.expansionLevel] === ident.value && (
+							<ExpandedExpressionView
+								{...p}
+								expressionId={ident.value}
+								expandedFn={false}
+								popupOffsetTop={4}
+								/>
+						) }
+						{ident.displayName}
+					</div>
+				)) }
+			</div>
+			{ view }
+		</span>
+	);
 });
