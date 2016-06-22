@@ -4,7 +4,6 @@ export default p => {
 	const s = {};
 
 	const inset = 7;
-	const spacing = 15;
 	const radius = 4;
 	s.expression = [noSelect, {
 		display: 'inline-block',
@@ -21,13 +20,13 @@ export default p => {
 		paddingRight: inset,
 		paddingTop: p.nestedLevel === 0 ? inset : 0,
 		marginBottom: p.nestedLevel === 1 ? inset : 0,
-		marginLeft: p.nestedLevel === 0 ? 0 : p.nestedLevel === 1 ? inset : spacing,
+		marginLeft: p.nestedLevel === 0 ? 0 : inset,
 		paddingLeft: p.nestedLevel === 0 ? inset : 0
 	}];
 
 	s.first = {
 		display: 'inline-block',
-		marginLeft: p.nestedLevel === 0 ? -inset : inset - spacing
+		marginLeft: p.nestedLevel === 0 ? -inset : 0
 	};
 
 	s.leaf = [s.expression, {
