@@ -14,7 +14,8 @@ export const actions = {
 	toggleInfix: cA('TOGGLE_INFIX'),
 	startEval: cA('START_EVAL'),
 	evalFail: cA('EVAL_FAIL'),
-	setEvalResult: cA('SET_EVAL_RESULT')
+	setEvalResult: cA('SET_EVAL_RESULT'),
+	toggleFnList: cA('TOGGLE_FN_LIST')
 };
 
 const a = actions;
@@ -88,7 +89,13 @@ export default createReducer({
 
 	[routeActions.NAVIGATE]: state => ({
 		...state,
-		expandedExpIds: []
+		expandedExpIds: [],
+		showFnList: false
+	}),
+
+	[a.toggleFnList]: state => ({
+		...state,
+		showFnList: !state.showFnList
 	})
 }, {
 	selectedExpId: null,
@@ -97,5 +104,6 @@ export default createReducer({
 	ignoreInfix: false,
 	evaluating: false,
 	evalResult: '',
-	evalFailed: false
+	evalFailed: false,
+	showFnList: false
 });

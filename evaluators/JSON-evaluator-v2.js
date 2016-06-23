@@ -22,7 +22,7 @@ function onFail() {
 
 var G = {};
 
-G.builtInFunctions = ['+', '-', '*', '/', 'div', 'remainder', '=', '!=','<', '>', '<=', '>=', 'cons', 'null?', 'car', 'cdr', 'cddr', 'cadr', 'list'];
+G.builtInFunctions = ['+', '-', '*', '/', 'div', 'remainder', '=', '!=', '<', '>', '<=', '>=', 'cons', 'null?', 'zero?', 'car', 'cdr', 'cddr', 'cadr', 'list'];
 G.environment = [];
 G.functions = {};
 G.DELAY = 0;
@@ -61,9 +61,6 @@ function R(f, exp, program, callback, fail) {
 
 //Evaluate expression precursor (takes care of let bindings)
 function evaluateStep(node, program, callback, fail) {
-	console.log("node: " + node.id);
-	console.log("node type: " + getNodeOrExpType(node));
-	console.log("environment step: " + JSON.stringify(G.environment));
   if (G.continue) {
 		const boundIds = getIdentifiersScopedToNode(program, node.id).filter(id => id.value != null);
 		if (boundIds.length > 0) {
@@ -93,7 +90,6 @@ function evaluateStep(node, program, callback, fail) {
 
 //Evaluate expression
 function evaluateBody(node, program, callback, fail) {
-	console.log("environment body: " + JSON.stringify(G.environment));
   switch (getNodeOrExpType(node)) {
     case expressionType.NUMBER:
       callback(node.value);
@@ -154,20 +150,7 @@ function evaluateBody(node, program, callback, fail) {
     case expressionType.CASE:
       const cases = node.caseBranches;
 			const elseBranch = getNode(program, node.elseBranch);
-			const elseEx = getNode(program, elseBranch.expression);
-      evaluate_cases(cases, elseBranch, callback);
-      function evaluate_cases(exps, elseExp, callback) {
-        if (exps.length === 0) {
-          R(evaluateStep, getNode(program, elseExp.expression), program, callback, fail);
-        } else {
-					var cs = getNode(program, exps[0]);
-          R(evaluateStep, getNode(program, cs.condition), program,
-						function (condition) {
-	            if (condition) R(evaluateStep, getNode(program, cs.expression), program, callback, fail);
-	            else evaluate_cases(exps.slice(1, exps.length), elseExp, callback);
-	          }, fail);
-        }
-      }
+			evaluate_cases(cases, elseBranch, callback, program, fail);
       break;
     default:
       throw `Unexpected node: ${getNodeOrExpType(node)}.`;
@@ -187,6 +170,19 @@ function eval_star(exps, program, callback, fail) {
 			    }, fail);
 		  }, fail);
   }
+}
+
+function evaluate_cases(exps, elseExp, callback, program, fail) {
+	if (exps.length === 0) {
+		R(evaluateStep, getNode(program, elseExp.expression), program, callback, fail);
+	} else {
+		var cs = getNode(program, exps[0]);
+		R(evaluateStep, getNode(program, cs.condition), program,
+			function (condition) {
+				if (condition) R(evaluateStep, getNode(program, cs.expression), program, callback, fail);
+				else evaluate_cases(exps.slice(1, exps.length), elseExp, callback, program, fail);
+			}, fail);
+	}
 }
 
 // Environment Operations
@@ -233,11 +229,12 @@ function builtIn(i, a1, a2) {
     else if (i === 11) return a1 >= a2;
     else { return a2.concat([a1]);};
   } else if (arguments.length === 2) {
-    //"null?", "car", "cdr", "cddr", "cadr"
+    //"null?", "zero?", "car", "cdr", "cddr", "cadr"
     if (i === 13) return a1.length === 0;
-    else if (i === 14) return a1[a1.length-1];
-    else if (i === 15) return a1.slice(0, a1.length-1);
-    else if (i === 16) return a1.slice(0, a1.length-2);
+		else if (i === 14) return a1 === 0;
+    else if (i === 15) return a1[a1.length-1];
+    else if (i === 16) return a1.slice(0, a1.length-1);
+    else if (i === 17) return a1.slice(0, a1.length-2);
     else return a1[a1.length-2];
   }
 }

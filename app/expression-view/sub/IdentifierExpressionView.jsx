@@ -34,11 +34,15 @@ export default compose(
 
 	return (
 		<div style={s.leaf}>
-			{ p.expandedExpIds[p.expansionLevel] === i.value && (
+			{ p.expandedExpIds[p.expansionLevel] === i.value
+				&& i.scope === null
+				&& getExpressionType(getNode(p.program, i.value)) === expressionType.LAMBDA
+				&& (
 				<ExpandedExpressionView
 					{...p}
 					expandedFn={true}
 					identifier={i}
+					popupOffsetTop={-10}
 					/>
 			) }
 			<div style={[s.piece, s.selectable]}>

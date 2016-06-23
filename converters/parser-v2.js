@@ -114,6 +114,13 @@ function parseExp() {
     if (lookup(token, G.scope)) {
       return createIdentifierExpression(getUID(token, G.scope));
     } else {
+			/*const newId = createIdentifier(token);
+			const new_env = {};
+			new_env[token] = newId;
+			G.scope.push(new_env);
+			return createIdentifierExpression(getUID(token, G.scope));
+      */
+
       console.log("Undefined token: " + token);
     }
   }
@@ -134,17 +141,20 @@ function parseCase() {
   }
 }
 
-function tokenize(exp) {
-  exp = exp.replace(/[\)]/g, " ) ");
-  exp = exp.replace(/[\(]/g, " ( ");
-  exp = exp.trim();
-  G.tokens = exp.split(/\s+/);
-}
-
 function reset() {
   G.index = 0;
   G.tokens = [];
   G.parsed_program = [];
+}
+
+//Token Operations
+function tokenize(exp) {
+	exp = exp.replace(/;.*$/gm, '');
+	exp = exp.replace(/\n/g, ' ');
+	exp = exp.replace(/[\)]/g, " ) ");
+  exp = exp.replace(/[\(]/g, " ( ");
+  exp = exp.trim();
+  G.tokens = exp.split(/\s+/);
 }
 
 function eat(token, expectedToken) {
@@ -164,6 +174,7 @@ function lookAhead(i) {
   return G.tokens[G.index+i];
 }
 
+//Environment Operations
 function lookup(sym, env) {
   if (env.length === 0) {
     return false;
@@ -182,7 +193,7 @@ function getUID(sym, env) {
   }
 }
 
-
+//Set up built in environment
 var built_in_env = {};
 
 const plus = createIdentifier('+');

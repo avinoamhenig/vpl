@@ -9,7 +9,11 @@ const ulamNext = `
 (define ulam-next
   (lambda (n)
     (cond
+<<<<<<< HEAD
       ((zero? (remainder n 2)) (/ n 2))
+=======
+      ((= (remainder n 2) 0) (/ n 2))
+>>>>>>> origin/master
       (else (+ (* 3 n) 1)))))
 `
 const ulamChain = `

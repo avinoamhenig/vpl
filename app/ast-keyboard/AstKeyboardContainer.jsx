@@ -16,8 +16,10 @@ const mapStateToProps = state => {
 	const selectedId = state.lambdaView.selectedExpId;
 	if (selectedId) {
 		const selectedExp = getNode(state.program, selectedId);
-		showAddBtn = getNodeOrExpType(selectedExp) === expressionType.APPLICATION
-		          || getNodeOrExpType(selectedExp) === expressionType.CASE;
+		if (selectedExp) {
+			showAddBtn = getNodeOrExpType(selectedExp) === expressionType.APPLICATION
+			          || getNodeOrExpType(selectedExp) === expressionType.CASE;
+		}
 	}
 
 	return {
