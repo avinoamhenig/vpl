@@ -24,7 +24,8 @@ const Main = compose(
 		meta: [
 			{ charset: 'utf-8' },
 			{ name: 'viewport',
-			  content: 'initial-scale=1, maximum-scale=1' }
+			  content: 'initial-scale=1, maximum-scale=1' },
+			{ name: "apple-mobile-web-app-capable", content:"yes" }
 		]
 	}),
 	Radium
