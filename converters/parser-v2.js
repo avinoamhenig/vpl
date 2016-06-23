@@ -18,7 +18,9 @@ G.index = 0;
 G.scope = [];
 
 function parseProgram(program) {
+	setUpBuiltInEnvironment();
   tokenize(program);
+	makeFunctionIds();
   const idFrags = [];
   while (lookAhead(1) === 'define') {
     eat(getNextToken(), '(');
@@ -32,9 +34,21 @@ function parseProgram(program) {
   return createProgram(bindIdentifiers(rootExp, idFrags));
 }
 
+function makeFunctionIds() {
+	const function_ids = {};
+	for (var i = 0; i < G.tokens.length; i++) {
+		if (G.tokens[i] === 'define') {
+			const func_name = G.tokens[i+1];
+			const id = createIdentifier(func_name);
+			function_ids[func_name] = id;
+		}
+	}
+	G.scope.push(function_ids);
+}
+
 function parseDefine() {
   const name = getNextToken();
-  const nameId = createIdentifier(name);
+	var nameId = getUID(name, G.scope);
   const new_scope = {};
   new_scope[name] = nameId;
   G.scope.push(new_scope);
@@ -114,14 +128,7 @@ function parseExp() {
     if (lookup(token, G.scope)) {
       return createIdentifierExpression(getUID(token, G.scope));
     } else {
-			/*const newId = createIdentifier(token);
-			const new_env = {};
-			new_env[token] = newId;
-			G.scope.push(new_env);
-			return createIdentifierExpression(getUID(token, G.scope));
-      */
-
-      console.log("Undefined token: " + token);
+			console.log("Undefined token: " + token);
     }
   }
 }
@@ -144,7 +151,11 @@ function parseCase() {
 function reset() {
   G.index = 0;
   G.tokens = [];
-  G.parsed_program = [];
+  G.scope= [];
+}
+
+function getTokens() {
+	return JSON.stringify(G.scope);
 }
 
 //Token Operations
@@ -194,49 +205,49 @@ function getUID(sym, env) {
 }
 
 //Set up built in environment
-var built_in_env = {};
+function setUpBuiltInEnvironment() {
+	var built_in_env = {};
+	const plus = createIdentifier('+');
+	built_in_env['+'] = plus;
+	const minus = createIdentifier('-');
+	built_in_env['-'] = minus;
+	const times = createIdentifier('*');
+	built_in_env['*'] = times;
+	const divide = createIdentifier('/');
+	built_in_env['/'] = divide;
+	const div = createIdentifier('div');
+	built_in_env['div'] = div;
+	const remainder = createIdentifier('remainder');
+	built_in_env['remainder'] = remainder;
+	const eq = createIdentifier('=');
+	built_in_env['='] = eq;
+	const neq = createIdentifier('!=');
+	built_in_env['!='] = neq;
+	const lt = createIdentifier('<');
+	built_in_env['<'] = lt;
+	const gt = createIdentifier('>');
+	built_in_env['>'] = gt;
+	const lte = createIdentifier('<=');
+	built_in_env['<='] = lte;
+	const gte = createIdentifier('>=');
+	built_in_env['>='] = gte;
+	const cons = createIdentifier('cons');
+	built_in_env['cons'] = cons;
+	const nil = createIdentifier('null?');
+	built_in_env['null?'] = nil;
+	const zero = createIdentifier('zero?');
+	built_in_env['zero?'] = zero;
+	const car = createIdentifier('car');
+	built_in_env['car'] = car;
+	const cdr = createIdentifier('cdr');
+	built_in_env['cdr'] = cdr;
+	const cddr = createIdentifier('cddr');
+	built_in_env['cddr'] = cddr;
+	const cadr = createIdentifier('cadr');
+	built_in_env['cadr'] = cadr;
+	const list = createIdentifier('list');
+	built_in_env['list'] = list;
+	G.scope.push(built_in_env);
+}
 
-const plus = createIdentifier('+');
-built_in_env['+'] = plus;
-const minus = createIdentifier('-');
-built_in_env['-'] = minus;
-const times = createIdentifier('*');
-built_in_env['*'] = times;
-const divide = createIdentifier('/');
-built_in_env['/'] = divide;
-const div = createIdentifier('div');
-built_in_env['div'] = div;
-const remainder = createIdentifier('remainder');
-built_in_env['remainder'] = remainder;
-const eq = createIdentifier('=');
-built_in_env['='] = eq;
-const neq = createIdentifier('!=');
-built_in_env['!='] = neq;
-const lt = createIdentifier('<');
-built_in_env['<'] = lt;
-const gt = createIdentifier('>');
-built_in_env['>'] = gt;
-const lte = createIdentifier('<=');
-built_in_env['<='] = lte;
-const gte = createIdentifier('>=');
-built_in_env['>='] = gte;
-const cons = createIdentifier('cons');
-built_in_env['cons'] = cons;
-const nil = createIdentifier('null?');
-built_in_env['null?'] = nil;
-const zero = createIdentifier('zero?');
-built_in_env['zero?'] = zero;
-const car = createIdentifier('car');
-built_in_env['car'] = car;
-const cdr = createIdentifier('cdr');
-built_in_env['cdr'] = cdr;
-const cddr = createIdentifier('cddr');
-built_in_env['cddr'] = cddr;
-const cadr = createIdentifier('cadr');
-built_in_env['cadr'] = cadr;
-const list = createIdentifier('list');
-built_in_env['list'] = list;
-
-G.scope.push(built_in_env);
-
-module.exports = {parseProgram};
+module.exports = {parseProgram, reset, getTokens};
