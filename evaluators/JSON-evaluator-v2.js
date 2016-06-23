@@ -150,24 +150,11 @@ function evaluateBody(node, program, callback, fail) {
     case expressionType.CASE:
       const cases = node.caseBranches;
 			const elseBranch = getNode(program, node.elseBranch);
-			evaluate_cases(cases, elseBranch, callback, program);
+			evaluate_cases(cases, elseBranch, callback, program, fail);
       break;
     default:
       throw `Unexpected node: ${getNodeOrExpType(node)}.`;
   }
-}
-
-function evaluate_cases(exps, elseExp, callback, program) {
-	if (exps.length === 0) {
-		R(evaluateStep, getNode(program, elseExp.expression), program, callback, fail);
-	} else {
-		var cs = getNode(program, exps[0]);
-		R(evaluateStep, getNode(program, cs.condition), program,
-			function (condition) {
-				if (condition) R(evaluateStep, getNode(program, cs.expression), program, callback, fail);
-				else evaluate_cases(exps.slice(1, exps.length), elseExp, callback, program);
-			}, fail);
-	}
 }
 
 //For evaluating a list of arguments
@@ -183,6 +170,19 @@ function eval_star(exps, program, callback, fail) {
 			    }, fail);
 		  }, fail);
   }
+}
+
+function evaluate_cases(exps, elseExp, callback, program, fail) {
+	if (exps.length === 0) {
+		R(evaluateStep, getNode(program, elseExp.expression), program, callback, fail);
+	} else {
+		var cs = getNode(program, exps[0]);
+		R(evaluateStep, getNode(program, cs.condition), program,
+			function (condition) {
+				if (condition) R(evaluateStep, getNode(program, cs.expression), program, callback, fail);
+				else evaluate_cases(exps.slice(1, exps.length), elseExp, callback, program, fail);
+			}, fail);
+	}
 }
 
 // Environment Operations
