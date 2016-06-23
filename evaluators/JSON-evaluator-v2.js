@@ -22,7 +22,7 @@ function onFail() {
 
 var G = {};
 
-G.builtInFunctions = ['+', '-', '*', '/', 'div', 'remainder', '=', '!=','<', '>', '<=', '>=', 'cons', 'null?', 'car', 'cdr', 'cddr', 'cadr', 'list'];
+G.builtInFunctions = ['+', '-', '*', '/', 'div', 'remainder', '=', '!=', '<', '>', '<=', '>=', 'cons', 'null?', 'zero?', 'car', 'cdr', 'cddr', 'cadr', 'list'];
 G.environment = [];
 G.functions = {};
 G.DELAY = 0;
@@ -229,11 +229,12 @@ function builtIn(i, a1, a2) {
     else if (i === 11) return a1 >= a2;
     else { return a2.concat([a1]);};
   } else if (arguments.length === 2) {
-    //"null?", "car", "cdr", "cddr", "cadr"
+    //"null?", "zero?", "car", "cdr", "cddr", "cadr"
     if (i === 13) return a1.length === 0;
-    else if (i === 14) return a1[a1.length-1];
-    else if (i === 15) return a1.slice(0, a1.length-1);
-    else if (i === 16) return a1.slice(0, a1.length-2);
+		else if (i === 14) return a1 === 0;
+    else if (i === 15) return a1[a1.length-1];
+    else if (i === 16) return a1.slice(0, a1.length-1);
+    else if (i === 17) return a1.slice(0, a1.length-2);
     else return a1[a1.length-2];
   }
 }

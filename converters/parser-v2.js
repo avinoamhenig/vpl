@@ -114,6 +114,13 @@ function parseExp() {
     if (lookup(token, G.scope)) {
       return createIdentifierExpression(getUID(token, G.scope));
     } else {
+			/*const newId = createIdentifier(token);
+			const new_env = {};
+			new_env[token] = newId;
+			G.scope.push(new_env);
+			return createIdentifierExpression(getUID(token, G.scope));
+      */
+
       console.log("Undefined token: " + token);
     }
   }
@@ -142,7 +149,6 @@ function reset() {
 
 //Token Operations
 function tokenize(exp) {
-	exp = exp.replace('zero?', 'null?');
 	exp = exp.replace(/;.*$/gm, '');
 	exp = exp.replace(/\n/g, ' ');
 	exp = exp.replace(/[\)]/g, " ) ");
@@ -218,6 +224,8 @@ const cons = createIdentifier('cons');
 built_in_env['cons'] = cons;
 const nil = createIdentifier('null?');
 built_in_env['null?'] = nil;
+const zero = createIdentifier('zero?');
+built_in_env['zero?'] = zero;
 const car = createIdentifier('car');
 built_in_env['car'] = car;
 const cdr = createIdentifier('cdr');
