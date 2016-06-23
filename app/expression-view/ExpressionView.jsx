@@ -68,8 +68,7 @@ export default compose(
 					? `exp_cont_${p.lambdaIdentId}_${p.expansionLevel}`
 					: ''
 			}
-			style={s.expressionWrapper}
-			onClick={e => e.stopPropagation()}>
+			style={s.expressionWrapper}>
 			<div style={s.scopedIdentContainer}>
 				{ p.nestedLevel <= p.nestingLimit &&
 					getIdentifiersScopedToNode(p.program, p.expressionId).map(ident => (
@@ -89,7 +88,7 @@ export default compose(
 								{...p}
 								expressionId={ident.value}
 								expandedFn={false}
-								popupOffsetTop={4}
+								popupOffsetTop={5}
 								/>
 						) }
 						{ident.displayName}

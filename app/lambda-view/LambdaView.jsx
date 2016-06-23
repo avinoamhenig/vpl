@@ -6,9 +6,13 @@ import computeStyles from './styles'
 import ExpressionView from 'expression-view'
 import $ from 'jquery'
 import debounce from 'debounce'
+import Icon from 'lib/Icon'
+import * as evaluator from '../../evaluators/JSON-evaluator-v2'
+import sp from 'lib/stopPropagation'
 import {
 	getNode,
-	getIdentifier
+	getIdentifier,
+	getRootScopeLambdaIdentifiers
 } from 'ast'
 
 export default compose(
@@ -17,23 +21,55 @@ export default compose(
 	const s = computeStyles(p);
 	const prog = p.program;
 	const ident = p.identifier;
-	const lambda = getNode(prog, ident.value);
+	const lambda = ident ? getNode(prog, ident.value) : null;
 
 	return (
 		<div style={s.container}>
 			<div className="lambda_header" style={s.header}>
-				<div style={s.title}>
-					<span style={s.lambdaIcon}>&lambda;</span>
-					{ ' ' + ident.displayName }
-					<span style={s.arg}>
-						{ ' '
-						+ lambda.arguments.map(arg =>
-								getIdentifier(prog, arg).displayName
-							).join(' ') }
-					</span>
-				</div>
+				{ ident &&
+					<div style={s.title}>
+						<span style={s.lambdaIcon}>&lambda;</span>
+						{ ' ' + ident.displayName }
+						<span style={s.arg}>
+							{ ' '
+							+ lambda.arguments.map(arg =>
+									getIdentifier(prog, arg).displayName
+								).join(' ') }
+						</span>
+					</div>
+				}
 				{ !p.hideButtons && (
 					<span>
+						<div
+							key="fnlist_btn"
+							style={s.fnListBtn}
+							onClick={p.toggleFnList}>
+							<Icon icon="caret-square-o-down" />
+							<div style={s.fnListDrop}>
+								<ul>
+									{ getRootScopeLambdaIdentifiers(p.program).map(ident => (
+										<li style={s.lambdaListItem} key={ident.id}>
+											<a
+												href={`#/fn/${ident.id}`}
+												key={ident.id}
+												style={s.lambdaLink}
+												onClick={e => {
+													e.preventDefault();
+													p.navigate(`/fn/${ident.id}`);
+												}}>{ident.displayName}</a>
+										</li>
+									)) }
+									<li style={s.lambdaListItem}>
+										<span
+											key="add_lambda"
+											style={s.addLambdaButton}
+											onClick={sp(p.newFunction)}>
+											<Icon icon="plus" />
+										</span>
+									</li>
+								</ul>
+							</div>
+						</div>
 						<div
 							key="infixBtn"
 							style={s.infixBtn}
@@ -54,19 +90,26 @@ export default compose(
 					</span>
 				)}
 				{/* TODO deal with 'main' and run */}
-				{ ident.displayName === 'main' && (
+				{ !ident && (
 					<span>
 						<div
+							key="import_btn"
+							style={s.leftBtn}
+							onClick={() => p.loadSchemeProgram(prompt('Scheme code:'))}>
+							<Icon icon="upload" />
+						</div>
+						<div
+							key="run_btn"
 							style={s.runBtn}
 							className={
 								`fa fa-${p.evaluating ? 'stop' : 'play'}`}
 							onClick={(e) => {
 								e.stopPropagation();
 								if (p.evaluating) {
-									stop();
+									evaluator.stopEval();
 								} else {
 									p.startEval();
-									run(p.ast, val => {
+									evaluator.main(p.program, val => {
 										p.setEvalResult(val)
 									}, () => {
 										p.evalFail();
@@ -90,8 +133,8 @@ export default compose(
 			</div>
 			<div style={s.expressionContainer}>
 				<ExpressionView
-					expressionId={lambda.body}
-					lambdaIdentId={ident.id}
+					expressionId={lambda ? lambda.body : p.expressionId}
+					lambdaIdentId={ident ? ident.id : null}
 					program={prog}
 					nestedLevel={0}
 					expansionLevel={p.expansionLevel || 0}

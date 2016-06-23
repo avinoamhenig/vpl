@@ -20,22 +20,5 @@ export default props => {
 			zIndex: 100
 	};
 
-	s.lambdaListItem = {
-		padding: 10
-	};
-
-	s.lambdaLink = {
-		fontSize: 26,
-		textDecoration: 'none',
-		color: '#888',
-		':hover': {
-			color: 'black'
-		}
-	};
-
-	s.addLambdaButton = [s.lambdaLink, {
-		cursor: 'pointer'
-	}];
-
 	return s;
 };

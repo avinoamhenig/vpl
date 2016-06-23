@@ -99,24 +99,25 @@ export default p => {
 		display: 'inline-block',
 		position: 'absolute',
 		marginLeft: 10,
-		marginTop: -4
+		marginTop: -2
 	};
 
 	s.scopedIdentifier = {
 		float: 'left',
 		top: 0,
-		fontSize: 15,
+		fontSize: 13,
 		padding: '3px 7px',
-		background: 'white',
-		border: '1px solid #555',
-		color: '#555',
-		borderRadius: 6,
+		background: '#fff',
+		border: '1px solid #888',
+		color: '#888',
+		borderRadius: 10,
 		marginRight: 7
 	};
 
 	s.selectedIdentifier = {
 		background: colors.selectedExp,
-		color: 'white'
+		color: 'white',
+		border: `1px solid ${colors.selectedExp}`
 	};
 
 	return s;
