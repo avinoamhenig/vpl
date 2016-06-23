@@ -150,24 +150,24 @@ function evaluateBody(node, program, callback, fail) {
     case expressionType.CASE:
       const cases = node.caseBranches;
 			const elseBranch = getNode(program, node.elseBranch);
-			const elseEx = getNode(program, elseBranch.expression);
-      evaluate_cases(cases, elseBranch, callback);
-      function evaluate_cases(exps, elseExp, callback) {
-        if (exps.length === 0) {
-          R(evaluateStep, getNode(program, elseExp.expression), program, callback, fail);
-        } else {
-					var cs = getNode(program, exps[0]);
-          R(evaluateStep, getNode(program, cs.condition), program,
-						function (condition) {
-	            if (condition) R(evaluateStep, getNode(program, cs.expression), program, callback, fail);
-	            else evaluate_cases(exps.slice(1, exps.length), elseExp, callback);
-	          }, fail);
-        }
-      }
+			evaluate_cases(cases, elseBranch, callback, program);
       break;
     default:
       throw `Unexpected node: ${getNodeOrExpType(node)}.`;
   }
+}
+
+function evaluate_cases(exps, elseExp, callback, program) {
+	if (exps.length === 0) {
+		R(evaluateStep, getNode(program, elseExp.expression), program, callback, fail);
+	} else {
+		var cs = getNode(program, exps[0]);
+		R(evaluateStep, getNode(program, cs.condition), program,
+			function (condition) {
+				if (condition) R(evaluateStep, getNode(program, cs.expression), program, callback, fail);
+				else evaluate_cases(exps.slice(1, exps.length), elseExp, callback, program);
+			}, fail);
+	}
 }
 
 //For evaluating a list of arguments
