@@ -116,7 +116,7 @@ export default createReducer({
 		return save(bindIdentifier(ast, identifier, lambda));
 	},
 	[a.loadSchemeProgram]: (ast, scheme) => {
-		return scheme ? parseProgram(scheme) : ast;
+		return scheme ? save(parseProgram(scheme)) : ast;
 	},
 	[a.bindIdentifier]: (ast, { identifier, valueFrag, scope = null }) => {
 		// if scoped to identifier, change scope to that identifier's scope

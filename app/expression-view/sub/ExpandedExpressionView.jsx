@@ -20,7 +20,9 @@ export default class ExpandedExpressionView extends React.Component {
 		return (
 			<span>
 				<div ref="arrow" style={s.arrow}></div>
-				<div ref="popup" style={s.expandedContainer}>
+				<div ref="popup"
+				     style={s.expandedContainer}
+				     onClick={e => e.stopPropagation()}>
 					{ p.expandedFn
 						? (
 							<LambdaView
