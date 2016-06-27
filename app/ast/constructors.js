@@ -9,7 +9,8 @@ function _createNode (nodeType, props) {
 		nodeType,
 		id: uuid.v4(),
 		parent: null,
-		displayName: null
+		displayName: null,
+		scopedIdentifiers: []
 	}, props);
 }
 
@@ -66,13 +67,14 @@ function createProgram (programFragment) {
 	};
 }
 
-// Maybe String, Maybe Uid Node, Maybe Uid Expression -> Identifier
-function createIdentifier (name = null, scope = null, value = null) {
+// Maybe String -> Identifier
+function createIdentifier (name = null) {
 	return {
 		astType: astType.IDENTIFIER,
 		id: uuid.v4(),
 		displayName: name,
-		scope, value
+		scope: null,
+		value: null
 	};
 }
 
@@ -112,7 +114,8 @@ function createLambdaExpression (argumentIdentifiers, bodyFragment) {
 	const frag = _createProgramFragment(
 		_createExpression(expressionType.LAMBDA, {
 			arguments: argumentIdentifiers.map(argIdent => argIdent.id),
-			body: bodyFragment.rootNode
+			body: bodyFragment.rootNode,
+			scopedIdentifiers: argumentIdentifiers.map(ident => ident.id)
 		}),
 		bodyFragment
 	);

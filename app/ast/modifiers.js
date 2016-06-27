@@ -33,6 +33,19 @@ function bindIdentifier(program, identifier, valueExpFrag) {
 		newProgram.nodes,
 		valueExpFrag.nodes
 	);
+
+	// update scoped node's scopedIdentifiers property
+	if (identifier.scope) {
+		newProgram.nodes[identifier.scope] = Object.assign({},
+			newProgram.nodes[identifier.scope], {
+				scopedIdentifiers: [
+					...newProgram.nodes[identifier.scope].scopedIdentifiers,
+					identifier.id
+				]
+			}
+		);
+	}
+
 	return newProgram;
 }
 
@@ -45,7 +58,7 @@ function bindIdentifiers(program, identMap) {
 	newProgram.identifiers = Object.assign({}, newProgram.identifiers);
 	newProgram.nodes = Object.assign({}, newProgram.nodes);
 
-	for (const [_, valFrag] of identMap) {
+	for (const [ident, valFrag] of identMap) {
 		Object.assign(newProgram.identifiers, valFrag.identifiers);
 		Object.assign(newProgram.nodes, valFrag.nodes);
 	}
@@ -54,16 +67,45 @@ function bindIdentifiers(program, identMap) {
 		newProgram.identifiers[ident.id] = Object.assign({}, ident, {
 			value: rootNode(valFrag).id
 		});
+
+		// update scoped node's scopedIdentifiers property
+		if (ident.scope) {
+			newProgram.nodes[ident.scope] = Object.assign({},
+				newProgram.nodes[ident.scope], {
+					scopedIdentifiers: [
+						...newProgram.nodes[ident.scope].scopedIdentifiers,
+						ident.id
+					]
+				}
+			);
+		}
 	}
 
 	return newProgram;
 }
 
-// Identifier, Uid Expression -> Identifier
-function setIdentifierScope(identifier, scopeId = null) {
+// Identifier, Uid Node -> Identifier
+function setIdentifierScope(identifier, scopeId) {
 	assert.strictEqual(identifier.astType, astType.IDENTIFIER);
 
 	return Object.assign({}, identifier, { scope: scopeId });
+}
+
+// Program, Identifier, Uid Node -> Program
+function assignIdentifierScope(program, identifier, scopeId) {
+	return Object.assign({}, program, {
+		identifiers: Object.assign({}, program.identifiers, {
+			[identifier.id]: setIdentifierScope(identifier, scopeId)
+		}),
+		nodes: Object.assign({}, program.nodes, {
+			[scopeId]: Object.assign({}, program.nodes[scopeId], {
+				scopedIdentifiers: [
+					...program.nodes[scopeId].scopedIdentifiers,
+					identifier.id
+				]
+			})
+		})
+	});
 }
 
 // Program, Uid Node -> Program
@@ -201,6 +243,23 @@ function setDisplayName(program, idToName, displayName) {
 
 // Program, Uid Identifier -> Program
 function removeIdentifier(program, identIdToRemove) {
+	const ident = getIdentifier(program, identIdToRemove);
+
+	if (ident.scope) {
+		program = Object.assign({}, program, {
+			nodes: Object.assign({}, program.nodes, {
+				[ident.scope]: Object.assign({},
+					program.nodes[ident.scope], {
+						scopedIdentifiers:
+							program.nodes[ident.scope].scopedIdentifiers.filter(
+								id => id !== identIdToRemove
+							)
+					}
+				)
+			})
+		});
+	}
+
 	// remove all IdentifierExpression's referencing identIdToRemove
 	for (const nodeId of Object.keys(program)) {
 		const node = getNode(program, nodeId);
@@ -210,7 +269,7 @@ function removeIdentifier(program, identIdToRemove) {
 		}
 	}
 
-	program = removeNode(program, getIdentifier(program, identIdToRemove).value);
+	program = removeNode(program, ident.value);
 
 	// remove identifier
 	const newIdents = Object.assign({}, program.identifiers);
@@ -283,10 +342,11 @@ function _removeNodeChild(parent, idToRemove) {
 // scoped to the node or any node in the subtree.
 // WARNING: Mutates program.nodes and program.identifiers
 function _removeSubtree(program, node) {
-	delete program.nodes[node.id];
-	for (const ident of getIdentifiersScopedToNode(program, node)) {
+	for (const ident of getIdentifiersScopedToNode(program, node.id)) {
+		_removeSubtree(program, ident.value);
 		delete program.identifiers[ident.id];
 	}
+	delete program.nodes[node.id];
 	for (const childId of getChildrenIds(node)) {
 		_removeSubtree(program, getNode(program, childId));
 	}

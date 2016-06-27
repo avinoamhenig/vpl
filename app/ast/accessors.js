@@ -55,13 +55,8 @@ function isInfixOperator(identifier) {
 
 // Program, Uid Node -> [Identifier]
 function getIdentifiersScopedToNode(program, nodeId) {
-	const idents = [];
-	for (const ident of Object.keys(program.identifiers)) {
-		if (program.identifiers[ident].scope === nodeId) {
-			idents.push(program.identifiers[ident]);
-		}
-	}
-	return idents;
+	return getNode(program, nodeId).scopedIdentifiers.map(identId =>
+		getIdentifier(program, identId));
 }
 
 // Node -> [Uid Node]
