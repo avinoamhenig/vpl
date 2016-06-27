@@ -26,8 +26,15 @@ export default compose(
 	return (
 		<div style={s.container}>
 			<div className="lambda_header" style={s.header}>
-				{ ident &&
+				{ ident && (
 					<div style={s.title}>
+						{ !p.hideButtons && (
+								<div
+									key="backbtn"
+									style={s.backBtn}
+									onClick={() => window.history.back()}
+									><Icon icon="chevron-left" /></div>
+						) }
 						<span style={s.lambdaIcon}>&lambda;</span>
 						{ ' ' + ident.displayName }
 						<span style={s.arg}>
@@ -37,7 +44,7 @@ export default compose(
 								).join(' ') }
 						</span>
 					</div>
-				}
+				) }
 				{ !p.hideButtons && (
 					<span>
 						<div
