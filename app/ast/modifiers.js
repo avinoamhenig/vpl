@@ -4,7 +4,7 @@ const {
 	rootNode,
 	getIdentifiersScopedToNode,
 	getChildrenIds,
-	getNode,
+	getNode, getIdentifier,
 	getNodeOrExpType, getNodeType, getExpressionType
 } = require('./accessors');
 const {
@@ -167,6 +167,50 @@ function replaceNode(program, idToReplace, replaceWith) {
 	return newProg;
 }
 
+// Program, Uid Node | Uid Identifier -> Program
+function setDisplayName(program, idToName, displayName) {
+	if (program.nodes[idToName]) {
+		return Object.assign({}, program, {
+			nodes: Object.assign({}, program.nodes, {
+				[idToName]: Object.assign({}, getNode(program, idToName), {
+					displayName: displayName
+				})
+			})
+		});
+	} else if (program.identifiers[idToName]) {
+		return Object.assign({}, program, {
+			identifiers: Object.assign({}, program.identifiers, {
+				[idToName]: Object.assign({}, getIdentifier(program, idToName), {
+					displayName: displayName
+				})
+			})
+		});
+	} else {
+		return program;
+	}
+}
+
+// Program, Uid Identifier -> Program
+function removeIdentifier(program, identIdToRemove) {
+	// remove all IdentifierExpression's referencing identIdToRemove
+	for (const nodeId of Object.keys(program)) {
+		const node = getNode(program, nodeId);
+		if (node && getNodeOrExpType(node) === expressionType.IDENTIFIER
+		 && node.identIdToRemove === identIdToRemove) {
+			program = removeNode(program, nodeId)
+		}
+	}
+
+	program = removeNode(program, getIdentifier(program, identIdToRemove).value);
+
+	// remove identifier
+	const newIdents = Object.assign({}, program.identifiers);
+	delete newIdents[identIdToRemove];
+	return Object.assign({}, program, {
+		identifiers: newIdents
+	});
+}
+
 function _setFragParent(frag, parentId) {
 	return Object.assign({}, frag, {
 		nodes: Object.assign({}, frag.nodes, {
@@ -241,5 +285,6 @@ function _removeSubtree(program, node) {
 
 module.exports = {
 	bindIdentifier, bindIdentifiers, setIdentifierScope,
-	replaceNode, removeNode, appendPieceToExp
+	replaceNode, removeNode, appendPieceToExp,
+	removeIdentifier, setDisplayName
 };

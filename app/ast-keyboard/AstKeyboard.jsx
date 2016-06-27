@@ -30,6 +30,18 @@ export default compose(
 						<Icon icon="trash" />
 					</div>
 					<div
+						key="bind_btn"
+						style={s.bindBtn}
+						onClick={p.onBindPressed}>
+						:=
+					</div>
+					<div
+						key="name_btn"
+						style={s.nameBtn}
+						onClick={p.onNamePressed}>
+						<Icon icon="tag" />
+					</div>
+					<div
 						key="add_btn"
 						style={s.addBtn}
 						onClick={p.onAddPressed}>

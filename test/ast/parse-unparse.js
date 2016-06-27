@@ -1,7 +1,7 @@
 const {parseProgram} = require('../../converters/parser-v2');
 const {unparse} = require('../../converters/unparse');
+const evaluate = require('../../evaluators/JSON-evaluator-v2');
 
-// using % instead of remainder ... for now
 const base = `
 (define nil (list))
 `
@@ -9,14 +9,18 @@ const ulamNext = `
 (define ulam-next
   (lambda (n)
     (cond
-      ((= (% n 2) 0) (/ n 2))
+<<<<<<< HEAD
+      ((zero? (remainder n 2)) (/ n 2))
+=======
+      ((= (remainder n 2) 0) (/ n 2))
+>>>>>>> origin/master
       (else (+ (* 3 n) 1)))))
 `
 const ulamChain = `
 (define ulam-chain
   (lambda (n)
     (cond
-      ((= n 1) (list 1))
+      ((= n 1) (cons 1 (list)))
       (else (cons n (ulam-chain (ulam-next n)))))))
 `
 const split = `
@@ -45,6 +49,7 @@ const merge = `
             (cons (car b) (merge a (cdr b)))))))))
 `
 // using nested let instead of let*
+// and, so, redundantly evaluating split
 const mergeSort = `
 (define mergesort
   (lambda (items)
@@ -53,11 +58,9 @@ const mergeSort = `
       ((null? (cdr items)) items)
       (else
         (let
-            ((p (split items)))
-          (let
-              ((left (mergesort (car p)))
-               (right (mergesort (cdr p))))
-            (merge left right)))))))
+            ((left (mergesort (car (split items))))
+             (right (mergesort (cdr (split items)))))
+          (merge left right))))))
 `
 const sourceText =
   base +
@@ -67,10 +70,13 @@ const sourceText =
   merge +
   mergeSort +
   `
-(mergesort (ulam-chain 3))
+(ulam-chain 3)
 `
 
 const testAst = parseProgram(sourceText);
 const unparsed = unparse(testAst);
 
-console.log(unparsed);
+// this fails because parser currently relies on order
+// const reparsed = parseProgram(unparsed);
+
+evaluate.main(testAst, evaluate.onCompletion, evaluate.onFail);

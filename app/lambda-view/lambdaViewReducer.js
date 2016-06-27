@@ -86,6 +86,10 @@ export default createReducer({
 		}
 		return state;
 	},
+	[astActions.bindIdentifier]: (state, { identifier }) => ({
+		...state,
+		selectedExpId: identifier.id
+	}),
 
 	[routeActions.NAVIGATE]: state => ({
 		...state,

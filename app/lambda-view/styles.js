@@ -29,6 +29,15 @@ export default p => {
 		paddingTop: 5
 	};
 
+	s.backBtn = {
+		display: 'inline-block',
+		paddingRight: 10,
+		cursor: 'pointer',
+		':active': {
+			color: '#eee'
+		}
+	};
+
 	s.title = {
 		paddingLeft: 8,
 		display: 'inline-block'
