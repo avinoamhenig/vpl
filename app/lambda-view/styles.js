@@ -7,8 +7,7 @@ export default p => {
 		display: 'flex',
 		flexDirection: 'column',
 		position: p.expansionLevel > 0 ? 'static' : 'absolute',
-		width: '100%', height: '100%',
-		overflow: 'hidden'
+		width: '100%', height: '100%'
 	};
 
 	s.header = {
@@ -120,7 +119,7 @@ export default p => {
 	};
 
 	s.lambdaLink = {
-		padding: '5px 10px',
+		padding: '5px 30px 5px 10px',
 		fontSize: 26,
 		textDecoration: 'none',
 		display: 'block',
@@ -146,9 +145,9 @@ export default p => {
 		background: 'white',
 		border: '1px solid #aaa',
 		borderRadius: 10,
-		maxHeight: '70vh',
+		maxHeight: '80vh',
 		overflow: 'auto',
-		zIndex: 5000,
+		zIndex: 1000,
 		padding: '5px 0'
 	}
 
