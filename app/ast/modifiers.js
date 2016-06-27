@@ -164,6 +164,15 @@ function replaceNode(program, idToReplace, replaceWith) {
 	Object.assign(newProg.identifiers, replaceWith.identifiers);
 	Object.assign(newProg.nodes, replaceWith.nodes);
 
+	for (const identId of Object.keys(newProg.identifiers)) {
+		const ident = getIdentifier(newProg, identId);
+		if (ident.value === idToReplace) {
+			newProg.identifiers[identId] = Object.assign({}, ident, {
+				value: replaceWith.rootNode
+			});
+		}
+	}
+
 	return newProg;
 }
 

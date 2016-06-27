@@ -75,14 +75,28 @@ export default createReducer({
 	}),
 
 	[astActions.replaceExp]: (state, { exp, idToReplace }) => {
-		if (idToReplace === state.selectedExpId) {
-			return { ...state, selectedExpId: exp.rootNode };
+		if (idToReplace === state.selectedExpId
+		 || state.expandedExpIds.includes(idToReplace)) {
+			return {
+				...state,
+				selectedExpId: idToReplace === state.selectedExpId
+					? exp.rootNode : state.selectedExpId,
+				expandedExpIds: state.expandedExpIds.map(id =>
+					id === idToReplace ? exp.rootNode : id)
+			};
 		}
 		return state;
 	},
 	[astActions.removeExp]: (state, expId) => {
-		if (expId === state.selectedExpId) {
-			return { ...state, selectedExpId: null };
+		if (expId === state.selectedExpId
+		 || state.expandedExpIds.includes(expId)) {
+			return {
+				...state,
+				selectedExpId: expId === state.selectedExpId
+					? null : state.selectedExpId,
+				expandedExpIds:
+					state.expandedExpIds.slice(state.expandedExpIds.indexOf(expId) + 1)
+			};
 		}
 		return state;
 	},

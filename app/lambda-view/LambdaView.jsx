@@ -54,6 +54,14 @@ export default compose(
 							<Icon icon="caret-square-o-down" />
 							<div style={s.fnListDrop}>
 								<ul>
+									<li style={s.lambdaListItem}>
+										<span
+											key="home"
+											style={s.addLambdaButton}
+											onClick={sp(() => p.navigate('/'))}>
+											<Icon icon="home" />
+										</span>
+									</li>
 									{ getRootScopeLambdaIdentifiers(p.program).map(ident => (
 										<li style={s.lambdaListItem} key={ident.id}>
 											<a
