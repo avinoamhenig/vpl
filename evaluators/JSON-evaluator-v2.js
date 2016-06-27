@@ -236,7 +236,7 @@ function builtIn(i, a1, a2) {
     else if (i === 15) return a1[a1.length-1];
     else if (i === 16) return a1.slice(0, a1.length-1);
     else if (i === 17) return a1.slice(0, a1.length-2);
-    else if (i === 18) a1[a1.length-2];
+    else if (i === 18) return a1[a1.length-2];
 		else return [a1];
   }
 }
