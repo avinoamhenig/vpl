@@ -6,7 +6,11 @@ import {
 	createNumberExpression,
 	bindIdentifier,
 	removeNode, replaceNode,
-	appendPieceToExp
+	appendPieceToExp,
+	removeIdentifier,
+	setIdentifierScope,
+	setDisplayName,
+	getIdentifier
 } from 'ast'
 import { parseProgram } from '../../converters/parser-v2'
 
@@ -59,6 +63,22 @@ a.newFunction = () => dispatch => {
 	dispatch(a.addFunction(lambdaIdent, lambdaFrag));
 };
 a.loadSchemeProgram = cA('LOAD_SCHEME_PROGRAM');
+a.bindIdentifier = cA('BIND_IDENTIFIER', m('identifier', 'valueFrag', 'scope'));
+a.addIdentifierToSelectedExp = name => (dispatch, getState) => {
+	const { selectedExpId } = getState().lambdaView;
+	if (selectedExpId) {
+		const value = createNumberExpression(0);
+		const ident = createIdentifier(name);
+		dispatch(a.bindIdentifier(ident, value, selectedExpId));
+	}
+};
+a.nameNode = cA('NAME_NODE', m('nodeId', 'displayName'));
+a.nameSelectedNode = displayName => (dispatch, getState) => {
+	const { selectedExpId } = getState().lambdaView;
+	if (selectedExpId) {
+		dispatch(a.nameNode(selectedExpId, displayName));
+	}
+};
 
 export const actions = a;
 export default createReducer({
@@ -80,7 +100,13 @@ export default createReducer({
 	},
 	[a.removeExp]: (ast, expId) => {
 		try {
-			return save(removeNode(ast, expId));
+			if (ast.nodes[expId] !== undefined) {
+				return save(removeNode(ast, expId));
+			} else if (ast.identifiers[expId] !== undefined) {
+				return save(removeIdentifier(ast, expId));
+			} else {
+				throw `Unkown uid: ${expId}`;
+			}
 		} catch (e) {
 			console.error(e);
 			return ast;
@@ -91,5 +117,16 @@ export default createReducer({
 	},
 	[a.loadSchemeProgram]: (ast, scheme) => {
 		return scheme ? parseProgram(scheme) : ast;
-	}
+	},
+	[a.bindIdentifier]: (ast, { identifier, valueFrag, scope = null }) => {
+		// if scoped to identifier, change scope to that identifier's scope
+		if (ast.identifiers[scope]) {
+			scope = getIdentifier(ast, scope).scope;
+		}
+
+		identifier = setIdentifierScope(identifier, scope);
+		return save(bindIdentifier(ast, identifier, valueFrag));
+	},
+	[a.nameNode]: (ast, { nodeId, displayName }) =>
+		save(setDisplayName(ast, nodeId, displayName))
 }, initialState);

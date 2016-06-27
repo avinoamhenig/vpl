@@ -24,6 +24,7 @@ const mapStateToProps = state => {
 
 	return {
 		...state.astKeyboard,
+		isNodeSelected: !!selectedId,
 		showAddBtn,
 		program: state.program
 	};
@@ -38,15 +39,14 @@ const mapDispatchToProps = (dispatch, props) => ({
 			value();
 		}
 	},
-	onTogglePressed() {
-		dispatch(actions.toggleKeyboard());
+	onTogglePressed: () => dispatch(actions.toggleKeyboard()),
+	onAddPressed: () => dispatch(astActions.appendPieceToSelectedExp()),
+	onRemovePressed: () => dispatch(astActions.removeSelectedExp()),
+	onBindPressed: () => {
+		dispatch(astActions.addIdentifierToSelectedExp('x'));
+		dispatch(actions.toggleNameKeyboard())
 	},
-	onAddPressed() {
-		dispatch(astActions.appendPieceToSelectedExp());
-	},
-	onRemovePressed() {
-		dispatch(astActions.removeSelectedExp());
-	}
+	onNamePressed: () => dispatch(actions.toggleNameKeyboard())
 });
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
@@ -89,9 +89,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 		...dispatchProps,
 		state: undefined, dispatch: undefined,
 		onTextEntered(text) {
-			dispatch(actions.toggleTextInput());
-			if (text === '') { return; }
-			valueToExp(text);
+			if (stateProps.naming) {
+				dispatch(actions.toggleNameKeyboard());
+				if (text === '') { return; }
+				dispatch(astActions.nameSelectedNode(text));
+			} else {
+				dispatch(actions.toggleTextInput());
+				if (text === '') { return; }
+				valueToExp(text);
+			}
 		},
 		buttons: [
 			{ display: 0, value: () => valueToExp(0) },
