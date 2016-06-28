@@ -55,13 +55,17 @@ function isInfixOperator(identifier) {
 
 // Program, Uid Node -> [Identifier]
 function getIdentifiersScopedToNode(program, nodeId) {
-	const idents = [];
-	for (const ident of Object.keys(program.identifiers)) {
-		if (program.identifiers[ident].scope === nodeId) {
-			idents.push(program.identifiers[ident]);
-		}
-	}
-	return idents;
+	const node = getNode(program, nodeId);
+	const identIds = getExpressionType(node) === expressionType.LAMBDA
+		? [...node.boundIdentifiers, ...node.arguments]
+		: node.boundIdentifiers
+	return identIds.map(identId => getIdentifier(program, identId));
+}
+
+// Program, Uid Node -> [Identifier]
+function getBoundIdentifiers(program, nodeId) {
+	return getNode(program, nodeId).boundIdentifiers.map(identId =>
+		getIdentifier(program, identId));
 }
 
 // Node -> [Uid Node]
@@ -78,10 +82,81 @@ function getChildrenIds(node) {
 	}
 }
 
+// Program, Uid Node, Maybe Boolean -> Uid Node
+function getNodeToTheLeft(program, nodeId, ignoreInfix = false) {
+	const node = getNode(program, nodeId);
+	if (!node.parent) return node;
+	const parent = getNode(program, node.parent);
+
+	switch (getNodeOrExpType(parent)) {
+		case expressionType.LAMBDA:
+			if (parent.arguments.indexOf(nodeId) > 0) {
+				return parent.arguments[parent.arguments.indexOf(nodeId) - 1];
+			} else {
+				return parent.id;
+			}
+
+		case expressionType.APPLICATION:
+			if (!ignoreInfix
+			 && parent.arguments.length === 2
+			 && getExpressionType(getNode(program, parent.lambda)) === expressionType.IDENTIFIER
+			 && isInfixOperator(getIdentifier(program, getNode(program, parent.lambda).identifier))) {
+				if (parent.arguments[1] === nodeId) { return parent.lambda; }
+				else if (parent.lambda === nodeId) { return parent.arguments[0]; }
+				else { return parent.id; }
+			} else {
+				if (parent.arguments.indexOf(nodeId) > 0) {
+					return parent.arguments[parent.arguments.indexOf(nodeId) - 1];
+				} else if (parent.arguments.indexOf(nodeId) === 0) {
+					return parent.lambda;
+				} else {
+					return parent.id;
+				}
+			}
+
+		case expressionType.CASE:
+			if (parent.caseBranches.indexOf(nodeId) > 0) {
+				return parent.caseBranches[parent.caseBranches.indexOf(nodeId) - 1];
+			} else if (parent.elseBranch === nodeId) {
+				return parent.caseBranches[parent.caseBranches.length - 1];
+			} else {
+				return parent.id;
+			}
+
+		case nodeType.CASE_BRANCH:
+			if (parent.expression === nodeId) { return parent.condition; }
+			else { return parent.id; }
+
+		case nodeType.ELSE_BRANCH:
+		default: return parent.id;
+	}
+}
+
+// Program, Uid Node, Maybe Boolean -> Uid Node
+function getNodeToTheRight(program, nodeId, ignoreInfix = false) {
+	// TODO move right
+	return nodeId;
+}
+
+// Program, Uid Node -> Uid Node
+function getNodeInside(program, nodeId) {
+	// TODO move inside
+	return nodeId;
+}
+
+// Program, Uid Node -> Uid Node
+function getNodeOutside(program, nodeId) {
+	// TODO move outside
+	return nodeId;
+}
+
 module.exports = {
 	rootNode, root, getAstType, getNodeType,
 	getExpressionType, getNodeOrExpType,
 	getIdentifier, getNode, getRootScopeLambdaIdentifiers,
 	isInfixOperator, isLeafExpression,
-	getIdentifiersScopedToNode, getChildrenIds
+	getIdentifiersScopedToNode, getBoundIdentifiers,
+	getChildrenIds,
+	getNodeToTheLeft, getNodeToTheRight,
+	getNodeInside, getNodeOutside
 };

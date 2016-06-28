@@ -91,25 +91,15 @@ export default createReducer({
 		}
 	},
 	[a.appendPieceToExp]: (ast, expId) => {
-		try {
-			return save(appendPieceToExp(ast, expId));
-		} catch (e) {
-			console.error(e);
-			return ast;
-		}
+		return save(appendPieceToExp(ast, expId));
 	},
 	[a.removeExp]: (ast, expId) => {
-		try {
-			if (ast.nodes[expId] !== undefined) {
-				return save(removeNode(ast, expId));
-			} else if (ast.identifiers[expId] !== undefined) {
-				return save(removeIdentifier(ast, expId));
-			} else {
-				throw `Unkown uid: ${expId}`;
-			}
-		} catch (e) {
-			console.error(e);
-			return ast;
+		if (ast.nodes[expId] !== undefined) {
+			return save(removeNode(ast, expId));
+		} else if (ast.identifiers[expId] !== undefined) {
+			return save(removeIdentifier(ast, expId));
+		} else {
+			throw `Unkown uid: ${expId}`;
 		}
 	},
 	[a.addFunction]: (ast, { identifier, lambda }) => {

@@ -9,7 +9,8 @@ function _createNode (nodeType, props) {
 		nodeType,
 		id: uuid.v4(),
 		parent: null,
-		displayName: null
+		displayName: null,
+		boundIdentifiers: []
 	}, props);
 }
 
@@ -66,13 +67,14 @@ function createProgram (programFragment) {
 	};
 }
 
-// Maybe String, Maybe Uid Node, Maybe Uid Expression -> Identifier
-function createIdentifier (name = null, scope = null, value = null) {
+// Maybe String -> Identifier
+function createIdentifier (name = null) {
 	return {
 		astType: astType.IDENTIFIER,
 		id: uuid.v4(),
 		displayName: name,
-		scope, value
+		scope: null,
+		value: null
 	};
 }
 

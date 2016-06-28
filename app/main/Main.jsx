@@ -5,12 +5,13 @@ import { connect } from 'react-redux'
 import { matchOne, navigate } from 'lib/route-reducer'
 import routes from 'routes'
 import name from 'lib/name'
-import LambdaView from 'lambda-view'
+import LambdaView, { actions as lambdaViewActions } from 'lambda-view'
 import Radium from 'radium'
 import AstKeyboard from 'ast-keyboard'
 import Icon from 'lib/Icon'
 import computeStyles from './mainStyles.js'
 import { getIdentifier } from 'ast'
+import KeyHandler from 'react-key-handler'
 
 const Main = compose(
 	name('Main'),
@@ -36,9 +37,17 @@ const Main = compose(
 
 	switch (routeMatch.key) {
 		case routes.FN:
+			if (!program.identifiers[routeMatch.params.id]) {
+				window.history.back();
+				return (<div>Function not found!</div>);
+			}
 			const identifier = getIdentifier(program, routeMatch.params.id);
 			return (
 				<div style={s.lambdaEditContainer}>
+					<KeyHandler keyValue="ArrowLeft" onKeyHandle={() => p.move('left')} />
+					<KeyHandler keyValue="ArrowRight" onKeyHandle={() => p.move('right')} />
+					<KeyHandler keyValue="ArrowDown" onKeyHandle={() => p.move('down')} />
+					<KeyHandler keyValue="ArrowUp" onKeyHandle={() => p.move('up')} />
 					<div style={s.lambdaContainer}>
 						<LambdaView
 							identifier={identifier}
@@ -51,9 +60,13 @@ const Main = compose(
 					</div>
 				</div>
 			);
-		case routes.FN_LIST:
+		case routes.ROOT:
 			return (
 				<div style={s.lambdaEditContainer}>
+					<KeyHandler keyValue="ArrowLeft" onKeyHandle={() => p.move('left')} />
+					<KeyHandler keyValue="ArrowRight" onKeyHandle={() => p.move('right')} />
+					<KeyHandler keyValue="ArrowDown" onKeyHandle={() => p.move('down')} />
+					<KeyHandler keyValue="ArrowUp" onKeyHandle={() => p.move('up')} />
 					<div style={s.lambdaContainer}>
 						<LambdaView
 							identifier={null}
@@ -76,7 +89,8 @@ const mapStateToProps = (state) => ({
 	program: state.program
 });
 const mapDispatchToProps = (dispatch) => bindActionCreators({
-	navigate
+	navigate,
+	move: lambdaViewActions.move
 }, dispatch);
 const MainContainer = connect(mapStateToProps, mapDispatchToProps)(Main);
 

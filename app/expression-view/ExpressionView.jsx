@@ -70,7 +70,8 @@ export default compose(
 			}
 			style={s.expressionWrapper}>
 			<div style={s.scopedIdentContainer}>
-				{ p.nestedLevel <= p.nestingLimit &&
+				{ (p.nestedLevel <= p.nestingLimit
+						|| isLeafExpression(expression)) &&
 					getIdentifiersScopedToNode(p.program, p.expressionId).map(ident => (
 					<div
 						key={ident.id}

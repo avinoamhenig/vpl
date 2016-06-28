@@ -1,15 +1,14 @@
-import { colors } from 'styles';
+import { colors, noSelect } from 'styles';
 
 export default p => {
 	let s = {};
 
-	s.container = {
+	s.container = [noSelect, {
 		display: 'flex',
 		flexDirection: 'column',
 		position: p.expansionLevel > 0 ? 'static' : 'absolute',
-		width: '100%', height: '100%',
-		overflow: 'hidden'
-	};
+		width: '100%', height: '100%'
+	}];
 
 	s.header = {
 		fontFamily: 'sans-serif',
@@ -41,6 +40,13 @@ export default p => {
 	s.title = {
 		paddingLeft: 8,
 		display: 'inline-block'
+	};
+
+	s.displayName = {
+		cursor: 'pointer',
+		color: p.identifier && p.selectedExpId === p.identifier.id
+			? colors.selectedExp
+			: 'inherit'
 	};
 
 	s.nestingBtn = {
@@ -112,7 +118,14 @@ export default p => {
 		color: 'red'
 	}];
 
-	s.arg = { 'color': colors.identifier };
+	s.args = {}
+	s.arg = {
+		marginLeft: 7,
+		cursor: 'pointer'
+	};
+	s.selectedArg = {
+		color: colors.selectedExp
+	};
 
 	s.lambdaListItem = {
 		listStyle: 'none',
@@ -120,7 +133,7 @@ export default p => {
 	};
 
 	s.lambdaLink = {
-		padding: '5px 10px',
+		padding: '5px 30px 5px 10px',
 		fontSize: 26,
 		textDecoration: 'none',
 		display: 'block',
@@ -146,9 +159,9 @@ export default p => {
 		background: 'white',
 		border: '1px solid #aaa',
 		borderRadius: 10,
-		maxHeight: '70vh',
+		maxHeight: '80vh',
 		overflow: 'auto',
-		zIndex: 5000,
+		zIndex: 1000,
 		padding: '5px 0'
 	}
 

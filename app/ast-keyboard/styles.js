@@ -49,18 +49,15 @@ export default p => {
 		float: 'right'
 	}];
 
-	s.addBtn = [...s.rightButton, {
-		visibility: p.showAddBtn ? 'visible' : 'hidden',
-		opacity: p.showAddBtn ? 1 : 0
-	}];
-
 	const showIfSelected = {
 		visibility: p.isNodeSelected ? 'visible' : 'hidden',
 		opacity: p.isNodeSelected ? 1 : 0
 	};
-	s.rmBtn = [...s.rightButton, showIfSelected];
-	s.bindBtn = [...s.rightButton, showIfSelected];
-	s.nameBtn = [...s.rightButton, showIfSelected];
+	s.addBtn =
+	s.rmBtn =
+	s.bindBtn =
+	s.nameBtn =
+		[...s.rightButton, showIfSelected];
 
 	return s;
 };

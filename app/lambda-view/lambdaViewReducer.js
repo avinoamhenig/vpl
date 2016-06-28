@@ -2,6 +2,15 @@ import { createAction as cA, createReducer } from 'redux-act'
 import m from 'lib/mapParamsToObject'
 import { actions as astActions } from 'program'
 import * as routeActions from 'lib/route-reducer/action-types'
+import {
+	rootNode,
+	getNodeOrExpType,
+	expressionType,
+	nodeType,
+	getNode,
+	getNodeToTheLeft, getNodeToTheRight,
+	getNodeInside, getNodeOutside
+} from 'ast'
 
 export const actions = {
 	selectExp: cA('SELECT_EXP', m('exprId', 'expansionLevel')),
@@ -15,16 +24,34 @@ export const actions = {
 	startEval: cA('START_EVAL'),
 	evalFail: cA('EVAL_FAIL'),
 	setEvalResult: cA('SET_EVAL_RESULT'),
-	toggleFnList: cA('TOGGLE_FN_LIST')
+	toggleFnList: cA('TOGGLE_FN_LIST'),
+	move: direction => (dispatch, getState) => {
+		const { program, lambdaView } = getState();
+		if (!lambdaView.selectedExpId) return;
+		const dirs = {
+			left: getNodeToTheLeft,
+			right: getNodeToTheRight,
+			down: getNodeInside,
+			up: getNodeOutside
+		};
+		dispatch(a.selectExp(
+			(dirs[direction])(
+				program, lambdaView.selectedExpId, lambdaView.ignoreInfix),
+			lambdaView.selectedExpansionLevel
+		));
+	}
 };
 
 const a = actions;
 export default createReducer({
 	[a.selectExp]: (state, payload) => ({
 		...state,
+		showFnList: false,
 		selectedExpId: payload.exprId,
-		expandedExpIds:
-			state.expandedExpIds.slice(0, payload.expansionLevel)
+		selectedExpansionLevel: payload.expansionLevel,
+		expandedExpIds: payload.expansionLevel === -1
+			? state.expandedExpIds
+			: state.expandedExpIds.slice(0, payload.expansionLevel)
 	}),
 
 	[a.setNestingLimit]: (state, payload) => ({
@@ -53,6 +80,7 @@ export default createReducer({
 		return {
 			...state,
 			selectedExpId: shouldCollapse ? state.selectedExpId : selected,
+			selectedExpansionLevel: expansionLevel,
 			expandedExpIds: shouldCollapse
 				? state.expandedExpIds.slice(0, expansionLevel)
 				: shouldExpand
@@ -77,10 +105,18 @@ export default createReducer({
 	[astActions.replaceExp]: (state, { exp, idToReplace }) => {
 		if (idToReplace === state.selectedExpId
 		 || state.expandedExpIds.includes(idToReplace)) {
+
+			const node = rootNode(exp, expressionType);
+			const toSelect = ({
+				[expressionType.APPLICATION]: () => node.lambda,
+				[expressionType.CASE]: () =>
+					getNode(exp, node.caseBranches[0]).condition
+			}[getNodeOrExpType(node)] || (() => exp.rootNode))();
+
 			return {
 				...state,
 				selectedExpId: idToReplace === state.selectedExpId
-					? exp.rootNode : state.selectedExpId,
+					? toSelect : state.selectedExpId,
 				expandedExpIds: state.expandedExpIds.map(id =>
 					id === idToReplace ? exp.rootNode : id)
 			};
@@ -117,6 +153,7 @@ export default createReducer({
 	})
 }, {
 	selectedExpId: null,
+	selectedExpansionLevel: 0,
 	expandedExpIds: [],
 	nestingLimit: 10,
 	ignoreInfix: false,

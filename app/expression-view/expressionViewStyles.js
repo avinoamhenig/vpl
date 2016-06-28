@@ -82,7 +82,8 @@ export default p => {
 		borderTop: '3px solid black',
 		boxShadow: '0 1px 3px 0 rgba(0,0,0,0.6)',
 		borderRadius: radius,
-		marginBottom: 15
+		marginBottom: 15,
+		zIndex: 100
 	};
 
 	s.arrow = {
@@ -99,7 +100,7 @@ export default p => {
 		display: 'inline-block',
 		position: 'absolute',
 		marginLeft: 10,
-		marginTop: -2
+		marginTop: -5
 	};
 
 	s.scopedIdentifier = {

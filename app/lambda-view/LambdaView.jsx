@@ -35,13 +35,26 @@ export default compose(
 									onClick={() => window.history.back()}
 									><Icon icon="chevron-left" /></div>
 						) }
-						<span style={s.lambdaIcon}>&lambda;</span>
-						{ ' ' + ident.displayName }
-						<span style={s.arg}>
-							{ ' '
-							+ lambda.arguments.map(arg =>
-									getIdentifier(prog, arg).displayName
-								).join(' ') }
+						<span
+							style={s.displayName}
+							onClick={() => (p.onClick || p.selectExp)(ident.id, -1)}
+							>
+							<span style={s.lambdaIcon}>&lambda;</span>
+							{ ' ' + ident.displayName }
+						</span>
+						<span style={s.args}>
+							{ lambda.arguments.map(arg => {
+								const ident = getIdentifier(prog, arg);
+								return (
+									<span
+										key={ident.id}
+										style={[s.arg, p.selectedExpId === ident.id && s.selectedArg]}
+										onClick={() => (p.onClick || p.selectExp)(ident.id, -1)}
+										>
+										{ ident.displayName }
+									</span>
+								);
+							}) }
 						</span>
 					</div>
 				) }
@@ -50,7 +63,7 @@ export default compose(
 						<div
 							key="fnlist_btn"
 							style={s.fnListBtn}
-							onClick={p.toggleFnList}>
+							onClick={() => p.toggleFnList() }>
 							<Icon icon="caret-square-o-down" />
 							<div style={s.fnListDrop}>
 								<ul>
@@ -70,6 +83,7 @@ export default compose(
 												style={s.lambdaLink}
 												onClick={e => {
 													e.preventDefault();
+													e.stopPropagation();
 													p.navigate(`/fn/${ident.id}`);
 												}}>{ident.displayName}</a>
 										</li>

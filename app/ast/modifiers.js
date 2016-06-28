@@ -9,7 +9,8 @@ const {
 } = require('./accessors');
 const {
 	createNumberExpression,
-	createCaseBranch
+	createCaseBranch,
+	createIdentifier
 } = require('./constructors');
 
 // Program | ProgramFragment, Identifier, ProgramFragment -> Program | ProgramFragment
@@ -33,6 +34,19 @@ function bindIdentifier(program, identifier, valueExpFrag) {
 		newProgram.nodes,
 		valueExpFrag.nodes
 	);
+
+	// update scoped node's boundIdentifiers property
+	if (identifier.scope) {
+		newProgram.nodes[identifier.scope] = Object.assign({},
+			newProgram.nodes[identifier.scope], {
+				boundIdentifiers: [
+					...newProgram.nodes[identifier.scope].boundIdentifiers,
+					identifier.id
+				]
+			}
+		);
+	}
+
 	return newProgram;
 }
 
@@ -45,7 +59,7 @@ function bindIdentifiers(program, identMap) {
 	newProgram.identifiers = Object.assign({}, newProgram.identifiers);
 	newProgram.nodes = Object.assign({}, newProgram.nodes);
 
-	for (const [_, valFrag] of identMap) {
+	for (const [ident, valFrag] of identMap) {
 		Object.assign(newProgram.identifiers, valFrag.identifiers);
 		Object.assign(newProgram.nodes, valFrag.nodes);
 	}
@@ -54,23 +68,77 @@ function bindIdentifiers(program, identMap) {
 		newProgram.identifiers[ident.id] = Object.assign({}, ident, {
 			value: rootNode(valFrag).id
 		});
+
+		// update scoped node's boundIdentifiers property
+		if (ident.scope) {
+			newProgram.nodes[ident.scope] = Object.assign({},
+				newProgram.nodes[ident.scope], {
+					boundIdentifiers: [
+						...newProgram.nodes[ident.scope].boundIdentifiers,
+						ident.id
+					]
+				}
+			);
+		}
 	}
 
 	return newProgram;
 }
 
-// Identifier, Uid Expression -> Identifier
-function setIdentifierScope(identifier, scopeId = null) {
+// Identifier, Uid Node -> Identifier
+function setIdentifierScope(identifier, scopeId) {
 	assert.strictEqual(identifier.astType, astType.IDENTIFIER);
 
 	return Object.assign({}, identifier, { scope: scopeId });
 }
 
+// Program, Identifier, Uid Node -> Program
+function assignIdentifierScope(program, identifier, scopeId) {
+	return Object.assign({}, program, {
+		identifiers: Object.assign({}, program.identifiers, {
+			[identifier.id]: setIdentifierScope(identifier, scopeId)
+		}),
+		nodes: Object.assign({}, program.nodes, {
+			[scopeId]: Object.assign({}, program.nodes[scopeId], {
+				boundIdentifiers: [
+					...program.nodes[scopeId].boundIdentifiers,
+					identifier.id
+				]
+			})
+		})
+	});
+}
+
 // Program, Uid Node -> Program
 function appendPieceToExp(program, expId) {
-	const node = getNode(program, expId);
+	if (program.identifiers[expId]) {
+		let ident = getIdentifier(program, expId);
+		if (ident.value) {
+			return appendPieceToExp(program, ident.value);
+		} if (ident.scope) {
+			return appendPieceToExp(program, ident.scope);
+		} else {
+			return program;
+		}
+	}
+
+	let node = getNode(program, expId);
 	let frag;
+
 	switch (getNodeOrExpType(node)) {
+		case expressionType.LAMBDA:
+			const ident = setIdentifierScope(createIdentifier('x'), expId);
+			return Object.assign({}, program, {
+				nodes: Object.assign({}, program.nodes, {
+					[expId]: Object.assign({}, program.nodes[expId], {
+						arguments: [...program.nodes[expId].arguments, ident.id]
+					})
+				}),
+				identifiers: Object.assign({}, program.identifiers, {
+					[ident.id]: ident
+				})
+			});
+
 		case expressionType.APPLICATION:
 			frag = _setFragParent(createNumberExpression(0), expId);
 			return Object.assign({}, program, {
@@ -96,7 +164,11 @@ function appendPieceToExp(program, expId) {
 				}, frag.nodes)
 			});
 		default:
-			throw `Cannot append piece to ${getNodeOrExpType(node)}`;
+			if (node.parent) {
+				return appendPieceToExp(program, node.parent);
+			}
+
+			return program;
 	}
 }
 
@@ -109,7 +181,10 @@ function removeNode(program, idToRemove) {
 			if (getNode(program, oldNode.parent).caseBranches.length > 1) {
 				break;
 			}
-			throw `Can't remove only branch in case expression.`;
+			return replaceNode(program, idToRemove, createCaseBranch(
+				createNumberExpression(0), createNumberExpression(0)
+			));
+
 		case nodeType.EXPRESSION:
 			if (oldNode.parent
 			 && getExpressionType(getNode(program, oldNode.parent))
@@ -118,6 +193,11 @@ function removeNode(program, idToRemove) {
 			) {
 				 break;
 			}
+
+			if (!oldNode.parent && program.expression !== oldNode.parent) {
+				break;
+			}
+
 		default:
 			return replaceNode(program, idToRemove, createNumberExpression(0));
 	}
@@ -201,6 +281,31 @@ function setDisplayName(program, idToName, displayName) {
 
 // Program, Uid Identifier -> Program
 function removeIdentifier(program, identIdToRemove) {
+	const ident = getIdentifier(program, identIdToRemove);
+
+	if (ident.scope) {
+		const scopedTo = Object.assign({}, getNode(program, ident.scope));
+		if (getExpressionType(scopedTo) === expressionType.LAMBDA
+		 && scopedTo.arguments.includes(identIdToRemove)) {
+			scopedTo.arguments = scopedTo.arguments.filter(id =>
+				id !== identIdToRemove);
+		}
+		if (scopedTo.boundIdentifiers.includes(identIdToRemove)) {
+			scopedTo.boundIdentifiers = scopedTo.boundIdentifiers.filter(id =>
+				id !== identIdToRemove);
+		}
+
+		program = Object.assign({}, program, {
+			nodes: Object.assign({}, program.nodes, {
+				[ident.scope]: scopedTo
+			})
+		});
+	}
+
+	if (ident.value) {
+		program = removeNode(program, ident.value);
+	}
+
 	// remove all IdentifierExpression's referencing identIdToRemove
 	for (const nodeId of Object.keys(program)) {
 		const node = getNode(program, nodeId);
@@ -209,8 +314,6 @@ function removeIdentifier(program, identIdToRemove) {
 			program = removeNode(program, nodeId)
 		}
 	}
-
-	program = removeNode(program, getIdentifier(program, identIdToRemove).value);
 
 	// remove identifier
 	const newIdents = Object.assign({}, program.identifiers);
@@ -283,10 +386,13 @@ function _removeNodeChild(parent, idToRemove) {
 // scoped to the node or any node in the subtree.
 // WARNING: Mutates program.nodes and program.identifiers
 function _removeSubtree(program, node) {
-	delete program.nodes[node.id];
-	for (const ident of getIdentifiersScopedToNode(program, node)) {
+	for (const ident of getIdentifiersScopedToNode(program, node.id)) {
+		if (ident.value) {
+			_removeSubtree(program, ident.value);
+		}
 		delete program.identifiers[ident.id];
 	}
+	delete program.nodes[node.id];
 	for (const childId of getChildrenIds(node)) {
 		_removeSubtree(program, getNode(program, childId));
 	}

@@ -11,24 +11,11 @@ import {
 	createElseBranch
 } from 'ast'
 
-const mapStateToProps = state => {
-	let showAddBtn = false;
-	const selectedId = state.lambdaView.selectedExpId;
-	if (selectedId) {
-		const selectedExp = getNode(state.program, selectedId);
-		if (selectedExp) {
-			showAddBtn = getNodeOrExpType(selectedExp) === expressionType.APPLICATION
-			          || getNodeOrExpType(selectedExp) === expressionType.CASE;
-		}
-	}
-
-	return {
-		...state.astKeyboard,
-		isNodeSelected: !!selectedId,
-		showAddBtn,
-		program: state.program
-	};
-};
+const mapStateToProps = state => ({
+	...state.astKeyboard,
+	isNodeSelected: !!state.lambdaView.selectedExpId,
+	program: state.program
+});
 
 const mapDispatchToProps = (dispatch, props) => ({
 	dispatch,

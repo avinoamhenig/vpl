@@ -1,4 +1,4 @@
-const VERSION = 2;
+const VERSION = 2.1;
 
 const Program = {
   astType     : TYPE_NAME,
@@ -23,10 +23,11 @@ const Identifier = {
 };
 
 const Node = {
-  nodeType    : noOverride(TypeName),
-  id          : NewUid,
-  parent      : nullable(Uid(Node)),
-  displayName : nullable(String),
+  nodeType          : noOverride(TypeName),
+  id                : NewUid,
+  parent            : nullable(Uid(Node)),
+  displayName       : nullable(String),
+  boundIdentifiers : [Uid(Node)],
   ...sub(
     Expression,
     CaseBranch,
