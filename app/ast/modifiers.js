@@ -110,7 +110,7 @@ function assignIdentifierScope(program, identifier, scopeId) {
 
 // Program, Uid Node -> Program
 function appendPieceToExp(program, expId) {
-	const node = getNode(program, expId);
+	let node = getNode(program, expId);
 	let frag;
 	switch (getNodeOrExpType(node)) {
 		case expressionType.APPLICATION:
@@ -138,6 +138,10 @@ function appendPieceToExp(program, expId) {
 				}, frag.nodes)
 			});
 		default:
+			if (node.parent) {
+				return appendPieceToExp(program, node.parent);
+			}
+
 			throw `Cannot append piece to ${getNodeOrExpType(node)}`;
 	}
 }
