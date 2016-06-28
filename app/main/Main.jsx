@@ -36,6 +36,10 @@ const Main = compose(
 
 	switch (routeMatch.key) {
 		case routes.FN:
+			if (!program.identifiers[routeMatch.params.id]) {
+				window.history.back();
+				return (<div>Function not found!</div>);
+			}
 			const identifier = getIdentifier(program, routeMatch.params.id);
 			return (
 				<div style={s.lambdaEditContainer}>

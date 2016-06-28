@@ -22,6 +22,7 @@ const a = actions;
 export default createReducer({
 	[a.selectExp]: (state, payload) => ({
 		...state,
+		showFnList: false,
 		selectedExpId: payload.exprId,
 		expandedExpIds: payload.expansionLevel === -1
 			? state.expandedExpIds

@@ -55,7 +55,7 @@ export default compose(
 						<div
 							key="fnlist_btn"
 							style={s.fnListBtn}
-							onClick={p.toggleFnList}>
+							onClick={() => p.toggleFnList() }>
 							<Icon icon="caret-square-o-down" />
 							<div style={s.fnListDrop}>
 								<ul>
@@ -75,6 +75,7 @@ export default compose(
 												style={s.lambdaLink}
 												onClick={e => {
 													e.preventDefault();
+													e.stopPropagation();
 													p.navigate(`/fn/${ident.id}`);
 												}}>{ident.displayName}</a>
 										</li>

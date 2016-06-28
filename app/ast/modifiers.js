@@ -155,7 +155,10 @@ function removeNode(program, idToRemove) {
 			if (getNode(program, oldNode.parent).caseBranches.length > 1) {
 				break;
 			}
-			throw `Can't remove only branch in case expression.`;
+			return replaceNode(program, idToRemove, createCaseBranch(
+				createNumberExpression(0), createNumberExpression(0)
+			));
+
 		case nodeType.EXPRESSION:
 			if (oldNode.parent
 			 && getExpressionType(getNode(program, oldNode.parent))
@@ -164,6 +167,11 @@ function removeNode(program, idToRemove) {
 			) {
 				 break;
 			}
+
+			if (!oldNode.parent && program.expression !== oldNode.parent) {
+				break;
+			}
+
 		default:
 			return replaceNode(program, idToRemove, createNumberExpression(0));
 	}
@@ -264,6 +272,8 @@ function removeIdentifier(program, identIdToRemove) {
 		});
 	}
 
+	program = removeNode(program, ident.value);
+
 	// remove all IdentifierExpression's referencing identIdToRemove
 	for (const nodeId of Object.keys(program)) {
 		const node = getNode(program, nodeId);
@@ -272,8 +282,6 @@ function removeIdentifier(program, identIdToRemove) {
 			program = removeNode(program, nodeId)
 		}
 	}
-
-	program = removeNode(program, ident.value);
 
 	// remove identifier
 	const newIdents = Object.assign({}, program.identifiers);
@@ -347,7 +355,9 @@ function _removeNodeChild(parent, idToRemove) {
 // WARNING: Mutates program.nodes and program.identifiers
 function _removeSubtree(program, node) {
 	for (const ident of getIdentifiersScopedToNode(program, node.id)) {
-		_removeSubtree(program, ident.value);
+		if (ident.value) {
+			_removeSubtree(program, ident.value);
+		}
 		delete program.identifiers[ident.id];
 	}
 	delete program.nodes[node.id];
