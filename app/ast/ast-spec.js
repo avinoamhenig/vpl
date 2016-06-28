@@ -1,4 +1,4 @@
-const VERSION = 2.1;
+const VERSION = 2.2;
 
 const Program = {
   astType     : TYPE_NAME,

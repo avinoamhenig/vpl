@@ -14,7 +14,7 @@ import {
 } from 'ast'
 import { parseProgram } from '../../converters/parser-v2'
 
-const STORAGE_KEY = 'vpl_ast_v2_forest';
+const STORAGE_KEY = 'vpl_ast_v2.2_forest';
 const save = newState => {
 	if (typeof window === 'undefined') {
 		return newState;
