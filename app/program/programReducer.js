@@ -91,12 +91,7 @@ export default createReducer({
 		}
 	},
 	[a.appendPieceToExp]: (ast, expId) => {
-		try {
-			return save(appendPieceToExp(ast, expId));
-		} catch (e) {
-			console.error(e);
-			return ast;
-		}
+		return save(appendPieceToExp(ast, expId));
 	},
 	[a.removeExp]: (ast, expId) => {
 		if (ast.nodes[expId] !== undefined) {

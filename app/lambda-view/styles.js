@@ -118,7 +118,14 @@ export default p => {
 		color: 'red'
 	}];
 
-	s.arg = {};
+	s.args = {}
+	s.arg = {
+		marginLeft: 7,
+		cursor: 'pointer'
+	};
+	s.selectedArg = {
+		color: colors.selectedExp
+	};
 
 	s.lambdaListItem = {
 		listStyle: 'none',

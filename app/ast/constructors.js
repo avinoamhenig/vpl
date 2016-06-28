@@ -10,7 +10,7 @@ function _createNode (nodeType, props) {
 		id: uuid.v4(),
 		parent: null,
 		displayName: null,
-		scopedIdentifiers: []
+		boundIdentifiers: []
 	}, props);
 }
 
@@ -114,8 +114,7 @@ function createLambdaExpression (argumentIdentifiers, bodyFragment) {
 	const frag = _createProgramFragment(
 		_createExpression(expressionType.LAMBDA, {
 			arguments: argumentIdentifiers.map(argIdent => argIdent.id),
-			body: bodyFragment.rootNode,
-			scopedIdentifiers: argumentIdentifiers.map(ident => ident.id)
+			body: bodyFragment.rootNode
 		}),
 		bodyFragment
 	);

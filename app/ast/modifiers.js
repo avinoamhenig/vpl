@@ -9,7 +9,8 @@ const {
 } = require('./accessors');
 const {
 	createNumberExpression,
-	createCaseBranch
+	createCaseBranch,
+	createIdentifier
 } = require('./constructors');
 
 // Program | ProgramFragment, Identifier, ProgramFragment -> Program | ProgramFragment
@@ -34,12 +35,12 @@ function bindIdentifier(program, identifier, valueExpFrag) {
 		valueExpFrag.nodes
 	);
 
-	// update scoped node's scopedIdentifiers property
+	// update scoped node's boundIdentifiers property
 	if (identifier.scope) {
 		newProgram.nodes[identifier.scope] = Object.assign({},
 			newProgram.nodes[identifier.scope], {
-				scopedIdentifiers: [
-					...newProgram.nodes[identifier.scope].scopedIdentifiers,
+				boundIdentifiers: [
+					...newProgram.nodes[identifier.scope].boundIdentifiers,
 					identifier.id
 				]
 			}
@@ -68,12 +69,12 @@ function bindIdentifiers(program, identMap) {
 			value: rootNode(valFrag).id
 		});
 
-		// update scoped node's scopedIdentifiers property
+		// update scoped node's boundIdentifiers property
 		if (ident.scope) {
 			newProgram.nodes[ident.scope] = Object.assign({},
 				newProgram.nodes[ident.scope], {
-					scopedIdentifiers: [
-						...newProgram.nodes[ident.scope].scopedIdentifiers,
+					boundIdentifiers: [
+						...newProgram.nodes[ident.scope].boundIdentifiers,
 						ident.id
 					]
 				}
@@ -99,8 +100,8 @@ function assignIdentifierScope(program, identifier, scopeId) {
 		}),
 		nodes: Object.assign({}, program.nodes, {
 			[scopeId]: Object.assign({}, program.nodes[scopeId], {
-				scopedIdentifiers: [
-					...program.nodes[scopeId].scopedIdentifiers,
+				boundIdentifiers: [
+					...program.nodes[scopeId].boundIdentifiers,
 					identifier.id
 				]
 			})
@@ -110,9 +111,34 @@ function assignIdentifierScope(program, identifier, scopeId) {
 
 // Program, Uid Node -> Program
 function appendPieceToExp(program, expId) {
+	if (program.identifiers[expId]) {
+		let ident = getIdentifier(program, expId);
+		if (ident.value) {
+			return appendPieceToExp(program, ident.value);
+		} if (ident.scope) {
+			return appendPieceToExp(program, ident.scope);
+		} else {
+			return program;
+		}
+	}
+
 	let node = getNode(program, expId);
 	let frag;
+
 	switch (getNodeOrExpType(node)) {
+		case expressionType.LAMBDA:
+			const ident = setIdentifierScope(createIdentifier('x'), expId);
+			return Object.assign({}, program, {
+				nodes: Object.assign({}, program.nodes, {
+					[expId]: Object.assign({}, program.nodes[expId], {
+						arguments: [...program.nodes[expId].arguments, ident.id]
+					})
+				}),
+				identifiers: Object.assign({}, program.identifiers, {
+					[ident.id]: ident
+				})
+			});
+
 		case expressionType.APPLICATION:
 			frag = _setFragParent(createNumberExpression(0), expId);
 			return Object.assign({}, program, {
@@ -142,7 +168,7 @@ function appendPieceToExp(program, expId) {
 				return appendPieceToExp(program, node.parent);
 			}
 
-			throw `Cannot append piece to ${getNodeOrExpType(node)}`;
+			return program;
 	}
 }
 
@@ -258,21 +284,27 @@ function removeIdentifier(program, identIdToRemove) {
 	const ident = getIdentifier(program, identIdToRemove);
 
 	if (ident.scope) {
+		const scopedTo = Object.assign({}, getNode(program, ident.scope));
+		if (getExpressionType(scopedTo) === expressionType.LAMBDA
+		 && scopedTo.arguments.includes(identIdToRemove)) {
+			scopedTo.arguments = scopedTo.arguments.filter(id =>
+				id !== identIdToRemove);
+		}
+		if (scopedTo.boundIdentifiers.includes(identIdToRemove)) {
+			scopedTo.boundIdentifiers = scopedTo.boundIdentifiers.filter(id =>
+				id !== identIdToRemove);
+		}
+
 		program = Object.assign({}, program, {
 			nodes: Object.assign({}, program.nodes, {
-				[ident.scope]: Object.assign({},
-					program.nodes[ident.scope], {
-						scopedIdentifiers:
-							program.nodes[ident.scope].scopedIdentifiers.filter(
-								id => id !== identIdToRemove
-							)
-					}
-				)
+				[ident.scope]: scopedTo
 			})
 		});
 	}
 
-	program = removeNode(program, ident.value);
+	if (ident.value) {
+		program = removeNode(program, ident.value);
+	}
 
 	// remove all IdentifierExpression's referencing identIdToRemove
 	for (const nodeId of Object.keys(program)) {

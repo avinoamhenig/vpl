@@ -27,7 +27,7 @@ const Node = {
   id                : NewUid,
   parent            : nullable(Uid(Node)),
   displayName       : nullable(String),
-  scopedIdentifiers : [Uid(Node)],
+  boundIdentifiers : [Uid(Node)],
   ...sub(
     Expression,
     CaseBranch,

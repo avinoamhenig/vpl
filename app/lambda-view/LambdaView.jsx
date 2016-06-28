@@ -42,11 +42,19 @@ export default compose(
 							<span style={s.lambdaIcon}>&lambda;</span>
 							{ ' ' + ident.displayName }
 						</span>
-						<span style={s.arg}>
-							{ ' '
-							+ lambda.arguments.map(arg =>
-									getIdentifier(prog, arg).displayName
-								).join(' ') }
+						<span style={s.args}>
+							{ lambda.arguments.map(arg => {
+								const ident = getIdentifier(prog, arg);
+								return (
+									<span
+										key={ident.id}
+										style={[s.arg, p.selectedExpId === ident.id && s.selectedArg]}
+										onClick={() => (p.onClick || p.selectExp)(ident.id, -1)}
+										>
+										{ ident.displayName }
+									</span>
+								);
+							}) }
 						</span>
 					</div>
 				) }
