@@ -73,8 +73,33 @@ function getChildrenIds(node) {
 	switch (getNodeOrExpType(node)) {
 		case expressionType.NUMBER: return [];
 		case expressionType.IDENTIFIER: return [];
-		case expressionType.LAMBDA: return [node.body]
+		case expressionType.LAMBDA: return [node.body];
 		case expressionType.APPLICATION: return [node.lambda, ...node.arguments];
+		case expressionType.CASE: return [...node.caseBranches, node.elseBranch];
+		case nodeType.CASE_BRANCH: return [node.condition, node.expression];
+		case nodeType.ELSE_BRANCH: return [node.expression];
+		default: throw `Unexpected node: ${getNodeOrExpType(node)}.`;
+	}
+}
+
+// Program, Uid Node | Uid Identifier, Maybe Boolean -> [Uid Node | Uid Identifier]
+function _getSubIdsInOrder(program, nodeId, ignoreInfix = false) {
+	if (program.identifiers[nodeId]) return [];
+
+	const node = getNode(program, nodeId);
+	switch (getNodeOrExpType(node)) {
+		case expressionType.NUMBER: return [];
+		case expressionType.IDENTIFIER: return [];
+		case expressionType.LAMBDA: return [...node.arguments, node.body];
+		case expressionType.APPLICATION:
+			if (!ignoreInfix
+			 && node.arguments.length === 2
+			 && getExpressionType(getNode(program, node.lambda)) === expressionType.IDENTIFIER
+			 && isInfixOperator(getIdentifier(program, getNode(program, node.lambda).identifier))) {
+				return [node.arguments[0], node.lambda, node.arguments[1]];
+			} else {
+				return [node.lambda, ...node.arguments];
+			}
 		case expressionType.CASE: return [...node.caseBranches, node.elseBranch];
 		case nodeType.CASE_BRANCH: return [node.condition, node.expression];
 		case nodeType.ELSE_BRANCH: return [node.expression];
@@ -84,70 +109,63 @@ function getChildrenIds(node) {
 
 // Program, Uid Node, Maybe Boolean -> Uid Node
 function getNodeToTheLeft(program, nodeId, ignoreInfix = false) {
+	if (program.identifiers[nodeId]) return nodeId;
 	const node = getNode(program, nodeId);
-	if (!node.parent) return node;
+	if (!node.parent) return nodeId;
 	const parent = getNode(program, node.parent);
-
-	switch (getNodeOrExpType(parent)) {
-		case expressionType.LAMBDA:
-			if (parent.arguments.indexOf(nodeId) > 0) {
-				return parent.arguments[parent.arguments.indexOf(nodeId) - 1];
-			} else {
-				return parent.id;
-			}
-
-		case expressionType.APPLICATION:
-			if (!ignoreInfix
-			 && parent.arguments.length === 2
-			 && getExpressionType(getNode(program, parent.lambda)) === expressionType.IDENTIFIER
-			 && isInfixOperator(getIdentifier(program, getNode(program, parent.lambda).identifier))) {
-				if (parent.arguments[1] === nodeId) { return parent.lambda; }
-				else if (parent.lambda === nodeId) { return parent.arguments[0]; }
-				else { return parent.id; }
-			} else {
-				if (parent.arguments.indexOf(nodeId) > 0) {
-					return parent.arguments[parent.arguments.indexOf(nodeId) - 1];
-				} else if (parent.arguments.indexOf(nodeId) === 0) {
-					return parent.lambda;
-				} else {
-					return parent.id;
-				}
-			}
-
-		case expressionType.CASE:
-			if (parent.caseBranches.indexOf(nodeId) > 0) {
-				return parent.caseBranches[parent.caseBranches.indexOf(nodeId) - 1];
-			} else if (parent.elseBranch === nodeId) {
-				return parent.caseBranches[parent.caseBranches.length - 1];
-			} else {
-				return parent.id;
-			}
-
-		case nodeType.CASE_BRANCH:
-			if (parent.expression === nodeId) { return parent.condition; }
-			else { return parent.id; }
-
-		case nodeType.ELSE_BRANCH:
-		default: return parent.id;
+	if (getExpressionType(parent) === expressionType.LAMBDA
+	 && !parent.parent) {
+		return nodeId;
+	}
+	const subIds = _getSubIdsInOrder(program, parent.id, ignoreInfix);
+	const selfIndex = subIds.indexOf(nodeId);
+	if (selfIndex === 0) {
+		return parent.id;
+	} else {
+		return subIds[selfIndex - 1];
 	}
 }
 
 // Program, Uid Node, Maybe Boolean -> Uid Node
 function getNodeToTheRight(program, nodeId, ignoreInfix = false) {
-	// TODO move right
-	return nodeId;
+	if (program.identifiers[nodeId]) return nodeId;
+	const node = getNode(program, nodeId);
+	if (!node.parent) return nodeId;
+	const parent = getNode(program, node.parent);
+	if (getExpressionType(parent) === expressionType.LAMBDA
+	 && !parent.parent) {
+		return nodeId;
+	}
+	const subIds = _getSubIdsInOrder(program, parent.id, ignoreInfix);
+	const selfIndex = subIds.indexOf(nodeId);
+	if (selfIndex < subIds.length - 1) {
+		return subIds[selfIndex + 1];
+	} else {
+		return parent.id;
+	}
 }
 
 // Program, Uid Node -> Uid Node
-function getNodeInside(program, nodeId) {
-	// TODO move inside
-	return nodeId;
+function getNodeInside(program, nodeId, ignoreInfix = false) {
+	const subIds = _getSubIdsInOrder(program, nodeId, ignoreInfix);
+	return subIds.length === 0 ? nodeId : subIds[0];
 }
 
 // Program, Uid Node -> Uid Node
 function getNodeOutside(program, nodeId) {
-	// TODO move outside
-	return nodeId;
+	if (program.identifiers[nodeId]) return nodeId;
+	const node = getNode(program, nodeId);
+	if (node.parent) {
+		const parent = getNode(program, node.parent);
+		if (getExpressionType(parent) === expressionType.LAMBDA
+		 && !parent.parent) {
+			return nodeId;
+		} else {
+			return parent.id;
+		}
+	} else {
+		return nodeId;
+	}
 }
 
 module.exports = {
