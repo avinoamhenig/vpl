@@ -23,8 +23,9 @@ export default createReducer({
 	[a.selectExp]: (state, payload) => ({
 		...state,
 		selectedExpId: payload.exprId,
-		expandedExpIds:
-			state.expandedExpIds.slice(0, payload.expansionLevel)
+		expandedExpIds: payload.expansionLevel === -1
+			? state.expandedExpIds
+			: state.expandedExpIds.slice(0, payload.expansionLevel)
 	}),
 
 	[a.setNestingLimit]: (state, payload) => ({

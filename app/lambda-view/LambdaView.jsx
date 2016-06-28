@@ -35,8 +35,13 @@ export default compose(
 									onClick={() => window.history.back()}
 									><Icon icon="chevron-left" /></div>
 						) }
-						<span style={s.lambdaIcon}>&lambda;</span>
-						{ ' ' + ident.displayName }
+						<span
+							style={s.displayName}
+							onClick={() => (p.onClick || p.selectExp)(ident.id, -1)}
+							>
+							<span style={s.lambdaIcon}>&lambda;</span>
+							{ ' ' + ident.displayName }
+						</span>
 						<span style={s.arg}>
 							{ ' '
 							+ lambda.arguments.map(arg =>

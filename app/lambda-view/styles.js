@@ -1,14 +1,14 @@
-import { colors } from 'styles';
+import { colors, noSelect } from 'styles';
 
 export default p => {
 	let s = {};
 
-	s.container = {
+	s.container = [noSelect, {
 		display: 'flex',
 		flexDirection: 'column',
 		position: p.expansionLevel > 0 ? 'static' : 'absolute',
 		width: '100%', height: '100%'
-	};
+	}];
 
 	s.header = {
 		fontFamily: 'sans-serif',
@@ -40,6 +40,13 @@ export default p => {
 	s.title = {
 		paddingLeft: 8,
 		display: 'inline-block'
+	};
+
+	s.displayName = {
+		cursor: 'pointer',
+		color: p.identifier && p.selectedExpId === p.identifier.id
+			? colors.selectedExp
+			: 'inherit'
 	};
 
 	s.nestingBtn = {
@@ -111,7 +118,7 @@ export default p => {
 		color: 'red'
 	}];
 
-	s.arg = { 'color': colors.identifier };
+	s.arg = {};
 
 	s.lambdaListItem = {
 		listStyle: 'none',
