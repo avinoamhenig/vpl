@@ -7,7 +7,7 @@ import ExpressionView from 'expression-view'
 import $ from 'jquery'
 import debounce from 'debounce'
 import Icon from 'lib/Icon'
-import * as evaluator from '../../evaluators/JSON-evaluator-v2'
+import * as evaluator from '../../evaluators/trampoline_evaluator'
 import sp from 'lib/stopPropagation'
 import {
 	getNode,
@@ -138,7 +138,7 @@ export default compose(
 									evaluator.stopEval();
 								} else {
 									p.startEval();
-									evaluator.main(p.program, val => {
+									evaluator.evaluate(p.program, val => {
 										p.setEvalResult(val)
 									}, () => {
 										p.evalFail();
