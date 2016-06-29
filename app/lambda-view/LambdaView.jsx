@@ -137,9 +137,9 @@ export default compose(
 								if (p.evaluating) {
 									evaluator.stopEval();
 								} else {
-									p.startEval();
+									p.startEval(performance.now());
 									evaluator.evaluate(p.program, val => {
-										p.setEvalResult(val)
+										p.setEvalResult(val, performance.now())
 									}, () => {
 										p.evalFail();
 									});
@@ -147,6 +147,11 @@ export default compose(
 							}}></div>
 						<div style={s.evalResult}>
 							{p.evalFailed ? 'Fail!' : p.evalResult }
+						</div>
+						<div style={s.evalTime}>
+							{ p.evalResult && Math.round( // round to 3 decimal places
+								((p.evalEndTime - p.evalStartTime) / 1000) * 1000
+							) / 1000 + 's' }
 						</div>
 					</span>
 				)}

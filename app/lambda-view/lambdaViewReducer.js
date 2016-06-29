@@ -23,7 +23,7 @@ export const actions = {
 	toggleInfix: cA('TOGGLE_INFIX'),
 	startEval: cA('START_EVAL'),
 	evalFail: cA('EVAL_FAIL'),
-	setEvalResult: cA('SET_EVAL_RESULT'),
+	setEvalResult: cA('SET_EVAL_RESULT', m('result', 'time')),
 	toggleFnList: cA('TOGGLE_FN_LIST'),
 	move: direction => (dispatch, getState) => {
 		const { program, lambdaView } = getState();
@@ -92,11 +92,19 @@ export default createReducer({
 	[a.toggleInfix]: state => ({
 		...state, ignoreInfix: !state.ignoreInfix
 	}),
-	[a.startEval]: state => ({
-		...state, evaluating: true, evalResult: '', evalFailed: false
+	[a.startEval]: (state, time) => ({
+		...state,
+		evaluating: true,
+		evalResult: '',
+		evalFailed: false,
+		evalStartTime: time,
+		evalEndTime: -1
 	}),
-	[a.setEvalResult]: (state, payload) => ({
-		...state, evalResult: JSON.stringify(payload), evaluating: false
+	[a.setEvalResult]: (state, { result, time }) => ({
+		...state,
+		evalResult: JSON.stringify(result),
+		evalEndTime: time,
+		evaluating: false
 	}),
 	[a.evalFail]: (state) => ({
 		...state, evalResult: '', evaluating: false, evalFailed: true
@@ -159,6 +167,8 @@ export default createReducer({
 	ignoreInfix: false,
 	evaluating: false,
 	evalResult: '',
+	evalStartTime: -1,
+	evalEndTime: -1,
 	evalFailed: false,
 	showFnList: false
 });

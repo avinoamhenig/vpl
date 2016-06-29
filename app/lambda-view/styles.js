@@ -118,6 +118,10 @@ export default p => {
 		color: 'red'
 	}];
 
+	s.evalTime = [s.nestingInfo, {
+		float: 'left'
+	}];
+
 	s.args = {}
 	s.arg = {
 		marginLeft: 7,
