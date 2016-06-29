@@ -253,7 +253,7 @@ function switchSpeed() {
 // For Testing
 function onCompletion(i) {
   G.elapsedTime = Date.now() - G.InitialTime;
-	console.log("Success: " + JSON.stringify(i));
+	console.log("Success: " + JSON.stringify(i) + " Time: " + G.elapsedTime);
 }
 
 function onFail() {
