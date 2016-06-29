@@ -9,6 +9,7 @@ import debounce from 'debounce'
 import Icon from 'lib/Icon'
 import * as evaluator from '../../evaluators/trampoline_evaluator'
 import sp from 'lib/stopPropagation'
+import round from 'lib/round'
 import {
 	getNode,
 	getIdentifier,
@@ -149,9 +150,10 @@ export default compose(
 							{p.evalFailed ? 'Fail!' : p.evalResult }
 						</div>
 						<div style={s.evalTime}>
-							{ p.evalResult && Math.round( // round to 3 decimal places
-								((p.evalEndTime - p.evalStartTime) / 1000) * 1000
-							) / 1000 + 's' }
+							{ p.evalResult && round(
+								(p.evalEndTime - p.evalStartTime) / 1000,
+								3
+							) + 's' }
 						</div>
 					</span>
 				)}
