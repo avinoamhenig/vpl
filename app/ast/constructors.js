@@ -69,7 +69,7 @@ function createProgram (...frags) {
 
 	return {
 		astType: astType.PROGRAM,
-		expression: rootNode(lastFrag),
+		expression: lastFrag.rootNode,
 		nodes: oa({}, ...frags.map(f => f.nodes)),
 		identifiers: oa({}, ...frags.map(f => f.identifiers)),
 		constructors: oa({}, ...frags.map(f => f.constructors)),
