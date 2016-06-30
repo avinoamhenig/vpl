@@ -1,15 +1,12 @@
-const assert = require('assert');
 const { astType, nodeType, expressionType } = require('./typeNames');
 
 // ProgramFragment -> Node
 function rootNode(frag) {
-	assert.strictEqual(frag.astType, astType.PROGRAM_FRAGMENT);
 	return frag.nodes[frag.rootNode];
 }
 
 // Program -> Expression
 function root(program) {
-	assert.strictEqual(program.astType, astType.PROGRAM);
 	return program.nodes[program.expression];
 }
 
