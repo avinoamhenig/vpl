@@ -20,7 +20,7 @@ module.exports = {
 	plugins: isDev ?[
 		 new webpack.HotModuleReplacementPlugin()
 	] : [],
-	entry: { client: './app/client.jsx' },
+	entry: { client: [ 'babel-polyfill', './app/client.jsx' ] },
 	output: {
 		path: path.resolve('./public/js'),
 		publicPath: '/public/js/',
