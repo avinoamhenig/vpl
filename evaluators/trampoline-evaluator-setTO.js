@@ -15,6 +15,7 @@ var G = {
   builtInFunctions: ['+', '-', '*', '/', 'div', 'remainder', '=', '!=', '<', '>', '<=', '>=', 'cons', 'null?', 'zero?', 'car', 'cdr', 'cddr', 'cadr', 'list'],
   environment: [],
   functions: {},
+	counter: 0,
   procReg: null,
   args0: null,
   args1: null,
@@ -23,15 +24,18 @@ var G = {
 };
 
 //Main
-function evaluate(program, onComplete, onFail) {
+function evaluate(program, onComplete, onFail, limit=Number.MAX_SAFE_INTEGER) {
 	setUp(program);
 	G.program = program;
-  G.result = G.notDone;
+	G.LIMIT = limit;
 	G.continue = true;
-  G.environment = [];
-  G.InitialTime = Date.now();
 	G.fail = onFail;
-	return trampoline(call(evaluateStep, root(program), onComplete));
+  G.result = G.notDone;
+	G.counter = 1;
+	G.environment = [];
+	G.InitialTime = Date.now();
+	call(evaluateStep, root(program), onComplete);
+	trampoline();
 }
 
 //Add "name id : lambda node" to G.functions
@@ -54,14 +58,24 @@ function call(proc, arg0, arg1, arg2) {
   G.args0 = arg0;
   G.args1 = arg1;
 	G.args2 = arg2;
+	G.result = G.notDone;
   return G.notDone
 }
 
-function trampoline(result) {
-	while (result === G.notDone) {
-		result = G.procReg(G.args0, G.args1, G.args2);
+function trampoline() {
+	while (G.result === G.notDone &&
+				 G.counter % G.LIMIT !== 0) {
+		G.result = G.procReg(G.args0, G.args1, G.args2);
+		G.counter++;
 	}
-  return result;
+	if (G.result === G.notDone) {
+		G.counter++;
+		console.log('timeout');
+		setTimeout(trampoline, 0);
+	} else {
+		console.log('done: ' + G.result);
+		return G.result;
+	}
 }
 
 //Evaluate expression precursor (takes care of let bindings)
@@ -253,7 +267,8 @@ function switchSpeed() {
 // For Testing
 function onCompletion(i) {
   G.elapsedTime = Date.now() - G.InitialTime;
-	console.log("Success: " + JSON.stringify(i) + " Time: " + G.elapsedTime);
+	console.log("Success: " + JSON.stringify(i) + " Time: " + G.elapsedTime + " Counter: " + G.counter);
+	return i;
 }
 
 function onFail() {
