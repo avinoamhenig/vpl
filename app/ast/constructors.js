@@ -1,11 +1,7 @@
-const uuid = require('node-uuid');
+const { v4: createUid } = require('node-uuid');
 const { astType, nodeType, expressionType } = require('./typeNames');
 const { rootNode } = require('./accessors');
 const oa = Object.assign;
-
-function createUid() {
-	return uuid.v4();
-}
 
 function _createNode (nodeType, props) {
 	return oa({
@@ -191,19 +187,19 @@ function createTypeDefinition (name, constructors, parameters, id) {
 	};
 }
 
-// Constructor, [ProgramFragment], TypeDefinition? -> ProgramFragment
-function createConstructionExpression (constructor, parameters) {
+// Constructor, [ProgramFragment]? -> ProgramFragment
+function createConstructionExpression (constructor, parameters = []) {
 	return _createProgramFragment(
 		_createExpression(expressionType.CONSTRUCTION, {
 			constructor: constructor.id,
 			parameters: parameters.map(p => p.rootNode),
 		}),
-		parameters
+		...parameters
 	);
 }
 
 // String -> ProgramFragment
-function createBuiltInFunctionExpression(reference) {
+function createBuiltInFunctionExpression (reference) {
 	return _createProgramFragment(
 		_createExpression(expressionType.BUILT_IN_FUNCTION, {
 			reference
@@ -211,10 +207,60 @@ function createBuiltInFunctionExpression(reference) {
 	);
 }
 
+// -> ProgramFragment
+function createDefaultExpression () {
+	return _createProgramFragment(
+		_createExpression(expressionType.DEFAULT)
+	);
+}
+
+// ProgramFragment, [ProgramFragment] -> ProgramFragment
+function createDeconstructionExpression (exp, caseFrags) {
+	return _createProgramFragment(
+		_createExpression(expressionType.DECONSTRUCTION, {
+			dataExpression: exp.rootNode,
+			cases: caseFrags.map(caseFrag => caseFrag.rootNode)
+		}),
+		exp, ...caseFrags
+	);
+}
+
+// Constructor, [Identifier], ProgramFragment -> ProgramFragment
+function createDeconstructionCase (cons, paramIdents, exp) {
+	const frag = _createProgramFragment(
+		_createNode(nodeType.DECONSTRUCTION_CASE, {
+			constructor: cons.id,
+			parameterIdentifiers: paramIdents.map(ident => ident.id),
+			expression: exp.id
+		}),
+		exp
+	);
+
+	const newIdents = [];
+	for (const identifier of paramIdents) {
+		newIdents.push(oa({}, identifier, {
+			scope: frag.rootNode
+		}));
+	}
+
+	return _attachIdentifiersToFragment(frag, newIdents);
+};
+
 module.exports = {
-	createProgram, createIdentifier, createNumberExpression,
-	createIdentifierExpression, createLambdaExpression,
-	createApplicationExpression, createCaseExpression, createCaseBranch,
-	createConstructionExpression, createConstructor, createUid,
-	createTypeDefinition, createBuiltInFunctionExpression
+	createProgram,
+	createUid,
+	createIdentifier,
+	createConstructor,
+	createTypeDefinition,
+	createNumberExpression,
+	createIdentifierExpression,
+	createLambdaExpression,
+	createBuiltInFunctionExpression,
+	createApplicationExpression,
+	createConstructionExpression,
+	createDeconstructionExpression,
+	createDeconstructionCase,
+	createCaseExpression,
+	createCaseBranch,
+	createDefaultExpression
 };
