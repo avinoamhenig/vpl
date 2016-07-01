@@ -214,8 +214,8 @@ function createDefaultExpression () {
 	);
 }
 
-// ProgramFragment, ProgramFragment -> ProgramFragment
-function createDeconstructionExpresssion (exp, caseFrags) {
+// ProgramFragment, [ProgramFragment] -> ProgramFragment
+function createDeconstructionExpression (exp, caseFrags) {
 	return _createProgramFragment(
 		_createExpression(expressionType.DECONSTRUCTION, {
 			dataExpression: exp.rootNode,
@@ -258,7 +258,7 @@ module.exports = {
 	createBuiltInFunctionExpression,
 	createApplicationExpression,
 	createConstructionExpression,
-	createDeconstructionExpresssion,
+	createDeconstructionExpression,
 	createDeconstructionCase,
 	createCaseExpression,
 	createCaseBranch,
