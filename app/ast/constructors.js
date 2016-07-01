@@ -187,14 +187,14 @@ function createTypeDefinition (name, constructors, parameters, id) {
 	};
 }
 
-// Constructor, [ProgramFragment] -> ProgramFragment
+// Constructor, [ProgramFragment]? -> ProgramFragment
 function createConstructionExpression (constructor, parameters = []) {
 	return _createProgramFragment(
 		_createExpression(expressionType.CONSTRUCTION, {
 			constructor: constructor.id,
 			parameters: parameters.map(p => p.rootNode),
 		}),
-		parameters
+		...parameters
 	);
 }
 
