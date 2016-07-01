@@ -29,11 +29,11 @@ const Identifier = {
 };
 
 const Constructor = {
-  astType       : TypeName,
-  id            : NewUid(),
-  displayName   : String,
-  argumentTypes : [Uid(Type)],
-  parentType    : Uid(TypeDefinition)
+  astType        : TypeName,
+  id             : NewUid(),
+  displayName    : String,
+  parameterTypes : [TypeInstance],
+  typeDefinition : Uid(TypeDefinition)
 };
 
 const TypeDefinition = {
@@ -41,7 +41,7 @@ const TypeDefinition = {
   id           : NewUid(),
   displayName  : String,
   constructors : nonempty([Uid(Constructor)]),
-  arguments    : [Uid(TypeVariable)]
+  parameters   : [Uid(TypeVariable)]
 };
 
 const TypeVariable = {
@@ -50,12 +50,12 @@ const TypeVariable = {
   displayName : nullable(String)
 };
 
-const Type = {
+const TypeInstance = {
   astType        : TypeName,
   id             : NewUid(),
   displayName    : nullable(String),
   typeDefinition : Uid(any(TypeDefinition, TypeVariable)),
-  arguments      : [Type]
+  parameters     : [TypeInstance]
 };
 
 const Node = {
@@ -75,7 +75,7 @@ const Expression = {
   ...extend(Node),
   nodeType       : noOverride(TypeName),
   expressionType : TypeName,
-  type           : Type,
+  type           : TypeInstance,
   ...sub(
     NumberExpression,
     IdentifierExpression,
@@ -127,9 +127,27 @@ const ElseBranch = {
 const ConstructionExpression = {
   ...extend(Expression),
   constructor : Uid(Constructor),
-  arguments   : [Uid(Expression)]
+  parameters  : [Uid(Expression)]
+};
+
+const DeconstructionExpression = {
+  ...extend(Expression),
+  dataExpression : Uid(Expression),
+	cases          : [Uid(DeconstructionCase)]
+};
+
+const DeconstructionCase = {
+	...extend(Node),
+	constructor          : Uid(Constructor),
+	parameterIdentifiers : [Uid(Identifier)],
+	expression           : Uid(Expression)
 };
 
 const DefaultExpression = {
   ...extend(Expression)
+};
+
+const BuiltInFunctionExpression = {
+  ...extend(Expression),
+  reference: String
 };

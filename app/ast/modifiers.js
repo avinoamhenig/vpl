@@ -1,4 +1,3 @@
-const assert = require('assert');
 const { astType, nodeType, expressionType } = require('./typeNames');
 const {
 	rootNode,
@@ -15,12 +14,6 @@ const {
 
 // Program | ProgramFragment, Identifier, ProgramFragment -> Program | ProgramFragment
 function bindIdentifier(program, identifier, valueExpFrag) {
-	assert([astType.PROGRAM, astType.PROGRAM_FRAGMENT].includes(program.astType),
-		`Cannot set binding on ${program.astType}.`);
-	assert.strictEqual(identifier.astType, astType.IDENTIFIER);
-	assert.strictEqual(valueExpFrag.astType, astType.PROGRAM_FRAGMENT);
-	assert.strictEqual(rootNode(valueExpFrag).nodeType, nodeType.EXPRESSION);
-
 	const newProgram = Object.assign({}, program);
 	const newIdentifier = Object.assign({}, identifier, {
 		value: rootNode(valueExpFrag).id
@@ -52,9 +45,6 @@ function bindIdentifier(program, identifier, valueExpFrag) {
 
 // Program | ProgramFragment, [[Identifier, ProgramFragment]] -> Program | ProgramFragment
 function bindIdentifiers(program, identMap) {
-	assert([astType.PROGRAM, astType.PROGRAM_FRAGMENT].includes(program.astType),
-		`Cannot set bindings on ${program.astType}.`);
-
 	const newProgram = Object.assign({}, program);
 	newProgram.identifiers = Object.assign({}, newProgram.identifiers);
 	newProgram.nodes = Object.assign({}, newProgram.nodes);
@@ -85,10 +75,20 @@ function bindIdentifiers(program, identMap) {
 	return newProgram;
 }
 
+// Program | ProrgamFragment, [TypeDefinition], [Constructor], [TypeVariable] -> Program | ProgramFragment
+function attachTypeDefinitions(frag, typeDefs, cons, typeVars) {
+	return Object.assign({}, frag, {
+		typeDefinitions: Object.assign({}, frag.typeDefinitions,
+			...typeDefs.map(x => ({ [x.id]: x }))),
+		constructors: Object.assign({}, frag.constructors,
+			...cons.map(x => ({ [x.id]: x }))),
+		typeVariables: Object.assign({}, frag.typeVariables,
+			...typeVars.map(x => ({ [x.id]: x })))
+	});
+}
+
 // Identifier, Uid Node -> Identifier
 function setIdentifierScope(identifier, scopeId) {
-	assert.strictEqual(identifier.astType, astType.IDENTIFIER);
-
 	return Object.assign({}, identifier, { scope: scopeId });
 }
 
@@ -401,5 +401,6 @@ function _removeSubtree(program, node) {
 module.exports = {
 	bindIdentifier, bindIdentifiers, setIdentifierScope,
 	replaceNode, removeNode, appendPieceToExp,
-	removeIdentifier, setDisplayName
+	removeIdentifier, setDisplayName,
+	attachTypeDefinitions
 };

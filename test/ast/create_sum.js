@@ -9,11 +9,12 @@ const {
 	createCaseBranch,
 	bindIdentifiers
 } = require('../../app/ast');
+const basis = require('../../app/basis');
 
 module.exports = () => {
-	const plus = createIdentifier('+');
-	const minus = createIdentifier('-');
-	const eq = createIdentifier('=');
+	const plus = basis.identifiers[basis.references.PLUS];
+	const minus = basis.identifiers[basis.references.MINUS];
+	const eq = basis.identifiers[basis.references.EQUAL];
 	const n = createIdentifier('n');
 	const sumIdent = createIdentifier('sum');
 	const sumLambda = createLambdaExpression([n],
@@ -42,6 +43,7 @@ module.exports = () => {
 	);
 	const rootExp = createNumberExpression(0);
 	return createProgram(
+		basis.basisFragment,
 		bindIdentifiers(rootExp, [[sumIdent, sumLambda]])
 	);
 }
