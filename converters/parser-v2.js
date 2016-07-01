@@ -1,5 +1,6 @@
 // sketching out augmenting parser to handle pattern match
 
+const basis = require('../app/basis');
 
 const {
 	createProgram,
@@ -10,6 +11,8 @@ const {
 	createApplicationExpression,
 	createCaseExpression,
 	createCaseBranch,
+	createDeconstructionExpresssion,
+	createDeconstructionCase,
 	bindIdentifier,
   bindIdentifiers,
   setIdentifierScope
@@ -166,15 +169,27 @@ function parseCase() {
 
 function parseMatchCase() {
   eat(getNextToken(), '(');
-	const constructor = getNextToken();
-	const constructArgs = [];
-	while (peekNextToken() !== ')') {
-		constructArgs.push(getNextToken());
+	const constructorName = getNextToken();
+	const constructor = constructorMap[constructorName];
+	if (constructor) {
+		const constructArgs = [];
+		//TODO: make these into ids
+		while (peekNextToken() !== ')') {
+			constructArgs.push(getNextToken());
+		}
+		getNextToken();
+		const action = parseExp();
+		return createDeconstructionCase(constructor, constructArgs, action);
+	} else {
+		throw error 'undefined constructor: ' + constructorName;
 	}
-	getNextToken();
-	const action = parseExp();
-	return createMatchCase(constructor, constructArgs, action);
 }
+
+const constructorMap = {
+	'NIL' : basis.constructors.Nil,
+	'CONS' : basis.constructor.Cons
+};
+
 
 function reset() {
   G.index = 0;
