@@ -2,18 +2,20 @@ import { applyMiddleware, createStore, compose } from 'redux'
 import { navigate } from 'lib/route-reducer'
 import rootReducer from './rootReducer'
 import thunk from 'redux-thunk';
+import { loadState, saveState } from './localStorage'
+import throttle from 'lodash/throttle'
 
-export default (initialState, routeMiddleware, initialUrl) => {
+export default (routeMiddleware) => {
 	const store = compose(
 		applyMiddleware(thunk, routeMiddleware),
 		(typeof window === 'object'
 		 && typeof window.devToolsExtension !== 'undefined'
 			? window.devToolsExtension() : f => f)
-	)(createStore)(rootReducer, initialState);
+	)(createStore)(rootReducer, loadState());
 
-	if (typeof initialUrl !== 'undefined') {
-		store.dispatch(navigate(initialUrl));
-	}
+	store.subscribe(throttle(() => saveState({
+		program: store.getState().program
+	}), 1000));
 
 	if (module.hot) {
 		module.hot.accept('root/rootReducer', () => {

@@ -7,7 +7,7 @@ import Main from 'main'
 
 const
 	rootEl = document.getElementById('app'),
-	store = configureStore(window.__INITIAL_STATE__, routeMiddleware);
+	store = configureStore(routeMiddleware);
 render(<Provider store={store}><Main /></Provider>, rootEl);
 
 // Hot module replacement for our components.

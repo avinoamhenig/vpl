@@ -6,7 +6,7 @@ import computeStyles from '../expressionViewStyles'
 import ExpressionView from '../ExpressionView'
 import { LambdaView } from 'lambda-view'
 import $ from 'jquery'
-import debounce from 'debounce'
+import debounce from 'lodash/debounce'
 import {
 	getNode
 } from 'ast'
