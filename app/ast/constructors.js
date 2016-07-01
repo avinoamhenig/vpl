@@ -188,7 +188,7 @@ function createTypeDefinition (name, constructors, parameters, id) {
 }
 
 // Constructor, [ProgramFragment] -> ProgramFragment
-function createConstructionExpression (constructor, parameters) {
+function createConstructionExpression (constructor, parameters = []) {
 	return _createProgramFragment(
 		_createExpression(expressionType.CONSTRUCTION, {
 			constructor: constructor.id,
