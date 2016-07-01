@@ -1,3 +1,6 @@
+// sketching out augmenting parser to handle pattern match
+
+
 const {
 	createProgram,
 	createIdentifier,
@@ -88,6 +91,19 @@ function parseExp() {
       var elseExpFrag = caseFrags[caseFrags.length-1];
       caseFrags = caseFrags.slice(0, caseFrags.length-1);
       return createCaseExpression(caseFrags, elseExpFrag);
+
+		} else if (peekNextToken() === 'MATCH') {
+				getNextToken();
+				const target = parseExp();
+				const matchFrags = [];
+				while (peekNextToken() !== ')') {
+					eat(getNextToken(), '(');
+					matchFrags.push(parseMatchCase());
+					eat(getNextToken(), ')');
+				}
+				eat(getNextToken(), ')');
+				return createMatchExpression(target, matchFrags);
+
     } else if (peekNextToken() === 'let') {
       eat(getNextToken(), 'let');
       eat(getNextToken(), '(');
@@ -146,6 +162,18 @@ function parseCase() {
     eat(getNextToken(), ')');
     return elseExp;
   }
+}
+
+function parseMatchCase() {
+  eat(getNextToken(), '(');
+	const constructor = getNextToken();
+	const constructArgs = [];
+	while (peekNextToken() !== ')') {
+		constructArgs.push(getNextToken());
+	}
+	getNextToken();
+	const action = parseExp();
+	return createMatchCase(constructor, constructArgs, action);
 }
 
 function reset() {
