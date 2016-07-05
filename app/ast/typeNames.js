@@ -25,5 +25,6 @@ module.exports.expressionType = {
 	CONSTRUCTION      : 'ConstructionExpression',
 	DECONSTRUCTION    : 'DeconstructionExpression',
 	DEFAULT           : 'DefaultExpression',
-	BUILT_IN_FUNCTION : 'BuiltInFunctionExpression'
+	BUILT_IN_FUNCTION : 'BuiltInFunctionExpression',
+	DO                : 'DoExpression'
 };

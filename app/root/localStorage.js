@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'vpl_v3-incomplete2';
+const STORAGE_KEY = 'vpl3-basis3';
 
 export const loadState = () => {
 	if (typeof window === 'undefined') {
