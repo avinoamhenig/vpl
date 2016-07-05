@@ -1,46 +1,61 @@
 const {
 	createIdentifier,
 	createConstructor,
-	createUid,
-	createTypeDefinition,
+	createTypeVariable,
+	createTypeInstance,
 	createNumberExpression,
 	bindIdentifiers,
 	createBuiltInFunctionExpression,
 	attachTypeDefinitions
 } = require('../../app/ast');
 const r = require('./references');
+const {
+	typeDefinitions,
+	constructors,
+	typeVariables,
+	newTypeDefinition
+} = require('./typeDefinitionFactory')();
 
-// Identifiers
+newTypeDefinition('Bool', uid => {
+	return {
+		parameters: [],
+		constructors: [
+			createConstructor('True', [], uid),
+			createConstructor('False', [], uid)
+		]
+	};
+});
+
+newTypeDefinition('List', uid => {
+	const elType = createTypeVariable();
+	return {
+		parameters: [elType],
+		constructors: [
+			createConstructor('End', [], uid),
+			createConstructor('List', [
+				createTypeInstance(elType.id),
+				createTypeInstance(uid, [createTypeInstance(elType.id)])
+			], uid)
+		]
+	};
+});
+
 const i = {
 	[r.PLUS]: createIdentifier('+'),
 	[r.MINUS]: createIdentifier('-'),
 	[r.EQUAL]: createIdentifier('=')
 };
+
 module.exports.identifiers = i;
-
-// TypeDefinition Uids
-const tIds = {
-	bool: createUid()
-};
-
-// Constructors
-const c = {
-	True: createConstructor('True', [], tIds.bool),
-	False: createConstructor('False', [], tIds.bool)
-};
-module.exports.constructors = c;
-
-// TypeDefinitions
-const t = {
-	Bool: createTypeDefinition('Boolean', [c.True, c.False], [], tIds.bool)
-};
-module.exports.typeDefinitions = t;
+module.exports.typeDefinitions = typeDefinitions;
+module.exports.constructors = constructors;
+module.exports.typeVariables = typeVariables;
 
 // Create fragment and bind identifiers and attach types.
 module.exports.basisFragment = attachTypeDefinitions(
 	bindIdentifiers(createNumberExpression(0), Object.keys(i)
 		.map(ref => [i[ref], createBuiltInFunctionExpression(ref)])),
-	Object.keys(t).map(k => t[k]),
-	Object.keys(c).map(k => c[k]),
-	[] // TODO type variables
+	Object.keys(typeDefinitions).map(k => typeDefinitions[k]),
+	Object.keys(constructors).map(k => constructors[k]),
+	Object.keys(typeVariables).map(k => typeVariables[k])
 );

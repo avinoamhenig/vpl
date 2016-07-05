@@ -177,6 +177,15 @@ function createConstructor (name, parameterTypes, typeDefId) {
 	};
 }
 
+// String? -> TypeVariable
+function createTypeVariable (name = null) {
+	return {
+		astType: astType.TYPE_VARIABLE,
+		id: createUid(),
+		displayName: name
+	};
+}
+
 // String, [Constructor], [TypeVariable], Uid -> TypeDefinition
 function createTypeDefinition (name, constructors, parameters, id) {
 	return {
@@ -184,6 +193,17 @@ function createTypeDefinition (name, constructors, parameters, id) {
 		displayName: name,
 		constructors: constructors.map(c => c.id),
 		parameters: parameters.map(p => p.id)
+	};
+}
+
+// Uid (TypeDefinition | TypeVariable), [TypeInstance]? -> TypeVariabl
+function createTypeInstance (typeDefId, parameters = []) {
+	return {
+		astType: astType.TYPE_INSTANCE,
+		id: createUid(),
+		displayName: null,
+		typeDefinition: typeDefId,
+		parameters
 	};
 }
 
@@ -262,5 +282,7 @@ module.exports = {
 	createDeconstructionCase,
 	createCaseExpression,
 	createCaseBranch,
-	createDefaultExpression
+	createDefaultExpression,
+	createTypeVariable,
+	createTypeInstance
 };
