@@ -266,6 +266,17 @@ function createDeconstructionCase (cons, paramIdents, exp) {
 	return _attachIdentifiersToFragment(frag, newIdents);
 };
 
+// [ProgramFragment], ProgramFragment -> ProgramFragment
+function createDoExpression (unitExpressions, returnExpression) {
+	return _createProgramFragment(
+		_createExpression(expressionType.DO, {
+			unitExpressions: unitExpressions.map(frag => frag.rootNode),
+			returnExpression: returnExpression.rootNode
+		}),
+		returnExpression, ...unitExpressions
+	);
+};
+
 module.exports = {
 	createProgram,
 	createUid,
@@ -284,5 +295,6 @@ module.exports = {
 	createCaseBranch,
 	createDefaultExpression,
 	createTypeVariable,
-	createTypeInstance
+	createTypeInstance,
+	createDoExpression
 };

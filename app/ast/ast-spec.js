@@ -151,3 +151,9 @@ const BuiltInFunctionExpression = {
   ...extend(Expression),
   reference: String
 };
+
+const DoExpression = {
+  ...extend(Expression),
+  unitExpressions: [Uid(Expression)],
+  returnExpression: Uid(Expression)
+};
