@@ -11,7 +11,7 @@ const {
 	createApplicationExpression,
 	createCaseExpression,
 	createCaseBranch,
-	createDeconstructionExpresssion,
+	createDeconstructionExpression,
 	createDeconstructionCase,
 	bindIdentifier,
   bindIdentifiers,
@@ -105,7 +105,7 @@ function parseExp() {
 					eat(getNextToken(), ')');
 				}
 				eat(getNextToken(), ')');
-				return createMatchExpression(target, matchFrags);
+				return createDeconstructionExpression(target, matchFrags);
 
     } else if (peekNextToken() === 'let') {
       eat(getNextToken(), 'let');
@@ -172,22 +172,27 @@ function parseMatchCase() {
 	const constructorName = getNextToken();
 	const constructor = constructorMap[constructorName];
 	if (constructor) {
-		const constructArgs = [];
-		//TODO: make these into ids
+		const constructParams = [];
+		const newScope = {};
 		while (peekNextToken() !== ')') {
-			constructArgs.push(getNextToken());
+			const paramName = getNextToken();
+			const paramId = createIdentifier(paramName);
+			constructParams.push(paramId);
+			newScope[paramName] = paramId;
 		}
 		getNextToken();
+		G.scope.push(newScope);
 		const action = parseExp();
-		return createDeconstructionCase(constructor, constructArgs, action);
+		G.scope.pop();
+		return createDeconstructionCase(constructor, constructParams, action);
 	} else {
-		throw error 'undefined constructor: ' + constructorName;
+		throw 'undefined constructor: ' + constructorName;
 	}
 }
 
 const constructorMap = {
-	'NIL' : basis.constructors.Nil,
-	'CONS' : basis.constructor.Cons
+	'NIL' : basis.constructors.End,
+	'CONS' : basis.constructors.List
 };
 
 
