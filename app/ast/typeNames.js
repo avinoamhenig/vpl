@@ -6,7 +6,7 @@ module.exports.astType = {
 	CONSTRUCTOR      : 'Constructor',
 	TYPE_DEFINITION  : 'TypeDefinition',
 	TYPE_VARIABLE    : 'TypeVariable',
-	TYPE             : 'Type'
+	TYPE_INSTANCE    : 'TypeInstance'
 };
 
 module.exports.nodeType = {
