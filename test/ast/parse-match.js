@@ -1,13 +1,13 @@
 const {parseProgram} = require('../../converters/parser-v2');
 
 const sourceText = `
-(define length
+(define sum
   (lambda (xs)
     (MATCH xs
       ((NIL) 0)
-      ((CONS head tail) (+ 1 (length tail))))))
+      ((CONS head tail) (+ head (sum tail))))))
 
-(length (list 3 5 7))
+(sum (list 3 5 7))
 `
 
 const testAst = parseProgram(sourceText);

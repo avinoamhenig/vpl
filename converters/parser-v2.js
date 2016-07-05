@@ -1,5 +1,3 @@
-// sketching out augmenting parser to handle pattern match
-
 const basis = require('../app/basis');
 
 const {
@@ -13,6 +11,7 @@ const {
 	createCaseBranch,
 	createDeconstructionExpression,
 	createDeconstructionCase,
+	createDoExpression,
 	bindIdentifier,
   bindIdentifiers,
   setIdentifierScope
@@ -94,6 +93,20 @@ function parseExp() {
       var elseExpFrag = caseFrags[caseFrags.length-1];
       caseFrags = caseFrags.slice(0, caseFrags.length-1);
       return createCaseExpression(caseFrags, elseExpFrag);
+
+		} else if (peekNextToken() === 'DO') {
+				getNextToken();
+				const exps = [];
+				while (peekNextToken() !== ')') {
+					exps.push(parseExp());
+				}
+				getNextToken();
+				if (exps.length > 0) {
+					const retExp = exps.pop();
+					return createDoExpression(exps, retExp);
+				} else {
+					throw 'empty DO list';
+				}
 
 		} else if (peekNextToken() === 'MATCH') {
 				getNextToken();
@@ -254,47 +267,16 @@ function getUID(sym, env) {
 
 //Set up built in environment
 function setUpBuiltInEnvironment() {
-	var built_in_env = {};
-	const plus = createIdentifier('+');
-	built_in_env['+'] = plus;
-	const minus = createIdentifier('-');
-	built_in_env['-'] = minus;
-	const times = createIdentifier('*');
-	built_in_env['*'] = times;
-	const divide = createIdentifier('/');
-	built_in_env['/'] = divide;
-	const div = createIdentifier('div');
-	built_in_env['div'] = div;
-	const remainder = createIdentifier('remainder');
-	built_in_env['remainder'] = remainder;
-	const eq = createIdentifier('=');
-	built_in_env['='] = eq;
-	const neq = createIdentifier('!=');
-	built_in_env['!='] = neq;
-	const lt = createIdentifier('<');
-	built_in_env['<'] = lt;
-	const gt = createIdentifier('>');
-	built_in_env['>'] = gt;
-	const lte = createIdentifier('<=');
-	built_in_env['<='] = lte;
-	const gte = createIdentifier('>=');
-	built_in_env['>='] = gte;
-	const cons = createIdentifier('cons');
-	built_in_env['cons'] = cons;
-	const nil = createIdentifier('null?');
-	built_in_env['null?'] = nil;
-	const zero = createIdentifier('zero?');
-	built_in_env['zero?'] = zero;
-	const car = createIdentifier('car');
-	built_in_env['car'] = car;
-	const cdr = createIdentifier('cdr');
-	built_in_env['cdr'] = cdr;
-	const cddr = createIdentifier('cddr');
-	built_in_env['cddr'] = cddr;
-	const cadr = createIdentifier('cadr');
-	built_in_env['cadr'] = cadr;
-	const list = createIdentifier('list');
-	built_in_env['list'] = list;
+	const built_in_env = {
+		'+': basis.identifiers[basis.references.PLUS],
+		'-': basis.identifiers[basis.references.MINUS],
+		'=': basis.identifiers[basis.references.EQUAL],
+		'<': createIdentifier('<'),
+		'/': createIdentifier('/'),
+		list: createIdentifier('list'),
+		draw: createIdentifier('draw'),
+		turn: createIdentifier('turn'),
+	};
 	G.scope.push(built_in_env);
 }
 
