@@ -5,9 +5,10 @@ import { compose } from 'redux'
 import computeStyles from './styles'
 import ExpressionView from 'expression-view'
 import Icon from 'lib/Icon'
-import * as evaluator from '../../evaluators/trampoline_evaluator'
+import * as evaluator from '../../evaluators/evaluator-data-constructors'
 import sp from 'lib/stopPropagation'
 import round from 'lib/round'
+import ExpandedExpressionView from 'expression-view/sub/ExpandedExpressionView'
 import {
 	getNode,
 	getIdentifier,
@@ -23,7 +24,7 @@ export default compose(
 	const lambda = ident ? getNode(prog, ident.value) : null;
 
 	return (
-		<div style={s.container}>
+		<div style={s.container} id="root_expression">
 			<div className="lambda_header" style={s.header}>
 				{ ident && (
 					<div style={s.title}>
@@ -117,7 +118,6 @@ export default compose(
 							<span style={s.nestingInfo}>{`(${p.nestingLimit})`}</span>
 					</span>
 				)}
-				{/* TODO deal with 'main' and run */}
 				{ !ident && (
 					<span>
 						<div
@@ -138,14 +138,18 @@ export default compose(
 								} else {
 									p.startEval(performance.now());
 									evaluator.evaluate(p.program, val => {
-										p.setEvalResult(val, performance.now())
+										p.setEvalResult(val, performance.now(), p.program)
 									}, () => {
 										p.evalFail();
 									});
 								}
 							}}></div>
 						<div style={s.evalResult}>
-							{p.evalFailed ? 'Fail!' : p.evalResult }
+							{ p.evalFailed ? 'Fail!' : p.evalResult && (
+								<span onClick={p.toggleEvalResult}>
+									<Icon icon={p.showEvalResult ? 'eye' : 'eye-slash'} />
+								</span>
+							) }
 						</div>
 						<div style={s.evalTime}>
 							{ p.evalResult && round(
@@ -167,9 +171,13 @@ export default compose(
 			</div>
 			<div style={s.expressionContainer}>
 				<ExpressionView
-					expressionId={lambda ? lambda.body : p.expressionId}
+					expressionId={lambda
+						? lambda.body
+						: p.showEvalResult
+							? p.evalResult.expression
+							: p.expressionId}
 					lambdaIdentId={ident ? ident.id : null}
-					program={prog}
+					program={p.showEvalResult ? p.evalResult : prog}
 					nestedLevel={0}
 					expansionLevel={p.expansionLevel || 0}
 					selectedExpId={p.selectedExpId}
