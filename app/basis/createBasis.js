@@ -48,8 +48,8 @@ const i = {
 	[r.DIVIDE]: createIdentifier('/'),
 	[r.REMAINDER]: createIdentifier('remainder'),
 	[r.NULL]: createIdentifier('null?'),
-	[r.LESSTHAN]: createIdentifier('<'),
-	
+	[r.LESS_THAN]: createIdentifier('<'),
+	[r.GREATER_THAN]: createIdentifier('>')
 
 };
 
