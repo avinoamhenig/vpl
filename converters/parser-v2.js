@@ -9,8 +9,17 @@ const {
 	createCaseBranch,
 	bindIdentifier,
   bindIdentifiers,
-  setIdentifierScope
+  setIdentifierScope,
+	createConstructionExpression
 } = require('../app/ast');
+const {
+	basisFragment,
+	identifiers,
+	typeDefinitions,
+	constructors,
+	references
+} = require('../app/basis');
+const basis = require('../app/basis');
 
 var G = {};
 G.tokens = [];
@@ -31,7 +40,7 @@ function parseProgram(program) {
   }
   var rootExp = parseExp();
   reset();
-  return createProgram(bindIdentifiers(rootExp, idFrags));
+  return createProgram(basis.basisFragment, bindIdentifiers(rootExp, idFrags));
 }
 
 function makeFunctionIds() {
@@ -62,7 +71,7 @@ function parseExp() {
   if (token === '(') {
     if (peekNextToken() === 'lambda') {
       eat(getNextToken(), 'lambda');
-      eat(getNextToken('('));
+      eat(getNextToken(), '(');
       const argIds = [];
       var new_scope = {};
       while (peekNextToken() !== ')') {
@@ -113,7 +122,17 @@ function parseExp() {
       }
 			eat(getNextToken(), ')');
       return body;
-    } else {
+    } else if (peekNextToken() === 'cons') {
+			eat(getNextToken(), 'cons');
+			const e0 = parseExp();
+			const e1 = parseExp();
+			eat(getNextToken(), ')');
+			return createConstructionExpression(basis.constructors.List, [e0, e1]);
+		} else if (peekNextToken() === 'list') {
+			eat(getNextToken(), 'list');
+			eat(getNextToken(), ')');
+			return createConstructionExpression(basis.constructors.End);
+		} else {
       const lambdaFrag = parseExp();
       const argFrags = [];
       while (peekNextToken() != ')') {
@@ -207,7 +226,21 @@ function getUID(sym, env) {
 //Set up built in environment
 function setUpBuiltInEnvironment() {
 	var built_in_env = {};
-	const plus = createIdentifier('+');
+	const plus = basis.identifiers[basis.references.PLUS];
+	built_in_env['+'] = plus;
+	const minus = basis.identifiers[basis.references.MINUS];
+	built_in_env['-'] = minus;
+	const eq = basis.identifiers[basis.references.EQUAL];
+	built_in_env['='] = eq;
+	const times = basis.identifiers[basis.references.TIMES];
+	built_in_env['*'] = times;
+	const divide = basis.identifiers[basis.references.DIVIDE];
+	built_in_env['/'] = divide;
+	const remainder = basis.identifiers[basis.references.REMAINDER];
+	built_in_env['remainder'] = remainder;
+	const lt = basis.identifiers[basis.references.LESSTHAN];
+	built_in_env['<'] = lt;
+/*	const plus = createIdentifier('+');
 	built_in_env['+'] = plus;
 	const minus = createIdentifier('-');
 	built_in_env['-'] = minus;
@@ -246,7 +279,7 @@ function setUpBuiltInEnvironment() {
 	const cadr = createIdentifier('cadr');
 	built_in_env['cadr'] = cadr;
 	const list = createIdentifier('list');
-	built_in_env['list'] = list;
+	built_in_env['list'] = list;*/
 	G.scope.push(built_in_env);
 }
 
