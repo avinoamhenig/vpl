@@ -10,7 +10,8 @@ import {
 	removeIdentifier,
 	setIdentifierScope,
 	setDisplayName,
-	getIdentifier
+	getIdentifier,
+	wrapExpInDo
 } from 'ast'
 import { parseProgram } from '../../converters/parser-v2'
 
@@ -64,6 +65,13 @@ a.nameSelectedNode = displayName => (dispatch, getState) => {
 		dispatch(a.nameNode(selectedExpId, displayName));
 	}
 };
+a.wrapExpInDo = cA('WRAP_EXP_IN_DO');
+a.wrapSelectedExpInDo = displayName => (dispatch, getState) => {
+	const { selectedExpId } = getState().lambdaView;
+	if (selectedExpId) {
+		dispatch(a.wrapExpInDo(selectedExpId));
+	}
+};
 
 export const actions = a;
 export default createReducer({
@@ -103,5 +111,6 @@ export default createReducer({
 		return bindIdentifier(ast, identifier, valueFrag);
 	},
 	[a.nameNode]: (ast, { nodeId, displayName }) =>
-		setDisplayName(ast, nodeId, displayName)
+		setDisplayName(ast, nodeId, displayName),
+	[a.wrapExpInDo]: (ast, expId) => wrapExpInDo(ast, expId)
 }, initialState);

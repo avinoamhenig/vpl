@@ -43,7 +43,13 @@ newTypeDefinition('List', uid => {
 const i = {
 	[r.PLUS]: createIdentifier('+'),
 	[r.MINUS]: createIdentifier('-'),
-	[r.EQUAL]: createIdentifier('=')
+	[r.EQUAL]: createIdentifier('='),
+	[r.TIMES]: createIdentifier('*'),
+	[r.DIVIDE]: createIdentifier('/'),
+	[r.REMAINDER]: createIdentifier('remainder'),
+	[r.NULL]: createIdentifier('null?'),
+	[r.LESS_THAN]: createIdentifier('<'),
+	[r.LESS_EQUAL]: createIdentifier('<='),
 };
 
 module.exports.identifiers = i;

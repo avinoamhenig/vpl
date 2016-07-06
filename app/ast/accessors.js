@@ -165,6 +165,115 @@ function getNodeOutside(program, nodeId) {
 	}
 }
 
+function getEntity(program, id) {
+	return program.nodes[id]
+	    || program.identifiers[id]
+	    || program.constructors[id]
+		  || program.typeDefinitions[id]
+		  || program.typeVariables[id];
+}
+
+function getEntityType(entity) {
+	return entity.expressionType
+	    || entity.nodeType
+			|| entity.astType;
+}
+
+function _getDependencies(program, entityId, _ids = new Set()) {
+	const e = getEntity(program, entityId);
+	_ids.add(entityId);
+	const idsToSee = []
+
+	switch (getEntityType(e)) {
+		case astType.IDENTIFIER:
+			e.scope && idsToSee.push(e.scope);
+			e.value && idsToSee.push(e.value);
+			break;
+		case astType.CONSTRUCTOR:
+			e.typeDefinition && idsToSee.push(e.typeDefinition);
+			break;
+		case astType.TYPE_DEFINITION:
+			idsToSee.push(...e.constructors, ...e.parameters);
+			break;
+		case astType.TYPE_VARIABLE: break;
+		case nodeType.CASE_BRANCH:
+			idsToSee.push(e.condition, e.expression);
+			break;
+		case nodeType.ELSE_BRANCH:
+			idsToSee.push(e.expression);
+			break;
+		case nodeType.DECONSTRUCTION_CASE:
+			idsToSee.push(e.dataExpression, ...e.cases);
+			break;
+		case expressionType.NUMBER: break;
+		case expressionType.IDENTIFIER:
+			idsToSee.push(e.identifier);
+			break;
+		case expressionType.LAMBDA:
+			idsToSee.push(e.body, ...e.arguments);
+			break;
+		case expressionType.APPLICATION:
+			idsToSee.push(e.lambda, ...e.arguments);
+			break;
+		case expressionType.CASE:
+			idsToSee.push(e.elseBranch, ...e.caseBranches);
+			break;
+		case expressionType.CONSTRUCTION:
+			idsToSee.push(e.constructor, ...e.parameters);
+			break;
+		case expressionType.DECONSTRUCTION:
+			idsToSee.push(e.constructor, e.expression, ...e.parameterIdentifiers);
+			break;
+		case expressionType.DEFAULT: break;
+		case expressionType.BUILT_IN_FUNCTION: break;
+		case expressionType.DO:
+			idsToSee.push(e.returnExpression, ...e.unitExpressions);
+			break;
+
+		case astType.PROGRAM:
+		case astType.PROGRAM_FRAGMENT:
+		case astType.NODE:
+		case astType.TYPE_INSTANCE:
+		case nodeType.EXPRESSION:
+		default: throw `Unexpected entity: ${getEntityType(e)}.`;
+	}
+
+	for (const id of idsToSee) {
+		if (_ids.has(id)) { continue; }
+		_getDependencies(program, id, _ids);
+	}
+
+	return _ids;
+}
+
+// Program, Uid Node -> ProgramFragment
+function extractFragment(program, nodeId) {
+	const ids = _getDependencies(program, nodeId);
+	const frag = {
+		astType: astType.PROGRAM_FRAGMENT,
+		rootNode: nodeId,
+		nodes: {},
+		identifiers: {},
+		constructors: {},
+		typeDefinitions: {},
+		typeVariables: {}
+	};
+	const props = {
+		[astType.IDENTIFIER]: 'identifiers',
+		[astType.NODE]: 'nodes',
+		[astType.CONSTRUCTOR]: 'constructors',
+		[astType.TYPE_DEFINITION]: 'typeDefinitions',
+		[astType.TYPE_VARIABLE]: 'typeVariables'
+	}
+
+	for (const id of ids) {
+		const entity = getEntity(program, id);
+		frag[props[getAstType(entity)]][id] = entity;
+	}
+
+	return frag;
+}
+
 module.exports = {
 	rootNode, root, getAstType, getNodeType,
 	getExpressionType, getNodeOrExpType,
@@ -173,5 +282,6 @@ module.exports = {
 	getIdentifiersScopedToNode, getBoundIdentifiers,
 	getChildrenIds,
 	getNodeToTheLeft, getNodeToTheRight,
-	getNodeInside, getNodeOutside
+	getNodeInside, getNodeOutside,
+	extractFragment
 };

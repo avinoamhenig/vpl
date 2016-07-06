@@ -1,5 +1,4 @@
 const basis = require('../app/basis');
-
 const {
 	createProgram,
 	createIdentifier,
@@ -14,15 +13,19 @@ const {
 	createDoExpression,
 	bindIdentifier,
   bindIdentifiers,
-  setIdentifierScope
+  setIdentifierScope,
+	createConstructionExpression
 } = require('../app/ast');
 
-var G = {};
-G.tokens = [];
-G.index = 0;
-G.scope = [];
+const G = {};
+function reset() {
+  G.index = 0;
+	G.scope= [];
+  G.tokens = [];
+}
 
 function parseProgram(program) {
+	reset();
 	setUpBuiltInEnvironment();
   tokenize(program);
 	makeFunctionIds();
@@ -34,9 +37,9 @@ function parseProgram(program) {
     idFrags.push(idFrag);
     // build up array of [[ident, val],...]
   }
-  var rootExp = parseExp();
-  reset();
-  return createProgram(bindIdentifiers(rootExp, idFrags));
+  const rootExp = parseExp();
+  reset();  // does this need to be called here?
+  return createProgram(basis.basisFragment, bindIdentifiers(rootExp, idFrags));
 }
 
 function makeFunctionIds() {
@@ -53,7 +56,7 @@ function makeFunctionIds() {
 
 function parseDefine() {
   const name = getNextToken();
-	var nameId = getUID(name, G.scope);
+	const nameId = getUID(name, G.scope);
   const new_scope = {};
   new_scope[name] = nameId;
   G.scope.push(new_scope);
@@ -63,13 +66,13 @@ function parseDefine() {
 }
 
 function parseExp() {
-  var token = getNextToken();
+  const token = getNextToken();
   if (token === '(') {
     if (peekNextToken() === 'lambda') {
       eat(getNextToken(), 'lambda');
-      eat(getNextToken('('));
+      eat(getNextToken(), '(');
       const argIds = [];
-      var new_scope = {};
+      const new_scope = {};
       while (peekNextToken() !== ')') {
         const arg = getNextToken();
         const argId = createIdentifier(arg);
@@ -82,16 +85,16 @@ function parseExp() {
       eat(getNextToken(), ')');
       G.scope.pop();
       return createLambdaExpression(argIds, bodyFrag);
+
     } else if (peekNextToken() === 'cond') {
       eat(getNextToken(), 'cond');
-      var caseFrags = [];
+      const caseFrags = [];
       while (peekNextToken() !== ')') {
         eat(getNextToken(), '(');
         caseFrags.push(parseCase());
       }
       eat(getNextToken(), ')');
-      var elseExpFrag = caseFrags[caseFrags.length-1];
-      caseFrags = caseFrags.slice(0, caseFrags.length-1);
+      const elseExpFrag = caseFrags.pop();
       return createCaseExpression(caseFrags, elseExpFrag);
 
 		} else if (peekNextToken() === 'DO') {
@@ -145,7 +148,20 @@ function parseExp() {
       }
 			eat(getNextToken(), ')');
       return body;
-    } else {
+
+    } else if (peekNextToken() === 'cons') {
+			eat(getNextToken(), 'cons');
+			const e0 = parseExp();
+			const e1 = parseExp();
+			eat(getNextToken(), ')');
+			return createConstructionExpression(basis.constructors.List, [e0, e1]);
+
+		} else if (peekNextToken() === 'list') {
+			eat(getNextToken(), 'list');
+			eat(getNextToken(), ')');
+			return createConstructionExpression(basis.constructors.End);
+
+		} else {
       const lambdaFrag = parseExp();
       const argFrags = [];
       while (peekNextToken() != ')') {
@@ -154,13 +170,15 @@ function parseExp() {
       eat(getNextToken(), ')');
       return createApplicationExpression(lambdaFrag, argFrags);
     }
+
   } else if (Number(token) || token === '0') {
     return createNumberExpression(Number(token));
+
   } else {
     if (lookup(token, G.scope)) {
       return createIdentifierExpression(getUID(token, G.scope));
     } else {
-			console.log("Undefined token: " + token);
+			throw 'Undefined token: ' + token;
     }
   }
 }
@@ -208,18 +226,11 @@ const constructorMap = {
 	'CONS' : basis.constructors.List
 };
 
-
-function reset() {
-  G.index = 0;
-  G.tokens = [];
-  G.scope= [];
-}
-
 function getTokens() {
 	return JSON.stringify(G.scope);
 }
 
-//Token Operations
+// Token Operations
 function tokenize(exp) {
 	exp = exp.replace(/;.*$/gm, '');
 	exp = exp.replace(/\n/g, ' ');
@@ -271,10 +282,17 @@ function setUpBuiltInEnvironment() {
 		'+': basis.identifiers[basis.references.PLUS],
 		'-': basis.identifiers[basis.references.MINUS],
 		'=': basis.identifiers[basis.references.EQUAL],
-		'<': createIdentifier('<'),
-		'/': createIdentifier('/'),
+		'*': basis.identifiers[basis.references.TIMES],
+		'/': basis.identifiers[basis.references.DIVIDE],
+		'remainder': basis.identifiers[basis.references.REMAINDER],
+
+		'<': basis.identifiers[basis.references.LESS_THAN],
+		'<=': basis.identifiers[basis.references.LESS_EQUAL],
+
 		list: createIdentifier('list'),
+
 		draw: createIdentifier('draw'),
+		move: createIdentifier('move'),
 		turn: createIdentifier('turn'),
 	};
 	G.scope.push(built_in_env);
