@@ -278,25 +278,6 @@ function getUID(sym, env) {
 
 //Set up built in environment
 function setUpBuiltInEnvironment() {
-<<<<<<< HEAD
-	var built_in_env = {};
-	const plus = basis.identifiers[basis.references.PLUS];
-	built_in_env['+'] = plus;
-	const minus = basis.identifiers[basis.references.MINUS];
-	built_in_env['-'] = minus;
-	const eq = basis.identifiers[basis.references.EQUAL];
-	built_in_env['='] = eq;
-	const times = basis.identifiers[basis.references.TIMES];
-	built_in_env['*'] = times;
-	const divide = basis.identifiers[basis.references.DIVIDE];
-	built_in_env['/'] = divide;
-	const remainder = basis.identifiers[basis.references.REMAINDER];
-	built_in_env['remainder'] = remainder;
-	const lt = basis.identifiers[basis.references.LESS_THAN];
-	built_in_env['<'] = lt;
-	const gt = basis.identifiers[basis.references.GREATER_THAN];
-	built_in_env['>'] = gt;
-=======
 	const built_in_env = {
 		'+': basis.identifiers[basis.references.PLUS],
 		'-': basis.identifiers[basis.references.MINUS],
@@ -314,7 +295,6 @@ function setUpBuiltInEnvironment() {
 		move: createIdentifier('move'),
 		turn: createIdentifier('turn'),
 	};
->>>>>>> origin/master
 	G.scope.push(built_in_env);
 }
 
