@@ -1,4 +1,5 @@
 const {
+	createNumberExpression,
 	root,
 	getAstType,
 	getNodeOrExpType,
@@ -8,8 +9,19 @@ const {
 	expressionType,
 	getIdentifier,
 	getIdentifiersScopedToNode,
-	getNode
+	getNode,
+	rootNode,
+	createConstructionExpression
 } = require('../app/ast');
+const {
+	basisFragment,
+	identifiers,
+	typeDefinitions,
+	constructors,
+	references
+} = require('../app/basis');
+const basis = require('../app/basis');
+
 
 var G = {
   builtInFunctions: ['+', '-', '*', '/', 'div', 'remainder', '=', '!=', '<', '>', '<=', '>=', 'cons', 'null?', 'zero?', 'car', 'cdr', 'cddr', 'cadr', 'list'],
@@ -20,6 +32,7 @@ var G = {
   args0: null,
   args1: null,
 	args2: null,
+	args3: null,
   notDone: {},
 };
 
@@ -35,7 +48,8 @@ function evaluate(program, onComplete, onFail, limit=Number.MAX_SAFE_INTEGER) {
 	G.environment = [];
 	G.InitialTime = Date.now();
 	call(evaluateStep, root(program), onComplete);
-	trampoline();
+	const res = trampoline();
+	return res;
 }
 
 //Add "name id : lambda node" to G.functions
@@ -53,11 +67,12 @@ function setUp(program) {
 }
 
 //Trampoline
-function call(proc, arg0, arg1, arg2) {
+function call(proc, arg0, arg1, arg2, arg3) {
   G.procReg = proc;
   G.args0 = arg0;
   G.args1 = arg1;
 	G.args2 = arg2;
+	G.args3 = arg3;
 	G.result = G.notDone;
   return G.notDone
 }
@@ -65,15 +80,14 @@ function call(proc, arg0, arg1, arg2) {
 function trampoline() {
 	while (G.result === G.notDone &&
 				 G.counter % G.LIMIT !== 0) {
-		G.result = G.procReg(G.args0, G.args1, G.args2);
+		G.result = G.procReg(G.args0, G.args1, G.args2, G.args3);
 		G.counter++;
 	}
 	if (G.result === G.notDone) {
 		G.counter++;
-		console.log('timeout');
 		setTimeout(trampoline, 0);
 	} else {
-		console.log('done: ' + G.result);
+		console.log('done: ' + JSON.stringify(G.result));
 		return G.result;
 	}
 }
@@ -89,7 +103,7 @@ function evaluateStep(node, callback) {
 				binding_names.push(boundIds[i].id);
 				boundExprs.push(boundIds[i].value);
 			}
-			return call(eval_star, boundExprs,
+			return call(eval_star, boundExprs, 0,
 				function (binding_vals) {
 					const new_env = extend(binding_names, binding_vals);
 					G.environment.push(new_env);
@@ -111,7 +125,7 @@ function evaluateStep(node, callback) {
 function evaluateBody(node, callback) {
   switch (getNodeOrExpType(node)) {
     case expressionType.NUMBER:
-			return call(callback, node.value);
+			return call(callback, createNumberExpression(node.value));
     case expressionType.IDENTIFIER:
       const name = node.identifier;
       if (lookup(name, G.environment)) {
@@ -125,6 +139,7 @@ function evaluateBody(node, callback) {
     case expressionType.APPLICATION:
       const func = getNode(G.program, node.lambda);
       const argVals = node.arguments;
+			const identifier = getIdentifier(G.program, func.identifier);
 			const index = G.builtInFunctions.indexOf(getIdentifier(G.program, func.identifier).displayName);
       if (index !== -1) {
         if (argVals.length === 2) {
@@ -132,16 +147,19 @@ function evaluateBody(node, callback) {
 						function (x) {
 	            return call(evaluateStep, getNode(G.program, argVals[1]),
 								function (y) {
-		              return call(callback, builtIn(index, x, y));
+									const arg0 = rootNode(x).value;
+									const arg1 = rootNode(y).value;
+		              return call(callback, builtIn(identifier, arg0, arg1));
 		            });
 	          });
         } else if (argVals.length === 1) {
           return call(evaluateStep, getNode(G.program, argVals[0]),
 						function(x) {
+							const arg1 = x.value; //TODO: look at when null? is added back in
 	            return call(callback, builtIn(index, x));
 	          });
         } else {
-          return call(callback, []);
+					return call(callback, builtIn(identifier));
         }
       } else {
         if (!(func.identifier in G.functions)) {
@@ -150,7 +168,7 @@ function evaluateBody(node, callback) {
         }
         const called_function = G.functions[func.identifier];
 				const called_fun_args = called_function.arguments;
-        return call(eval_star, argVals,
+        return call(eval_star, argVals, 0,
 					function (binding_vals) {
 	          const new_env = extend(called_fun_args, binding_vals);
 	          G.environment.push(new_env);
@@ -165,20 +183,31 @@ function evaluateBody(node, callback) {
     case expressionType.CASE:
       const cases = node.caseBranches;
 			const elseBranch = getNode(G.program, node.elseBranch);
-			return call(evaluate_cases, cases, callback, elseBranch);
+			return call(evaluate_cases, cases, callback, elseBranch, 0);
+		case expressionType.CONSTRUCTION:
+			const constructorID = node.constructor;
+			const constructor = G.program.constructors[constructorID];
+			if (node.parameters.length > 0) {
+				return call(eval_star, node.parameters, 0,
+					function (binding_vals) {
+						return call(callback, createConstructionExpression(constructor, binding_vals));
+					});
+			} else {
+				return call(callback, createConstructionExpression(constructor));
+			}
     default:
       throw `Unexpected node: ${getNodeOrExpType(node)}.`;
   }
 }
 
 //For evaluating a list of arguments
-function eval_star(exps, callback) {
-  if (exps.length === 0) {
+function eval_star(exps, pos, callback) {
+  if (pos === exps.length) {
     return call(callback, []);
   } else {
-    return call(evaluateStep, getNode(G.program, exps[0]),
+    return call(evaluateStep, getNode(G.program, exps[pos]),
 			function (x) {
-	      return call(eval_star, exps.slice(1, exps.length),
+	      return call(eval_star, exps, pos+=1,
 			    function (y) {
 			      return call(callback, [x].concat(y));
 			    });
@@ -187,15 +216,17 @@ function eval_star(exps, callback) {
 }
 
 //For evaluating case statement's cases
-function evaluate_cases(exps, callback, elseExp) {
-	if (exps.length === 0) {
+function evaluate_cases(exps, callback, elseExp, pos) {
+	if (pos === exps.length) {
 		return call(evaluateStep, getNode(G.program, elseExp.expression), callback);
 	} else {
-		var cs = getNode(G.program, exps[0]);
+		var cs = getNode(G.program, exps[pos]);
 		return call(evaluateStep, getNode(G.program, cs.condition),
 			function (condition) {
-				if (condition) return call(evaluateStep, getNode(G.program, cs.expression), callback);
-				else return call(evaluate_cases, exps.slice(1, exps.length), callback, elseExp);
+				const cond = rootNode(condition).constructor;
+				const t = basis.constructors["True"].id;
+				if (cond === t) return call(evaluateStep, getNode(G.program, cs.expression), callback);
+				else return call(evaluate_cases, exps, callback, elseExp, pos+=1);
 			});
 	}
 }
@@ -228,32 +259,55 @@ function getVariable(val, env) {
 }
 
 // Built In Operations
-function builtIn(i, a1, a2) {
-  if (arguments.length === 3) {
-    if (i === 0) return a1 + a2;
-    else if (i === 1) return a1 - a2;
-    else if (i === 2) return a1 * a2;
-    else if (i === 3) return a1 / a2;
-    else if (i === 4) return Math.floor(a1/a2);
-    else if (i === 5) return a1 % a2;
-    else if (i === 6) return a1 === a2;
-    else if (i === 7) return a1 != a2;
-    else if (i === 8) return a1 < a2;
-    else if (i === 9) return a1 > a2;
-    else if (i === 10) return a1 <= a2;
-    else if (i === 11) return a1 >= a2;
-    else { return a2.concat([a1]);};
-  } else if (arguments.length === 2) {
-    //"null?", "zero?", "car", "cdr", "cddr", "cadr", "list"
-    if (i === 13) return a1.length === 0;
-		else if (i === 14) return a1 === 0;
-    else if (i === 15) return a1[a1.length-1];
-    else if (i === 16) return a1.slice(0, a1.length-1);
-    else if (i === 17) return a1.slice(0, a1.length-2);
-    else if (i === 18) return a1[a1.length-2];
-		else return [a1];
-  }
+function builtIn(id, a1, a2) {
+	switch (id.id) {
+		case basis.identifiers.PLUS.id:
+			return createNumberExpression(a1 + a2);
+		case basis.identifiers.MINUS.id:
+			return createNumberExpression(a1 - a2);
+		case basis.identifiers.EQUAL.id:
+		 var result = a1 === a2;
+		 if (result) {
+			 return createConstructionExpression(basis.constructors.True);
+		 } else {
+			 return createConstructionExpression(basis.constructors.False);
+		 }
+		case basis.identifiers.TIMES.id:
+			return createNumberExpression(a1 * a2);
+		case basis.identifiers.DIVIDE.id:
+			return createNumberExpression(a1 / a2);
+		case basis.identifiers.REMAINDER.id:
+			return createNumberExpression(a1 % a2);
+		case basis.identifiers.LESSTHAN.id:
+			var result = a1 < a2;
+			if (result) {
+		 		return createConstructionExpression(basis.constructors.True);
+	 		} else {
+		 		return createConstructionExpression(basis.constructors.False);
+	 		}
+		 default:
+		 	throw `Unexpected identifier ` + JSON.stringify(id);
+	}
 }
+
+/*
+
+function createBoolean(i, a1, a2) {
+	var result;
+	if (i === 6) result = (a1 === a2);
+	else if (i === 7) result = (a1 != a2);
+	else if (i === 8) result = (a1 < a2);
+	else if (i === 9) result = (a1 > a2);
+	else if (i === 10) result = (a1 <= a2);
+	else if (i === 11) result =  (a1 >= a2);
+	else if (i === 13) result = (a1.length === 0);
+	else if (i === 14) result = (a1 === 0);
+	if (result) {
+		return createConstructionExpression(basis.constructors.True);
+	} else {
+		return createConstructionExpression(basis.constructors.False);
+	}
+}*/
 
 // Evaluation continue and speed methods
 function stopEval() {
@@ -267,7 +321,6 @@ function switchSpeed() {
 // For Testing
 function onCompletion(i) {
   G.elapsedTime = Date.now() - G.InitialTime;
-	console.log("Success: " + JSON.stringify(i) + " Time: " + G.elapsedTime + " Counter: " + G.counter);
 	return i;
 }
 
