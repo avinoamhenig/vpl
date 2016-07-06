@@ -49,8 +49,12 @@ const i = {
 	[r.REMAINDER]: createIdentifier('remainder'),
 	[r.NULL]: createIdentifier('null?'),
 	[r.LESS_THAN]: createIdentifier('<'),
+<<<<<<< HEAD
 	[r.GREATER_THAN]: createIdentifier('>')
 
+=======
+	[r.LESS_EQUAL]: createIdentifier('<='),
+>>>>>>> origin/master
 };
 
 module.exports.identifiers = i;
