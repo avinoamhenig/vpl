@@ -1,3 +1,4 @@
+const basis = require('../app/basis');
 const {
 	createProgram,
 	createIdentifier,
@@ -7,26 +8,24 @@ const {
 	createApplicationExpression,
 	createCaseExpression,
 	createCaseBranch,
+	createDeconstructionExpression,
+	createDeconstructionCase,
+	createDoExpression,
 	bindIdentifier,
   bindIdentifiers,
   setIdentifierScope,
 	createConstructionExpression
 } = require('../app/ast');
-const {
-	basisFragment,
-	identifiers,
-	typeDefinitions,
-	constructors,
-	references
-} = require('../app/basis');
-const basis = require('../app/basis');
 
-var G = {};
-G.tokens = [];
-G.index = 0;
-G.scope = [];
+const G = {};
+function reset() {
+  G.index = 0;
+	G.scope= [];
+  G.tokens = [];
+}
 
 function parseProgram(program) {
+	reset();
 	setUpBuiltInEnvironment();
   tokenize(program);
 	makeFunctionIds();
@@ -38,8 +37,8 @@ function parseProgram(program) {
     idFrags.push(idFrag);
     // build up array of [[ident, val],...]
   }
-  var rootExp = parseExp();
-  reset();
+  const rootExp = parseExp();
+  reset();  // does this need to be called here?
   return createProgram(basis.basisFragment, bindIdentifiers(rootExp, idFrags));
 }
 
@@ -57,7 +56,7 @@ function makeFunctionIds() {
 
 function parseDefine() {
   const name = getNextToken();
-	var nameId = getUID(name, G.scope);
+	const nameId = getUID(name, G.scope);
   const new_scope = {};
   new_scope[name] = nameId;
   G.scope.push(new_scope);
@@ -67,13 +66,13 @@ function parseDefine() {
 }
 
 function parseExp() {
-  var token = getNextToken();
+  const token = getNextToken();
   if (token === '(') {
     if (peekNextToken() === 'lambda') {
       eat(getNextToken(), 'lambda');
       eat(getNextToken(), '(');
       const argIds = [];
-      var new_scope = {};
+      const new_scope = {};
       while (peekNextToken() !== ')') {
         const arg = getNextToken();
         const argId = createIdentifier(arg);
@@ -86,17 +85,44 @@ function parseExp() {
       eat(getNextToken(), ')');
       G.scope.pop();
       return createLambdaExpression(argIds, bodyFrag);
+
     } else if (peekNextToken() === 'cond') {
       eat(getNextToken(), 'cond');
-      var caseFrags = [];
+      const caseFrags = [];
       while (peekNextToken() !== ')') {
         eat(getNextToken(), '(');
         caseFrags.push(parseCase());
       }
       eat(getNextToken(), ')');
-      var elseExpFrag = caseFrags[caseFrags.length-1];
-      caseFrags = caseFrags.slice(0, caseFrags.length-1);
+      const elseExpFrag = caseFrags.pop();
       return createCaseExpression(caseFrags, elseExpFrag);
+
+		} else if (peekNextToken() === 'DO') {
+				getNextToken();
+				const exps = [];
+				while (peekNextToken() !== ')') {
+					exps.push(parseExp());
+				}
+				getNextToken();
+				if (exps.length > 0) {
+					const retExp = exps.pop();
+					return createDoExpression(exps, retExp);
+				} else {
+					throw 'empty DO list';
+				}
+
+		} else if (peekNextToken() === 'MATCH') {
+				getNextToken();
+				const target = parseExp();
+				const matchFrags = [];
+				while (peekNextToken() !== ')') {
+					eat(getNextToken(), '(');
+					matchFrags.push(parseMatchCase());
+					eat(getNextToken(), ')');
+				}
+				eat(getNextToken(), ')');
+				return createDeconstructionExpression(target, matchFrags);
+
     } else if (peekNextToken() === 'let') {
       eat(getNextToken(), 'let');
       eat(getNextToken(), '(');
@@ -122,16 +148,19 @@ function parseExp() {
       }
 			eat(getNextToken(), ')');
       return body;
+
     } else if (peekNextToken() === 'cons') {
 			eat(getNextToken(), 'cons');
 			const e0 = parseExp();
 			const e1 = parseExp();
 			eat(getNextToken(), ')');
 			return createConstructionExpression(basis.constructors.List, [e0, e1]);
+
 		} else if (peekNextToken() === 'list') {
 			eat(getNextToken(), 'list');
 			eat(getNextToken(), ')');
 			return createConstructionExpression(basis.constructors.End);
+
 		} else {
       const lambdaFrag = parseExp();
       const argFrags = [];
@@ -141,13 +170,15 @@ function parseExp() {
       eat(getNextToken(), ')');
       return createApplicationExpression(lambdaFrag, argFrags);
     }
+
   } else if (Number(token) || token === '0') {
     return createNumberExpression(Number(token));
+
   } else {
     if (lookup(token, G.scope)) {
       return createIdentifierExpression(getUID(token, G.scope));
     } else {
-			console.log("Undefined token: " + token);
+			throw 'Undefined token: ' + token;
     }
   }
 }
@@ -167,17 +198,39 @@ function parseCase() {
   }
 }
 
-function reset() {
-  G.index = 0;
-  G.tokens = [];
-  G.scope= [];
+function parseMatchCase() {
+  eat(getNextToken(), '(');
+	const constructorName = getNextToken();
+	const constructor = constructorMap[constructorName];
+	if (constructor) {
+		const constructParams = [];
+		const newScope = {};
+		while (peekNextToken() !== ')') {
+			const paramName = getNextToken();
+			const paramId = createIdentifier(paramName);
+			constructParams.push(paramId);
+			newScope[paramName] = paramId;
+		}
+		getNextToken();
+		G.scope.push(newScope);
+		const action = parseExp();
+		G.scope.pop();
+		return createDeconstructionCase(constructor, constructParams, action);
+	} else {
+		throw 'undefined constructor: ' + constructorName;
+	}
 }
+
+const constructorMap = {
+	'NIL' : basis.constructors.End,
+	'CONS' : basis.constructors.List
+};
 
 function getTokens() {
 	return JSON.stringify(G.scope);
 }
 
-//Token Operations
+// Token Operations
 function tokenize(exp) {
 	exp = exp.replace(/;.*$/gm, '');
 	exp = exp.replace(/\n/g, ' ');
@@ -225,61 +278,23 @@ function getUID(sym, env) {
 
 //Set up built in environment
 function setUpBuiltInEnvironment() {
-	var built_in_env = {};
-	const plus = basis.identifiers[basis.references.PLUS];
-	built_in_env['+'] = plus;
-	const minus = basis.identifiers[basis.references.MINUS];
-	built_in_env['-'] = minus;
-	const eq = basis.identifiers[basis.references.EQUAL];
-	built_in_env['='] = eq;
-	const times = basis.identifiers[basis.references.TIMES];
-	built_in_env['*'] = times;
-	const divide = basis.identifiers[basis.references.DIVIDE];
-	built_in_env['/'] = divide;
-	const remainder = basis.identifiers[basis.references.REMAINDER];
-	built_in_env['remainder'] = remainder;
-	const lt = basis.identifiers[basis.references.LESSTHAN];
-	built_in_env['<'] = lt;
-/*	const plus = createIdentifier('+');
-	built_in_env['+'] = plus;
-	const minus = createIdentifier('-');
-	built_in_env['-'] = minus;
-	const times = createIdentifier('*');
-	built_in_env['*'] = times;
-	const divide = createIdentifier('/');
-	built_in_env['/'] = divide;
-	const div = createIdentifier('div');
-	built_in_env['div'] = div;
-	const remainder = createIdentifier('remainder');
-	built_in_env['remainder'] = remainder;
-	const eq = createIdentifier('=');
-	built_in_env['='] = eq;
-	const neq = createIdentifier('!=');
-	built_in_env['!='] = neq;
-	const lt = createIdentifier('<');
-	built_in_env['<'] = lt;
-	const gt = createIdentifier('>');
-	built_in_env['>'] = gt;
-	const lte = createIdentifier('<=');
-	built_in_env['<='] = lte;
-	const gte = createIdentifier('>=');
-	built_in_env['>='] = gte;
-	const cons = createIdentifier('cons');
-	built_in_env['cons'] = cons;
-	const nil = createIdentifier('null?');
-	built_in_env['null?'] = nil;
-	const zero = createIdentifier('zero?');
-	built_in_env['zero?'] = zero;
-	const car = createIdentifier('car');
-	built_in_env['car'] = car;
-	const cdr = createIdentifier('cdr');
-	built_in_env['cdr'] = cdr;
-	const cddr = createIdentifier('cddr');
-	built_in_env['cddr'] = cddr;
-	const cadr = createIdentifier('cadr');
-	built_in_env['cadr'] = cadr;
-	const list = createIdentifier('list');
-	built_in_env['list'] = list;*/
+	const built_in_env = {
+		'+': basis.identifiers[basis.references.PLUS],
+		'-': basis.identifiers[basis.references.MINUS],
+		'=': basis.identifiers[basis.references.EQUAL],
+		'*': basis.identifiers[basis.references.TIMES],
+		'/': basis.identifiers[basis.references.DIVIDE],
+		'remainder': basis.identifiers[basis.references.REMAINDER],
+
+		'<': basis.identifiers[basis.references.LESS_THAN],
+		'<=': basis.identifiers[basis.references.LESS_EQUAL],
+
+		list: createIdentifier('list'),
+
+		draw: createIdentifier('draw'),
+		move: createIdentifier('move'),
+		turn: createIdentifier('turn'),
+	};
 	G.scope.push(built_in_env);
 }
 
