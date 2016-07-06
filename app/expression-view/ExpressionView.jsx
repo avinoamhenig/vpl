@@ -11,6 +11,8 @@ import NumberExpressionView from './sub/NumberExpressionView'
 import IdentifierExpressionView from './sub/IdentifierExpressionView'
 import CollapsedExpressionView from './sub/CollapsedExpressionView'
 import ExpandedExpressionView from './sub/ExpandedExpressionView'
+import DoExpressionView from './sub/DoExpressionView'
+import ConstructionExpressionView from './sub/ConstructionExpressionView'
 import Icon from 'lib/Icon'
 import sp from 'lib/stopPropagation'
 import {
@@ -58,6 +60,12 @@ export default compose(
 			); break;
 			case nodeType.ELSE_BRANCH: view = (
 				<ElseBranchView {...p} />
+			); break;
+			case expressionType.DO: view = (
+				<DoExpressionView {...p} />
+			); break;
+			case expressionType.CONSTRUCTION: view = (
+				<ConstructionExpressionView {...p} />
 			); break;
 		}
 	}

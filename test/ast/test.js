@@ -1,8 +1,26 @@
 const createSum = require('./create_sum');
-const oldSum = require('./old_sum');
-const v2ToV1 = require('./v2ToV1');
 
-const newSum = v2ToV1(createSum());
+// console.log(JSON.stringify(createSum()));
+
+const {
+  createConstructionExpression,
+  createDeconstructionExpression,
+  createDeconstructionCase,
+  createNumberExpression
+} = require('../../app/ast');
+
+const {
+  constructors
+} = require('../../app/basis');
+
 console.log(
-  JSON.stringify(oldSum) === JSON.stringify(newSum)
+  createDeconstructionExpression(
+    createConstructionExpression(constructors.True),
+    [
+      createDeconstructionCase(constructors.True, [],
+        createNumberExpression(0)),
+      createDeconstructionCase(constructors.False, [],
+        createNumberExpression(0))
+    ]
+  )
 );

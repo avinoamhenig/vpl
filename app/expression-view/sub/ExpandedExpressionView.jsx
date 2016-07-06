@@ -6,7 +6,7 @@ import computeStyles from '../expressionViewStyles'
 import ExpressionView from '../ExpressionView'
 import { LambdaView } from 'lambda-view'
 import $ from 'jquery'
-import debounce from 'debounce'
+import debounce from 'lodash/debounce'
 import {
 	getNode
 } from 'ast'
@@ -51,7 +51,10 @@ export default class ExpandedExpressionView extends React.Component {
 		const arrow = $(this.refs.arrow);
 		const arrowHeight = arrow.outerHeight();
 		const arrowWidth = arrow.outerWidth();
-		const container = $(`#exp_cont_${p.lambdaIdentId}_${p.expansionLevel}`);
+		const container = p.containerId
+			? $(p.containerId)
+			: $(`#exp_cont_${p.lambdaIdentId}_${p.expansionLevel}`);
+		console.log(container[0]);
 		const parent = popup.parent().parent();
 		const cusion = 5;
 		const offsetTop = p.popupOffsetTop || 0;

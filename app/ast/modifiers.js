@@ -1,26 +1,21 @@
-const assert = require('assert');
 const { astType, nodeType, expressionType } = require('./typeNames');
 const {
 	rootNode,
 	getIdentifiersScopedToNode,
 	getChildrenIds,
 	getNode, getIdentifier,
-	getNodeOrExpType, getNodeType, getExpressionType
+	getNodeOrExpType, getNodeType, getExpressionType,
+	extractFragment
 } = require('./accessors');
 const {
 	createNumberExpression,
 	createCaseBranch,
-	createIdentifier
+	createIdentifier,
+	createDoExpression
 } = require('./constructors');
 
 // Program | ProgramFragment, Identifier, ProgramFragment -> Program | ProgramFragment
 function bindIdentifier(program, identifier, valueExpFrag) {
-	assert([astType.PROGRAM, astType.PROGRAM_FRAGMENT].includes(program.astType),
-		`Cannot set binding on ${program.astType}.`);
-	assert.strictEqual(identifier.astType, astType.IDENTIFIER);
-	assert.strictEqual(valueExpFrag.astType, astType.PROGRAM_FRAGMENT);
-	assert.strictEqual(rootNode(valueExpFrag).nodeType, nodeType.EXPRESSION);
-
 	const newProgram = Object.assign({}, program);
 	const newIdentifier = Object.assign({}, identifier, {
 		value: rootNode(valueExpFrag).id
@@ -52,9 +47,6 @@ function bindIdentifier(program, identifier, valueExpFrag) {
 
 // Program | ProgramFragment, [[Identifier, ProgramFragment]] -> Program | ProgramFragment
 function bindIdentifiers(program, identMap) {
-	assert([astType.PROGRAM, astType.PROGRAM_FRAGMENT].includes(program.astType),
-		`Cannot set bindings on ${program.astType}.`);
-
 	const newProgram = Object.assign({}, program);
 	newProgram.identifiers = Object.assign({}, newProgram.identifiers);
 	newProgram.nodes = Object.assign({}, newProgram.nodes);
@@ -85,10 +77,20 @@ function bindIdentifiers(program, identMap) {
 	return newProgram;
 }
 
+// Program | ProrgamFragment, [TypeDefinition], [Constructor], [TypeVariable] -> Program | ProgramFragment
+function attachTypeDefinitions(frag, typeDefs, cons, typeVars) {
+	return Object.assign({}, frag, {
+		typeDefinitions: Object.assign({}, frag.typeDefinitions,
+			...typeDefs.map(x => ({ [x.id]: x }))),
+		constructors: Object.assign({}, frag.constructors,
+			...cons.map(x => ({ [x.id]: x }))),
+		typeVariables: Object.assign({}, frag.typeVariables,
+			...typeVars.map(x => ({ [x.id]: x })))
+	});
+}
+
 // Identifier, Uid Node -> Identifier
 function setIdentifierScope(identifier, scopeId) {
-	assert.strictEqual(identifier.astType, astType.IDENTIFIER);
-
 	return Object.assign({}, identifier, { scope: scopeId });
 }
 
@@ -148,6 +150,30 @@ function appendPieceToExp(program, expId) {
 					})
 				}, frag.nodes)
 			});
+
+		case expressionType.CONSTRUCTION:
+			frag = _setFragParent(createNumberExpression(0), expId);
+			return Object.assign({}, program, {
+				nodes: Object.assign({}, program.nodes, {
+					[expId]: Object.assign({}, program.nodes[expId], {
+						parameters: [...program.nodes[expId].parameters, frag.rootNode]
+					})
+				}, frag.nodes)
+			});
+
+		case expressionType.DO:
+			frag = _setFragParent(createNumberExpression(0), expId);
+			return Object.assign({}, program, {
+				nodes: Object.assign({}, program.nodes, {
+					[expId]: Object.assign({}, program.nodes[expId], {
+						unitExpressions: [
+							...program.nodes[expId].unitExpressions,
+							frag.rootNode
+						]
+					})
+				}, frag.nodes)
+			});
+
 		case expressionType.CASE:
 			frag = _setFragParent(
 				createCaseBranch(
@@ -187,10 +213,19 @@ function removeNode(program, idToRemove) {
 
 		case nodeType.EXPRESSION:
 			if (oldNode.parent
-			 && getExpressionType(getNode(program, oldNode.parent))
-			   === expressionType.APPLICATION
-			 && getNode(program, oldNode.parent).arguments.includes(idToRemove)
-			) {
+			 && (
+				(getExpressionType(getNode(program, oldNode.parent))
+					=== expressionType.APPLICATION
+				&& getNode(program, oldNode.parent).arguments.includes(idToRemove))
+
+				|| (getExpressionType(getNode(program, oldNode.parent))
+				  === expressionType.DO
+				&& getNode(program, oldNode.parent).unitExpressions.includes(idToRemove))
+
+				|| (getExpressionType(getNode(program, oldNode.parent))
+				  === expressionType.CONSTRUCTION
+				&& getNode(program, oldNode.parent).parameters.includes(idToRemove))
+			)) {
 				 break;
 			}
 
@@ -363,6 +398,18 @@ function _replaceNodeChild(parent, idToReplace, childId) {
 				expression: parent.expression === idToReplace
 					? childId : parent.expression
 			});
+		case expressionType.DO:
+			return Object.assign({}, parent, {
+				returnExpression: parent.return === idToReplace
+					? childId : parent.returnExpression,
+				unitExpressions: parent.unitExpressions.map(id =>
+					id === idToReplace ? childId : id)
+			});
+		case expressionType.CONSTRUCTION:
+			return Object.assign({}, parent, {
+				parameters: parent.parameters.map(id =>
+					id === idToReplace ? childId : id)
+			});
 		default: throw `Unexpected parent node: ${getNodeOrExpType(parent)}.`;
 	}
 }
@@ -376,6 +423,14 @@ function _removeNodeChild(parent, idToRemove) {
 		case expressionType.CASE:
 			return Object.assign({}, parent, {
 				caseBranches: parent.caseBranches.filter(id => id !== idToRemove)
+			});
+		case expressionType.DO:
+			return Object.assign({}, parent, {
+				unitExpressions: parent.unitExpressions.filter(id => id !== idToRemove)
+			});
+		case expressionType.CONSTRUCTION:
+			return Object.assign({}, parent, {
+				parameters: parent.parameters.filter(id => id !== idToRemove)
 			});
 		default:
 			throw `Cannot remove child from parent node: ${getNodeOrExpType(parent)}.`;
@@ -398,8 +453,29 @@ function _removeSubtree(program, node) {
 	}
 }
 
+function wrapExpInDo(program, expId) {
+	const parent = getNode(program, expId).parent;
+	const frag = createDoExpression([], extractFragment(program, expId));
+	const newProgram = Object.assign({}, program, {
+		nodes: Object.assign({}, program.nodes, frag.nodes)
+	});
+
+	if (parent) {
+		newProgram.nodes[parent] = _replaceNodeChild(
+			getNode(program, parent), expId, frag.rootNode);
+	}
+
+	if (newProgram.expression === expId) {
+		newProgram.expression = frag.rootNode;
+	}
+
+	return newProgram;
+}
+
 module.exports = {
 	bindIdentifier, bindIdentifiers, setIdentifierScope,
 	replaceNode, removeNode, appendPieceToExp,
-	removeIdentifier, setDisplayName
+	removeIdentifier, setDisplayName,
+	attachTypeDefinitions,
+	wrapExpInDo
 };
