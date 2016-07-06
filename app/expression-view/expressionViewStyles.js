@@ -121,5 +121,10 @@ export default p => {
 		border: `1px solid ${colors.selectedExp}`
 	};
 
+	s.doUnit = {
+		display: 'inline-block',
+		marginLeft: 10
+	};
+
 	return s;
 };

@@ -70,6 +70,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 		)
 	));
 
+	const doExp = () => dispatch(astActions.wrapSelectedExpInDo());
+
 	return {
 		...ownProps,
 		...stateProps,
@@ -102,6 +104,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 			{ display: '≥', value: () => valueToExp('>=') },
 			{ display: (<Icon icon="question" />), value: caseExp },
 			{ display: 'fn()', value: appExp },
+			{ display: 'do', value: doExp },
 			{ display: (<Icon icon="keyboard-o" />), value: '__--keybd--__' }
 		]
 	};

@@ -25,6 +25,6 @@ export default createReducer({
 	})
 }, {
 	showTextInput: false,
-	hidden: true,
+	hidden: false,
 	naming: false
 });
