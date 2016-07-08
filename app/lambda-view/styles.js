@@ -132,7 +132,8 @@ export default p => {
 		display: p.showCanvas ? 'block' : 'none',
 		position: 'absolute',
 		marginTop: -5,
-		background: 'yellow'
+		background: 'white',
+		zIndex: 99999
 	};
 
 	s.evalTime = [s.nestingInfo, {

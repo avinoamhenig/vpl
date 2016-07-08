@@ -41,7 +41,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 	const program = stateProps.program;
 
 	const valueToExp = value => {
-		value = /^\d+$/.test(value) ? parseInt(value) : value;
+		value = /^\-?\d+$/.test(value) ? parseInt(value) : value;
 		if (typeof value === 'number') {
 			dispatch(astActions.replaceSelectedExp(createNumberExpression(value)));
 		} else {

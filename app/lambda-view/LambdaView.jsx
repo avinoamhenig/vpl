@@ -14,7 +14,8 @@ import turtle from 'lib/turtle'
 import {
 	getNode,
 	getIdentifier,
-	getRootScopeLambdaIdentifiers
+	getRootScopeLambdaIdentifiers,
+	rootNode
 } from 'ast'
 
 export default compose(
@@ -24,39 +25,6 @@ export default compose(
 	const prog = p.program;
 	const ident = p.identifier;
 	const lambda = ident ? getNode(prog, ident.value) : null;
-
-	const drawSnowflake = () => {
-		const {
-			draw, move, turn, done
-		} = turtle(document.getElementById('render_canvas'));
-
-		function koch(size, depth) {
-			if (depth === 0) {
-				draw(size)
-			} else {
-				koch(size/3, depth - 1)
-				turn(60)
-				koch(size/3, depth - 1)
-				turn(-120)
-				koch(size/3, depth - 1)
-				turn(60)
-				koch(size/3, depth - 1)
-			}
-		}
-
-		move(-250)
-		turn(90)
-		move(145)
-		turn(-90)
-
-		koch(500, 5)
-		turn(-120)
-		koch(500, 5)
-		turn(-120)
-		koch(500, 5)
-
-		done();
-	};
 
 	return (
 		<div style={s.container} id="root_expression">
@@ -171,12 +139,22 @@ export default compose(
 								if (p.evaluating) {
 									evaluator.stopEval();
 								} else {
+									const {
+										draw, move, turn, done
+									} = turtle(document.getElementById('render_canvas'));
 									p.startEval(performance.now());
 									evaluator.evaluate(p.program, val => {
-										p.setEvalResult(val, performance.now(), p.program)
-									}, () => {
-										p.evalFail();
-									});
+											done();
+											p.setEvalResult(val, performance.now(), p.program)
+										}, () => {
+											done();
+											p.evalFail();
+										},
+										frag => draw(rootNode(frag).value),
+										frag => move(rootNode(frag).value),
+										frag => turn(rootNode(frag).value),
+										10000
+									);
 								}
 							}}></div>
 						<div style={s.evalResult}>
@@ -190,13 +168,6 @@ export default compose(
 							{ p.evalResult && (
 								<span onClick={p.toggleCanvas}>
 									<Icon icon="pencil-square-o" />
-								</span>
-							) }
-						</div>
-						<div style={s.runBtn}>
-							{ p.evalResult && (
-								<span onClick={drawSnowflake}>
-									<Icon icon="pencil-square" />
 								</span>
 							) }
 						</div>
@@ -220,10 +191,7 @@ export default compose(
 			</div>
 			<div style={s.expressionContainer}>
 				{ !ident && (
-					<Canvas
-						id="render_canvas"
-						style={s.canvas}
-						/>
+					<Canvas id="render_canvas" style={s.canvas} />
 				) }
 				<ExpressionView
 					expressionId={lambda

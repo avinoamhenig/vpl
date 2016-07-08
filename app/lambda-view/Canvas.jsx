@@ -27,13 +27,16 @@ export default class Canvas extends React.Component {
 
 	componentDidMount () {
 		const canvas = this.refs.canvas;
-		this.fakeCanvas = $('<canvas width="1000" height="1000">')[0];
+		this.fakeCanvas = $('<canvas width="9999" height="9999">')[0];
 		this.fakeCtx = this.fakeCanvas.getContext('2d');
 		this._resizeHandler = () => {
 			this.saveCanvas();
-			const parent = $(canvas).parent();
+			const parent = $(canvas).parent().parent();
 			const width = parent.width();
 			const height = parent.height();
+			if (canvas.width === width && canvas.height === height) {
+				return;
+			}
 			$(canvas)
 				.prop('width', width)
 				.prop('height', height);

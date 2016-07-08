@@ -400,7 +400,7 @@ function _replaceNodeChild(parent, idToReplace, childId) {
 			});
 		case expressionType.DO:
 			return Object.assign({}, parent, {
-				returnExpression: parent.return === idToReplace
+				returnExpression: parent.returnExpression === idToReplace
 					? childId : parent.returnExpression,
 				unitExpressions: parent.unitExpressions.map(id =>
 					id === idToReplace ? childId : id)

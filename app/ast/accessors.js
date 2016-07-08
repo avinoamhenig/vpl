@@ -75,6 +75,7 @@ function getChildrenIds(node) {
 		case expressionType.CASE: return [...node.caseBranches, node.elseBranch];
 		case nodeType.CASE_BRANCH: return [node.condition, node.expression];
 		case nodeType.ELSE_BRANCH: return [node.expression];
+		case expressionType.DO: return [...node.unitExpressions, node.returnExpression];
 		default: throw `Unexpected node: ${getNodeOrExpType(node)}.`;
 	}
 }
@@ -105,6 +106,8 @@ function _getSubIdsInOrder(program, nodeId, ignoreInfix = false) {
 			return [node.dataExpression, ...node.cases];
 		case nodeType.DECONSTRUCTION_CASE:
 			return [...node.parameterIdentifiers, node.expression];
+		case expressionType.DO:
+			return [...node.unitExpressions, node.returnExpression];
 		default: throw `Unexpected node: ${getNodeOrExpType(node)}.`;
 	}
 }
