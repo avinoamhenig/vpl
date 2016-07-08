@@ -28,6 +28,7 @@ export const actions = {
 	setEvalResult: cA('SET_EVAL_RESULT', m('result', 'time', 'program')),
 	toggleFnList: cA('TOGGLE_FN_LIST'),
 	toggleEvalResult: cA('TOGGLE_EVAL_RESULT'),
+	toggleCanvas: cA('TOGGLE_CANVAS'),
 	move: direction => (dispatch, getState) => {
 		const { program, lambdaView } = getState();
 		if (!lambdaView.selectedExpId) return;
@@ -107,15 +108,20 @@ export default createReducer({
 		...state,
 		evalResult: createProgram(program, result),
 		evalEndTime: time,
-		evaluating: false,
-		showEvalResult: true
+		evaluating: false
 	}),
 	[a.toggleEvalResult]: state => ({
 		...state,
-		showEvalResult: !state.showEvalResult
+		showEvalResult: !state.showEvalResult,
+		showCanvas: !state.showEvalResult ? false : state.showCanvas
 	}),
 	[a.evalFail]: (state) => ({
 		...state, evalResult: '', evaluating: false, evalFailed: true
+	}),
+	[a.toggleCanvas]: state => ({
+		...state,
+		showCanvas: !state.showCanvas,
+		showEvalResult: !state.showCanvas ? false : state.showEvalResult
 	}),
 
 	[astActions.replaceExp]: (state, { exp, idToReplace }) => {
@@ -179,5 +185,6 @@ export default createReducer({
 	evalStartTime: -1,
 	evalEndTime: -1,
 	evalFailed: false,
-	showFnList: false
+	showFnList: false,
+	showCanvas: false
 });

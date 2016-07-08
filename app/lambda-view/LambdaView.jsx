@@ -9,10 +9,13 @@ import * as evaluator from '../../evaluators/evaluator-data-constructors'
 import sp from 'lib/stopPropagation'
 import round from 'lib/round'
 import ExpandedExpressionView from 'expression-view/sub/ExpandedExpressionView'
+import Canvas from './Canvas'
+import turtle from 'lib/turtle'
 import {
 	getNode,
 	getIdentifier,
-	getRootScopeLambdaIdentifiers
+	getRootScopeLambdaIdentifiers,
+	rootNode
 } from 'ast'
 
 export default compose(
@@ -136,18 +139,35 @@ export default compose(
 								if (p.evaluating) {
 									evaluator.stopEval();
 								} else {
+									const {
+										draw, move, turn, done
+									} = turtle(document.getElementById('render_canvas'));
 									p.startEval(performance.now());
 									evaluator.evaluate(p.program, val => {
-										p.setEvalResult(val, performance.now(), p.program)
-									}, () => {
-										p.evalFail();
-									});
+											done();
+											p.setEvalResult(val, performance.now(), p.program)
+										}, () => {
+											done();
+											p.evalFail();
+										},
+										frag => draw(rootNode(frag).value),
+										frag => move(rootNode(frag).value),
+										frag => turn(rootNode(frag).value),
+										10000
+									);
 								}
 							}}></div>
 						<div style={s.evalResult}>
 							{ p.evalFailed ? 'Fail!' : p.evalResult && (
 								<span onClick={p.toggleEvalResult}>
 									<Icon icon={p.showEvalResult ? 'eye' : 'eye-slash'} />
+								</span>
+							) }
+						</div>
+						<div style={s.canvasToggle}>
+							{ p.evalResult && (
+								<span onClick={p.toggleCanvas}>
+									<Icon icon="pencil-square-o" />
 								</span>
 							) }
 						</div>
@@ -170,6 +190,9 @@ export default compose(
 				)}
 			</div>
 			<div style={s.expressionContainer}>
+				{ !ident && (
+					<Canvas id="render_canvas" style={s.canvas} />
+				) }
 				<ExpressionView
 					expressionId={lambda
 						? lambda.body

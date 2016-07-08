@@ -121,6 +121,21 @@ export default p => {
 		color: 'red'
 	}];
 
+	s.canvasToggle = [s.nestingInfo, {
+		float: 'left',
+		marginRight: 5,
+		color: p.showCanvas ? 'green' : 'inherit',
+		cursor: 'pointer'
+	}];
+
+	s.canvas = {
+		display: p.showCanvas ? 'block' : 'none',
+		position: 'absolute',
+		marginTop: -5,
+		background: 'white',
+		zIndex: 99999
+	};
+
 	s.evalTime = [s.nestingInfo, {
 		float: 'left'
 	}];
