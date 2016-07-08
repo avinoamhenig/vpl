@@ -9,6 +9,8 @@ import * as evaluator from '../../evaluators/evaluator-data-constructors'
 import sp from 'lib/stopPropagation'
 import round from 'lib/round'
 import ExpandedExpressionView from 'expression-view/sub/ExpandedExpressionView'
+import Canvas from './Canvas'
+import turtle from 'lib/turtle'
 import {
 	getNode,
 	getIdentifier,
@@ -22,6 +24,39 @@ export default compose(
 	const prog = p.program;
 	const ident = p.identifier;
 	const lambda = ident ? getNode(prog, ident.value) : null;
+
+	const drawSnowflake = () => {
+		const {
+			draw, move, turn, done
+		} = turtle(document.getElementById('render_canvas'));
+
+		function koch(size, depth) {
+			if (depth === 0) {
+				draw(size)
+			} else {
+				koch(size/3, depth - 1)
+				turn(60)
+				koch(size/3, depth - 1)
+				turn(-120)
+				koch(size/3, depth - 1)
+				turn(60)
+				koch(size/3, depth - 1)
+			}
+		}
+
+		move(-250)
+		turn(90)
+		move(145)
+		turn(-90)
+
+		koch(500, 5)
+		turn(-120)
+		koch(500, 5)
+		turn(-120)
+		koch(500, 5)
+
+		done();
+	};
 
 	return (
 		<div style={s.container} id="root_expression">
@@ -151,6 +186,20 @@ export default compose(
 								</span>
 							) }
 						</div>
+						<div style={s.canvasToggle}>
+							{ p.evalResult && (
+								<span onClick={p.toggleCanvas}>
+									<Icon icon="pencil-square-o" />
+								</span>
+							) }
+						</div>
+						<div style={s.runBtn}>
+							{ p.evalResult && (
+								<span onClick={drawSnowflake}>
+									<Icon icon="pencil-square" />
+								</span>
+							) }
+						</div>
 						<div style={s.evalTime}>
 							{ p.evalResult && round(
 								(p.evalEndTime - p.evalStartTime) / 1000,
@@ -170,6 +219,12 @@ export default compose(
 				)}
 			</div>
 			<div style={s.expressionContainer}>
+				{ !ident && (
+					<Canvas
+						id="render_canvas"
+						style={s.canvas}
+						/>
+				) }
 				<ExpressionView
 					expressionId={lambda
 						? lambda.body
