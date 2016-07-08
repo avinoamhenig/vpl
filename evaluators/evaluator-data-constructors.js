@@ -11,7 +11,8 @@ const {
 	getIdentifiersScopedToNode,
 	getNode,
 	rootNode,
-	createConstructionExpression
+	createConstructionExpression,
+	extractFragment
 } = require('../app/ast');
 const {
 	basisFragment,
@@ -37,15 +38,18 @@ var G = {
 };
 
 //Main
-function evaluate(program, onComplete, onFail, limit=Number.MAX_SAFE_INTEGER) {
-	setUp(program);
+function evaluate(program, onComplete, onFail, draw, move, turn, limit=Number.MAX_SAFE_INTEGER) {
 	G.program = program;
+	G.draw = draw;
+	G.move = move;
+	G.turn = turn;
 	G.LIMIT = limit;
 	G.continue = true;
 	G.fail = onFail;
   G.result = G.notDone;
 	G.counter = 1;
 	G.environment = [];
+	setUp(program);
 	G.InitialTime = Date.now();
 	call(evaluateStep, root(program), onComplete);
 	const res = trampoline();
@@ -54,16 +58,15 @@ function evaluate(program, onComplete, onFail, limit=Number.MAX_SAFE_INTEGER) {
 
 //Add "name id : lambda node" to G.functions
 function setUp(program) {
+	const new_env = {};
   for (const identId of Object.keys(program.identifiers)) {
     const identifier = getIdentifier(program, identId);
     if (identifier.scope !== null || !identifier.value) {
       continue;
     }
-    const valueExp = getNode(program, identifier.value);
-    if (getExpressionType(valueExp) === expressionType.LAMBDA) {
-      G.functions[identifier.id] = valueExp;
-    }
+		new_env[identifier.id] = extractFragment(program, identifier.value);
   }
+	G.environment.push(new_env);
 }
 
 //Trampoline
@@ -126,6 +129,7 @@ function evaluateBody(node, callback) {
   switch (getNodeOrExpType(node)) {
     case expressionType.NUMBER:
 			return call(callback, createNumberExpression(node.value));
+
     case expressionType.IDENTIFIER:
       const name = node.identifier;
       if (lookup(name, G.environment)) {
@@ -136,54 +140,57 @@ function evaluateBody(node, callback) {
         G.fail();
       }
       break;
+
     case expressionType.APPLICATION:
       const func = getNode(G.program, node.lambda);
-      const argVals = node.arguments;
-			const identifier = getIdentifier(G.program, func.identifier);
-			const index = G.builtInFunctions.indexOf(getIdentifier(G.program, func.identifier).displayName);
-      if (index !== -1) {
-        if (argVals.length === 2) {
-          return call(evaluateStep, getNode(G.program, argVals[0]),
-						function (x) {
-	            return call(evaluateStep, getNode(G.program, argVals[1]),
-								function (y) {
-									const arg0 = rootNode(x).value;
-									const arg1 = rootNode(y).value;
-		              return call(callback, builtIn(identifier, arg0, arg1));
-		            });
-	          });
-        } else if (argVals.length === 1) {
-          return call(evaluateStep, getNode(G.program, argVals[0]),
-						function(x) {
-							const arg1 = x.value; //TODO: look at when null? is added back in
-	            return call(callback, builtIn(index, x));
-	          });
-        } else {
-					return call(callback, builtIn(identifier));
-        }
-      } else {
-        if (!(func.identifier in G.functions)) {
-          G.continue = false;
-          G.fail();
-        }
-        const called_function = G.functions[func.identifier];
-				const called_fun_args = called_function.arguments;
-        return call(eval_star, argVals, 0,
-					function (binding_vals) {
-	          const new_env = extend(called_fun_args, binding_vals);
-	          G.environment.push(new_env);
-	          return call(evaluateStep, getNode(G.program, called_function.body),
-							function (b) {
-		            G.environment.pop();
-		            return call(callback, b);
-		          });
-	        });
-      }
+			return call(evaluateStep, func, function (eval_func) {
+				const argVals = node.arguments;
+				if (getExpressionType(rootNode(eval_func)) === expressionType.BUILT_IN_FUNCTION) {
+					if (argVals.length === 2) {
+						return call(evaluateStep, getNode(G.program, argVals[0]),
+							function (x) {
+								return call(evaluateStep, getNode(G.program, argVals[1]),
+									function (y) {
+										const arg0 = rootNode(x).value;
+										const arg1 = rootNode(y).value;
+										return call(callback, builtIn(rootNode(eval_func).reference, arg0, arg1));
+									});
+							});
+					} else if (argVals.length === 1) {
+						return call(evaluateStep, getNode(G.program, argVals[0]),
+							function(x) {
+								const arg1 = x.value;
+								return call(callback, builtIn(rootNode(eval_func).reference, x));
+							});
+					} else {
+						return call(callback, builtIn(identifier));
+					}
+				} else {
+					if (getExpressionType(rootNode(eval_func)) !== expressionType.LAMBDA) {
+						G.continue = false;
+						G.fail();
+					}
+					const called_function = rootNode(eval_func);
+					const called_fun_args = called_function.arguments;
+					return call(eval_star, argVals, 0,
+						function (binding_vals) {
+							const new_env = extend(called_fun_args, binding_vals);
+							G.environment.push(new_env);
+							return call(evaluateStep, getNode(G.program, called_function.body),
+								function (b) {
+									G.environment.pop();
+									return call(callback, b);
+								});
+						});
+				}
+			});
       break;
+
     case expressionType.CASE:
       const cases = node.caseBranches;
 			const elseBranch = getNode(G.program, node.elseBranch);
 			return call(evaluate_cases, cases, callback, elseBranch, 0);
+
 		case expressionType.CONSTRUCTION:
 			const constructorID = node.constructor;
 			const constructor = G.program.constructors[constructorID];
@@ -195,6 +202,23 @@ function evaluateBody(node, callback) {
 			} else {
 				return call(callback, createConstructionExpression(constructor));
 			}
+
+		case expressionType.DECONSTRUCTION:
+			const data_expression = node.dataExpression;
+			const deconstruction_cases = node.cases;
+			return call(evaluate_deconstruction, data_expression, cases, callback);
+
+		case expressionType.DO:
+			const unitExpressions = node.unitExpressions;
+			const returnExpression = getNode(G.program, node.returnExpression);
+			return call(eval_star, unitExpressions, 0,
+				function (unit_exp_vals)  {
+					return call(evaluateStep, returnExpression,
+						function (return_exp) {
+							return call(callback, return_exp);
+						});
+				});
+
     default:
       throw `Unexpected node: ${getNodeOrExpType(node)}.`;
   }
@@ -215,12 +239,35 @@ function eval_star(exps, pos, callback) {
   }
 }
 
+function evaluate_deconstruction(data_expression, cases, callback) {
+	for (var i = 0; i < cases.length; i++) {
+		if (data_expression.constructor === cases[i].constructor) {
+			const parameters = data_expression.parameters;
+			const parameterIdentifiers = cases[i].parameterIdentifiers;
+			return call(eval_star, parameters, 0,
+				function (binding_vals) {
+					const new_env = extend(parameterIdentifiers, binding_vals);
+					G.environment.push(new_env);
+					return call(evaluateStep, cases[i].expression,  //getNode or anything?
+						function (b) {
+							G.environment.pop();
+							return call(callback, b);
+						});
+				});
+		}
+	}
+	console.log("data expression constructor: " + data_expression.constructor);
+	for (var i = 0; i < cases.length; i++) {
+		console.log("deconstruction case constructor: " + cases[i].constructor);
+	}
+}
+
 //For evaluating case statement's cases
 function evaluate_cases(exps, callback, elseExp, pos) {
 	if (pos === exps.length) {
 		return call(evaluateStep, getNode(G.program, elseExp.expression), callback);
 	} else {
-		var cs = getNode(G.program, exps[pos]);
+		const cs = getNode(G.program, exps[pos]);
 		return call(evaluateStep, getNode(G.program, cs.condition),
 			function (condition) {
 				const cond = rootNode(condition).constructor;
@@ -259,34 +306,50 @@ function getVariable(val, env) {
 }
 
 // Built In Operations
-function builtIn(id, a1, a2) {
-	switch (id.id) {
-		case basis.identifiers.PLUS.id:
+function builtIn(ref, a1, a2) {
+	switch (ref) {
+		case basis.references.PLUS:
 			return createNumberExpression(a1 + a2);
-		case basis.identifiers.MINUS.id:
+		case basis.references.MINUS:
 			return createNumberExpression(a1 - a2);
-		case basis.identifiers.EQUAL.id:
+		case basis.references.EQUAL:
 		 var result = a1 === a2;
 		 if (result) {
 			 return createConstructionExpression(basis.constructors.True);
 		 } else {
 			 return createConstructionExpression(basis.constructors.False);
 		 }
-		case basis.identifiers.TIMES.id:
+		case basis.references.TIMES:
 			return createNumberExpression(a1 * a2);
-		case basis.identifiers.DIVIDE.id:
+		case basis.references.DIVIDE:
 			return createNumberExpression(a1 / a2);
-		case basis.identifiers.REMAINDER.id:
+		case basis.references.REMAINDER:
 			return createNumberExpression(a1 % a2);
-		case basis.identifiers.LESSTHAN.id:
+		case basis.references.LESS_THAN:
 			var result = a1 < a2;
 			if (result) {
 		 		return createConstructionExpression(basis.constructors.True);
 	 		} else {
 		 		return createConstructionExpression(basis.constructors.False);
 	 		}
-		 default:
-		 	throw `Unexpected identifier ` + JSON.stringify(id);
+		case basis.references.GREATER_THAN:
+			var result = a1 > a2;
+			if (result) {
+		 		return createConstructionExpression(basis.constructors.True);
+	 		} else {
+		 		return createConstructionExpression(basis.constructors.False);
+	 		}
+		case basis.references.MOVE:
+			G.move(a1);
+			return createNumberExpression(0);
+		case basis.references.DRAW:
+			G.draw(a1);
+			return createNumberExpression(0);
+		case basis.references.TURN:
+			G.turn(a1);
+			return createNumberExpression(0);
+	  default:
+		 	throw `Unexpected identifier ` + JSON.stringify(ref);
 	}
 }
 

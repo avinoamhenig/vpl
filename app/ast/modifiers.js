@@ -217,9 +217,14 @@ function removeNode(program, idToRemove) {
 				(getExpressionType(getNode(program, oldNode.parent))
 					=== expressionType.APPLICATION
 				&& getNode(program, oldNode.parent).arguments.includes(idToRemove))
+
 				|| (getExpressionType(getNode(program, oldNode.parent))
 				  === expressionType.DO
 				&& getNode(program, oldNode.parent).unitExpressions.includes(idToRemove))
+
+				|| (getExpressionType(getNode(program, oldNode.parent))
+				  === expressionType.CONSTRUCTION
+				&& getNode(program, oldNode.parent).parameters.includes(idToRemove))
 			)) {
 				 break;
 			}
@@ -400,6 +405,11 @@ function _replaceNodeChild(parent, idToReplace, childId) {
 				unitExpressions: parent.unitExpressions.map(id =>
 					id === idToReplace ? childId : id)
 			});
+		case expressionType.CONSTRUCTION:
+			return Object.assign({}, parent, {
+				parameters: parent.parameters.map(id =>
+					id === idToReplace ? childId : id)
+			});
 		default: throw `Unexpected parent node: ${getNodeOrExpType(parent)}.`;
 	}
 }
@@ -417,6 +427,10 @@ function _removeNodeChild(parent, idToRemove) {
 		case expressionType.DO:
 			return Object.assign({}, parent, {
 				unitExpressions: parent.unitExpressions.filter(id => id !== idToRemove)
+			});
+		case expressionType.CONSTRUCTION:
+			return Object.assign({}, parent, {
+				parameters: parent.parameters.filter(id => id !== idToRemove)
 			});
 		default:
 			throw `Cannot remove child from parent node: ${getNodeOrExpType(parent)}.`;

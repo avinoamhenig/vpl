@@ -100,6 +100,11 @@ function _getSubIdsInOrder(program, nodeId, ignoreInfix = false) {
 		case expressionType.CASE: return [...node.caseBranches, node.elseBranch];
 		case nodeType.CASE_BRANCH: return [node.condition, node.expression];
 		case nodeType.ELSE_BRANCH: return [node.expression];
+		case expressionType.CONSTRUCTION: return node.parameters;
+		case expressionType.DECONSTRUCTION:
+			return [node.dataExpression, ...node.cases];
+		case nodeType.DECONSTRUCTION_CASE:
+			return [...node.parameterIdentifiers, node.expression];
 		default: throw `Unexpected node: ${getNodeOrExpType(node)}.`;
 	}
 }
@@ -181,8 +186,8 @@ function getEntityType(entity) {
 
 function _getDependencies(program, entityId, _ids = new Set()) {
 	const e = getEntity(program, entityId);
-	_ids.add(entityId);
-	const idsToSee = []
+	_ids.add(e.id);
+	const idsToSee = [];
 
 	switch (getEntityType(e)) {
 		case astType.IDENTIFIER:
@@ -203,7 +208,7 @@ function _getDependencies(program, entityId, _ids = new Set()) {
 			idsToSee.push(e.expression);
 			break;
 		case nodeType.DECONSTRUCTION_CASE:
-			idsToSee.push(e.dataExpression, ...e.cases);
+			idsToSee.push(e.constructor, e.expression, ...e.parameterIdentifiers);
 			break;
 		case expressionType.NUMBER: break;
 		case expressionType.IDENTIFIER:
@@ -222,7 +227,7 @@ function _getDependencies(program, entityId, _ids = new Set()) {
 			idsToSee.push(e.constructor, ...e.parameters);
 			break;
 		case expressionType.DECONSTRUCTION:
-			idsToSee.push(e.constructor, e.expression, ...e.parameterIdentifiers);
+			idsToSee.push(e.dataExpression, ...e.cases);
 			break;
 		case expressionType.DEFAULT: break;
 		case expressionType.BUILT_IN_FUNCTION: break;

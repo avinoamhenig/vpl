@@ -9,8 +9,10 @@ import {
 	nodeType,
 	getNode,
 	getNodeToTheLeft, getNodeToTheRight,
-	getNodeInside, getNodeOutside
+	getNodeInside, getNodeOutside,
+	createProgram
 } from 'ast'
+import { basisFragment } from 'basis'
 
 export const actions = {
 	selectExp: cA('SELECT_EXP', m('exprId', 'expansionLevel')),
@@ -23,8 +25,10 @@ export const actions = {
 	toggleInfix: cA('TOGGLE_INFIX'),
 	startEval: cA('START_EVAL'),
 	evalFail: cA('EVAL_FAIL'),
-	setEvalResult: cA('SET_EVAL_RESULT', m('result', 'time')),
+	setEvalResult: cA('SET_EVAL_RESULT', m('result', 'time', 'program')),
 	toggleFnList: cA('TOGGLE_FN_LIST'),
+	toggleEvalResult: cA('TOGGLE_EVAL_RESULT'),
+	toggleCanvas: cA('TOGGLE_CANVAS'),
 	move: direction => (dispatch, getState) => {
 		const { program, lambdaView } = getState();
 		if (!lambdaView.selectedExpId) return;
@@ -100,14 +104,23 @@ export default createReducer({
 		evalStartTime: time,
 		evalEndTime: -1
 	}),
-	[a.setEvalResult]: (state, { result, time }) => ({
+	[a.setEvalResult]: (state, { result, time, program }) => ({
 		...state,
-		evalResult: JSON.stringify(result),
+		evalResult: createProgram(program, result),
 		evalEndTime: time,
-		evaluating: false
+		evaluating: false,
+		showEvalResult: true
+	}),
+	[a.toggleEvalResult]: state => ({
+		...state,
+		showEvalResult: !state.showEvalResult
 	}),
 	[a.evalFail]: (state) => ({
 		...state, evalResult: '', evaluating: false, evalFailed: true
+	}),
+	[a.toggleCanvas]: state => ({
+		...state,
+		showCanvas: !state.showCanvas
 	}),
 
 	[astActions.replaceExp]: (state, { exp, idToReplace }) => {
@@ -167,8 +180,10 @@ export default createReducer({
 	ignoreInfix: false,
 	evaluating: false,
 	evalResult: '',
+	showEvalResult: false,
 	evalStartTime: -1,
 	evalEndTime: -1,
 	evalFailed: false,
-	showFnList: false
+	showFnList: false,
+	showCanvas: false
 });

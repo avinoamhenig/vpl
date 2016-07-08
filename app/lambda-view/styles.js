@@ -25,7 +25,8 @@ export default p => {
 		position: p.expansionLevel > 0 ? 'static' : 'relative',
 		overflow: 'auto',
 		WebkitOverflowScrolling: 'touch',
-		paddingTop: 5
+		paddingTop: 5,
+		borderLeft: p.showEvalResult ? '5px solid lightgreen' : 'inherit'
 	};
 
 	s.backBtn = {
@@ -113,10 +114,26 @@ export default p => {
 	s.evalResult = [s.nestingInfo, {
 		float: 'left',
 		marginLeft: 10,
-		color: 'green'
+		marginRight: 5,
+		color: p.showEvalResult ? 'green' : 'inherit',
+		cursor: 'pointer'
 	}, p.evalFailed && {
 		color: 'red'
 	}];
+
+	s.canvasToggle = [s.nestingInfo, {
+		float: 'left',
+		marginRight: 5,
+		color: p.showCanvas ? 'green' : 'inherit',
+		cursor: 'pointer'
+	}];
+
+	s.canvas = {
+		display: p.showCanvas ? 'block' : 'none',
+		position: 'absolute',
+		marginTop: -5,
+		background: 'yellow'
+	};
 
 	s.evalTime = [s.nestingInfo, {
 		float: 'left'

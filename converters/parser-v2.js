@@ -285,15 +285,14 @@ function setUpBuiltInEnvironment() {
 		'*': basis.identifiers[basis.references.TIMES],
 		'/': basis.identifiers[basis.references.DIVIDE],
 		'remainder': basis.identifiers[basis.references.REMAINDER],
-
 		'<': basis.identifiers[basis.references.LESS_THAN],
 		'<=': basis.identifiers[basis.references.LESS_EQUAL],
+		'draw': basis.identifiers[basis.references.DRAW],
+		'move': basis.identifiers[basis.references.MOVE],
+		'turn': basis.identifiers[basis.references.TURN],
 
 		list: createIdentifier('list'),
 
-		draw: createIdentifier('draw'),
-		move: createIdentifier('move'),
-		turn: createIdentifier('turn'),
 	};
 	G.scope.push(built_in_env);
 }
