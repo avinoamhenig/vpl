@@ -38,7 +38,7 @@ var G = {
 };
 
 //Main
-function evaluate(program, onComplete, onFail, limit=Number.MAX_SAFE_INTEGER, draw, move, turn) {
+function evaluate(program, onComplete, onFail, draw, move, turn, limit=Number.MAX_SAFE_INTEGER) {
 	G.program = program;
 	G.draw = draw;
 	G.move = move;
@@ -64,7 +64,6 @@ function setUp(program) {
     if (identifier.scope !== null || !identifier.value) {
       continue;
     }
-		//console.log("ID VAL: " + JSON.stringify(getNode(program, identifier.value)));
 		new_env[identifier.id] = extractFragment(program, identifier.value);
   }
 	G.environment.push(new_env);
@@ -130,6 +129,7 @@ function evaluateBody(node, callback) {
   switch (getNodeOrExpType(node)) {
     case expressionType.NUMBER:
 			return call(callback, createNumberExpression(node.value));
+
     case expressionType.IDENTIFIER:
       const name = node.identifier;
       if (lookup(name, G.environment)) {
@@ -140,6 +140,7 @@ function evaluateBody(node, callback) {
         G.fail();
       }
       break;
+
     case expressionType.APPLICATION:
       const func = getNode(G.program, node.lambda);
 			return call(evaluateStep, func, function (eval_func) {
@@ -184,10 +185,12 @@ function evaluateBody(node, callback) {
 				}
 			});
       break;
+
     case expressionType.CASE:
       const cases = node.caseBranches;
 			const elseBranch = getNode(G.program, node.elseBranch);
 			return call(evaluate_cases, cases, callback, elseBranch, 0);
+
 		case expressionType.CONSTRUCTION:
 			const constructorID = node.constructor;
 			const constructor = G.program.constructors[constructorID];
@@ -199,10 +202,23 @@ function evaluateBody(node, callback) {
 			} else {
 				return call(callback, createConstructionExpression(constructor));
 			}
+
 		case expressionType.DECONSTRUCTION:
 			const data_expression = node.dataExpression;
 			const deconstruction_cases = node.cases;
 			return call(evaluate_deconstruction, data_expression, cases, callback);
+
+		case expressionType.DO:
+			const unitExpressions = node.unitExpressions;
+			const returnExpression = getNode(G.program, node.returnExpression);
+			return call(eval_star, unitExpressions, 0,
+				function (unit_exp_vals)  {
+					return call(evaluateStep, returnExpression,
+						function (return_exp) {
+							return call(callback, return_exp);
+						});
+				});
+
     default:
       throw `Unexpected node: ${getNodeOrExpType(node)}.`;
   }
