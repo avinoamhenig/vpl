@@ -50,7 +50,10 @@ const i = {
 	[r.NULL]: createIdentifier('null?'),
 	[r.LESS_THAN]: createIdentifier('<'),
 	[r.GREATER_THAN]: createIdentifier('>'),
-	[r.LESS_EQUAL]: createIdentifier('<=')
+	[r.LESS_EQUAL]: createIdentifier('<='),
+	[r.MOVE]: createIdentifier('move'),
+	[r.DRAW]: createIdentifier('draw'),
+	[r.TURN]: createIdentifier('turn')
 };
 
 module.exports.identifiers = i;
