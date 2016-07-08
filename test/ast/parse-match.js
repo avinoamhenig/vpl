@@ -7,7 +7,7 @@ const sourceText = `
       ((NIL) 0)
       ((CONS head tail) (+ head (sum tail))))))
 
-(sum (list 3 5 7))
+(sum (cons 3 (cons 5 (cons 7 (list)))))
 `
 
 const testAst = parseProgram(sourceText);
