@@ -26,7 +26,8 @@ export default p => {
 		overflow: 'auto',
 		WebkitOverflowScrolling: 'touch',
 		paddingTop: 5,
-		borderLeft: p.showEvalResult ? '5px solid lightgreen' : 'inherit'
+		borderLeft: p.showEvalResult ? '5px solid lightgreen' : 'inherit',
+		width: p.showCanvas ? '50%' : '100%'
 	};
 
 	s.backBtn = {
@@ -129,11 +130,16 @@ export default p => {
 	}];
 
 	s.canvas = {
-		display: p.showCanvas ? 'block' : 'none',
-		position: 'absolute',
-		marginTop: -5,
-		background: 'white',
-		zIndex: 99999
+		width: p.showCanvas ? '50%' : 0,
+		height: '100%',
+		flex: '0 0 auto',
+		borderLeft: '3px solid lightgreen'
+	};
+
+	s.paneContainer = {
+		display: 'flex',
+		flexDirection: 'row',
+		height: '100%'
 	};
 
 	s.evalTime = [s.nestingInfo, {

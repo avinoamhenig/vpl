@@ -32,7 +32,7 @@ export default class Canvas extends React.Component {
 		this._resizeHandler = () => {
 			this.saveCanvas();
 			const parent = $(canvas).parent().parent();
-			const width = parent.width();
+			const width = parent.width() / 2;
 			const height = parent.height();
 			if (canvas.width === width && canvas.height === height) {
 				return;
