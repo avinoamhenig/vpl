@@ -140,36 +140,30 @@ export default compose(
 									evaluator.stopEval();
 								} else {
 									const {
-										draw, move, turn, done
+										draw, move, turn
 									} = turtle(document.getElementById('render_canvas'));
 									p.startEval(performance.now());
 									evaluator.evaluate(p.program, val => {
-											done();
 											p.setEvalResult(val, performance.now(), p.program)
 										}, () => {
-											done();
 											p.evalFail();
 										},
 										frag => draw(rootNode(frag).value),
 										frag => move(rootNode(frag).value),
 										frag => turn(rootNode(frag).value),
-										10000
+										100
 									);
 								}
 							}}></div>
 						<div style={s.evalResult}>
-							{ p.evalFailed ? 'Fail!' : p.evalResult && (
-								<span onClick={p.toggleEvalResult}>
-									<Icon icon={p.showEvalResult ? 'eye' : 'eye-slash'} />
-								</span>
-							) }
+							<span onClick={p.toggleEvalResult}>
+								<Icon icon={p.showEvalResult ? 'eye' : 'eye-slash'} />
+							</span>
 						</div>
 						<div style={s.canvasToggle}>
-							{ p.evalResult && (
-								<span onClick={p.toggleCanvas}>
-									<Icon icon="pencil-square-o" />
-								</span>
-							) }
+							<span onClick={p.toggleCanvas}>
+								<Icon icon="pencil-square-o" />
+							</span>
 						</div>
 						<div style={s.evalTime}>
 							{ p.evalResult && round(
@@ -189,28 +183,32 @@ export default compose(
 						}}></div>
 				)}
 			</div>
-			<div style={s.expressionContainer}>
+			<div style={s.paneContainer}>
+				<div style={s.expressionContainer}>
+					<ExpressionView
+						expressionId={lambda
+							? lambda.body
+							: p.showEvalResult
+								? p.evalResult.expression
+								: p.expressionId}
+						lambdaIdentId={ident ? ident.id : null}
+						program={p.showEvalResult ? p.evalResult : prog}
+						nestedLevel={0}
+						expansionLevel={p.expansionLevel || 0}
+						selectedExpId={p.selectedExpId}
+						ignoreInfix={p.ignoreInfix}
+						expandedExpIds={p.expandedExpIds}
+						nestingLimit={p.nestingLimit}
+						onClick={p.onClick || p.selectExp}
+						onExpand={p.onExpand || p.toggleExpansion}
+						navigate={p.navigate}
+						/>
+				</div>
 				{ !ident && (
-					<Canvas id="render_canvas" style={s.canvas} />
+					<div style={s.canvas}>
+						<Canvas id="render_canvas" />
+					</div>
 				) }
-				<ExpressionView
-					expressionId={lambda
-						? lambda.body
-						: p.showEvalResult
-							? p.evalResult.expression
-							: p.expressionId}
-					lambdaIdentId={ident ? ident.id : null}
-					program={p.showEvalResult ? p.evalResult : prog}
-					nestedLevel={0}
-					expansionLevel={p.expansionLevel || 0}
-					selectedExpId={p.selectedExpId}
-					ignoreInfix={p.ignoreInfix}
-					expandedExpIds={p.expandedExpIds}
-					nestingLimit={p.nestingLimit}
-					onClick={p.onClick || p.selectExp}
-					onExpand={p.onExpand || p.toggleExpansion}
-					navigate={p.navigate}
-					/>
 			</div>
 		</div>
 	);

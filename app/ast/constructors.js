@@ -251,7 +251,7 @@ function createDeconstructionCase (cons, paramIdents, exp) {
 		_createNode(nodeType.DECONSTRUCTION_CASE, {
 			constructor: cons.id,
 			parameterIdentifiers: paramIdents.map(ident => ident.id),
-			expression: exp.id
+			expression: exp.rootNode
 		}),
 		exp
 	);
