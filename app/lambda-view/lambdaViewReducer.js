@@ -108,7 +108,8 @@ export default createReducer({
 		...state,
 		evalResult: createProgram(program, result),
 		evalEndTime: time,
-		evaluating: false
+		evaluating: false,
+		showEvalResult: !state.showCanvas ? true : state.showEvalResult
 	}),
 	[a.toggleEvalResult]: state => ({
 		...state,
@@ -180,7 +181,7 @@ export default createReducer({
 	nestingLimit: 10,
 	ignoreInfix: false,
 	evaluating: false,
-	evalResult: '',
+	evalResult: null,
 	showEvalResult: false,
 	evalStartTime: -1,
 	evalEndTime: -1,
