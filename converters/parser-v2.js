@@ -21,7 +21,6 @@ const G = {};
 function reset() {
   G.index = 0;
 	G.scope= [];
-  G.tokens = [];
 }
 
 function parseProgram(program) {
@@ -150,7 +149,7 @@ function parseExp() {
 				getNextToken();
 				return createConstructionExpression(constructor, constructArgs);
 			} else {
-				throw 'undefined constructor: ' + constructorName;
+				error('undefined constructor: ' + constructorName);
 			}
 
 		}	else if (peekNextToken() === 'DECON') {
@@ -176,7 +175,7 @@ function parseExp() {
 					const retExp = exps.pop();
 					return createDoExpression(exps, retExp);
 				} else {
-					throw 'empty DO list';
+					error('empty DO list');
 				}
 
 				// ---- otherwise, a standard application expression -----
@@ -197,7 +196,7 @@ function parseExp() {
     if (lookup(token, G.scope)) {
       return createIdentifierExpression(getUID(token, G.scope));
     } else {
-			throw 'Undefined token: ' + token;
+			error('Undefined token: ' + token);
     }
   }
 }
@@ -236,7 +235,7 @@ function parseDeconCase() {
 		G.scope.pop();
 		return createDeconstructionCase(constructor, constructParams, action);
 	} else {
-		throw 'undefined constructor: ' + constructorName;
+		error('undefined constructor: ' + constructorName);
 	}
 }
 
@@ -252,12 +251,31 @@ function getTokens() {
 
 // Token Operations
 function tokenize(exp) {
+	const NEW_LINE = ';;NL;;';
 	exp = exp.replace(/;.*$/gm, '');
-	exp = exp.replace(/\n/g, ' ');
+	exp = exp.replace(/\n/g, ' ' + NEW_LINE + ' ');
 	exp = exp.replace(/[\)]/g, " ) ");
   exp = exp.replace(/[\(]/g, " ( ");
   exp = exp.trim();
-  G.tokens = exp.split(/\s+/);
+  const rawTokens = exp.split(/\s+/);
+	G.tokens = [];
+	G.lineMarkers = [];
+	for(var i = 0; i < rawTokens.length; i++) {
+    if (rawTokens[i] !== NEW_LINE) {
+      G.tokens.push(rawTokens[i]);
+    } else {
+      G.lineMarkers.push(G.tokens.length);
+    }
+  }
+}
+
+// this could be made more efficient via binary search
+function recoverLineNumber() {
+	var i = 0;
+	while (i < G.lineMarkers.length && G.index >= G.lineMarkers[i]) {
+		i++;
+	}
+	return i;
 }
 
 function eat(token, expectedToken) {
@@ -315,6 +333,12 @@ function setUpBuiltInEnvironment() {
 
 	};
 	G.scope.push(built_in_env);
+}
+
+
+function error(msg) {
+	const line = recoverLineNumber();
+	throw msg + ' [near line: ' + line + ']';
 }
 
 module.exports = {parseProgram, reset, getTokens};
