@@ -13,6 +13,8 @@ import CollapsedExpressionView from './sub/CollapsedExpressionView'
 import ExpandedExpressionView from './sub/ExpandedExpressionView'
 import DoExpressionView from './sub/DoExpressionView'
 import ConstructionExpressionView from './sub/ConstructionExpressionView'
+import DeconstructionExpressionView from './sub/DeconstructionExpressionView'
+import DeconstructionCaseView from './sub/DeconstructionCaseView'
 import Icon from 'lib/Icon'
 import sp from 'lib/stopPropagation'
 import {
@@ -66,6 +68,12 @@ export default compose(
 			); break;
 			case expressionType.CONSTRUCTION: view = (
 				<ConstructionExpressionView {...p} />
+			); break;
+			case expressionType.DECONSTRUCTION: view = (
+				<DeconstructionExpressionView {...p} />
+			); break;
+			case nodeType.DECONSTRUCTION_CASE: view = (
+				<DeconstructionCaseView {...p} />
 			); break;
 		}
 	}

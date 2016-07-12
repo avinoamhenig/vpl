@@ -14,7 +14,8 @@ import turtle from 'lib/turtle'
 import {
 	getNode,
 	getIdentifier,
-	getRootScopeLambdaIdentifiers
+	getRootScopeLambdaIdentifiers,
+	rootNode
 } from 'ast'
 
 export default compose(
@@ -24,39 +25,6 @@ export default compose(
 	const prog = p.program;
 	const ident = p.identifier;
 	const lambda = ident ? getNode(prog, ident.value) : null;
-
-	const drawSnowflake = () => {
-		const {
-			draw, move, turn, done
-		} = turtle(document.getElementById('render_canvas'));
-
-		function koch(size, depth) {
-			if (depth === 0) {
-				draw(size)
-			} else {
-				koch(size/3, depth - 1)
-				turn(60)
-				koch(size/3, depth - 1)
-				turn(-120)
-				koch(size/3, depth - 1)
-				turn(60)
-				koch(size/3, depth - 1)
-			}
-		}
-
-		move(-250)
-		turn(90)
-		move(145)
-		turn(-90)
-
-		koch(500, 5)
-		turn(-120)
-		koch(500, 5)
-		turn(-120)
-		koch(500, 5)
-
-		done();
-	};
 
 	return (
 		<div style={s.container} id="root_expression">
@@ -171,34 +139,31 @@ export default compose(
 								if (p.evaluating) {
 									evaluator.stopEval();
 								} else {
+									const {
+										draw, move, turn
+									} = turtle(document.getElementById('render_canvas'));
 									p.startEval(performance.now());
 									evaluator.evaluate(p.program, val => {
-										p.setEvalResult(val, performance.now(), p.program)
-									}, () => {
-										p.evalFail();
-									});
+											p.setEvalResult(val, performance.now(), p.program)
+										}, () => {
+											p.evalFail();
+										},
+										frag => draw(rootNode(frag).value),
+										frag => move(rootNode(frag).value),
+										frag => turn(rootNode(frag).value),
+										1000
+									);
 								}
 							}}></div>
 						<div style={s.evalResult}>
-							{ p.evalFailed ? 'Fail!' : p.evalResult && (
-								<span onClick={p.toggleEvalResult}>
-									<Icon icon={p.showEvalResult ? 'eye' : 'eye-slash'} />
-								</span>
-							) }
+							<span onClick={p.toggleEvalResult}>
+								<Icon icon={p.showEvalResult ? 'eye' : 'eye-slash'} />
+							</span>
 						</div>
 						<div style={s.canvasToggle}>
-							{ p.evalResult && (
-								<span onClick={p.toggleCanvas}>
-									<Icon icon="pencil-square-o" />
-								</span>
-							) }
-						</div>
-						<div style={s.runBtn}>
-							{ p.evalResult && (
-								<span onClick={drawSnowflake}>
-									<Icon icon="pencil-square" />
-								</span>
-							) }
+							<span onClick={p.toggleCanvas}>
+								<Icon icon="pencil-square-o" />
+							</span>
 						</div>
 						<div style={s.evalTime}>
 							{ p.evalResult && round(
@@ -218,31 +183,50 @@ export default compose(
 						}}></div>
 				)}
 			</div>
-			<div style={s.expressionContainer}>
-				{ !ident && (
-					<Canvas
-						id="render_canvas"
-						style={s.canvas}
-						/>
-				) }
-				<ExpressionView
-					expressionId={lambda
-						? lambda.body
-						: p.showEvalResult
-							? p.evalResult.expression
+			<div style={s.paneContainer}>
+				<div style={s.expressionContainer}>
+					<ExpressionView
+						expressionId={lambda
+							? lambda.body
 							: p.expressionId}
-					lambdaIdentId={ident ? ident.id : null}
-					program={p.showEvalResult ? p.evalResult : prog}
-					nestedLevel={0}
-					expansionLevel={p.expansionLevel || 0}
-					selectedExpId={p.selectedExpId}
-					ignoreInfix={p.ignoreInfix}
-					expandedExpIds={p.expandedExpIds}
-					nestingLimit={p.nestingLimit}
-					onClick={p.onClick || p.selectExp}
-					onExpand={p.onExpand || p.toggleExpansion}
-					navigate={p.navigate}
-					/>
+						lambdaIdentId={ident ? ident.id : null}
+						program={prog}
+						nestedLevel={0}
+						expansionLevel={p.expansionLevel || 0}
+						selectedExpId={p.selectedExpId}
+						ignoreInfix={p.ignoreInfix}
+						expandedExpIds={p.expandedExpIds}
+						nestingLimit={p.nestingLimit}
+						onClick={p.onClick || p.selectExp}
+						onExpand={p.onExpand || p.toggleExpansion}
+						navigate={p.navigate}
+						/>
+				</div>
+				{ !ident && (
+				<div style={s.evalResultExpression}>
+					{ p.showEvalResult && p.evalResult && (
+						<ExpressionView
+							expressionId={p.evalResult.expression}
+							lambdaIdentId={null}
+							program={p.evalResult}
+							nestedLevel={0}
+							expansionLevel={p.expansionLevel || 0}
+							selectedExpId={p.selectedExpId}
+							ignoreInfix={p.ignoreInfix}
+							expandedExpIds={p.expandedExpIds}
+							nestingLimit={p.nestingLimit}
+							onClick={p.onClick || p.selectExp}
+							onExpand={p.onExpand || p.toggleExpansion}
+							navigate={p.navigate}
+							/>
+					) }
+				</div>
+			) }
+				{ !ident && (
+					<div style={s.canvas}>
+						<Canvas id="render_canvas" />
+					</div>
+				) }
 			</div>
 		</div>
 	);

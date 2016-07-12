@@ -10,8 +10,6 @@ export default function (canvas) {
 	let curY = height/2;
 
 	ctx.clearRect(0, 0, width, height);
-	ctx.beginPath();
-	ctx.moveTo(curX, curY);
 
 	return {
 		turn (degrees) {
@@ -25,12 +23,11 @@ export default function (canvas) {
 		},
 
 		draw (distance) {
+			ctx.beginPath();
+			ctx.moveTo(curX, curY);
 		  curX += Math.cos(angle) * distance;
 		  curY += Math.sin(angle) * distance;
 		  ctx.lineTo(curX, curY);
-		},
-
-		done () {
 			ctx.stroke();
 		}
 	};

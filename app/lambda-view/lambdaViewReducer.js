@@ -109,18 +109,20 @@ export default createReducer({
 		evalResult: createProgram(program, result),
 		evalEndTime: time,
 		evaluating: false,
-		showEvalResult: true
+		showEvalResult: !state.showCanvas ? true : state.showEvalResult
 	}),
 	[a.toggleEvalResult]: state => ({
 		...state,
-		showEvalResult: !state.showEvalResult
+		showEvalResult: !state.showEvalResult,
+		showCanvas: !state.showEvalResult ? false : state.showCanvas
 	}),
 	[a.evalFail]: (state) => ({
 		...state, evalResult: '', evaluating: false, evalFailed: true
 	}),
 	[a.toggleCanvas]: state => ({
 		...state,
-		showCanvas: !state.showCanvas
+		showCanvas: !state.showCanvas,
+		showEvalResult: !state.showCanvas ? false : state.showEvalResult
 	}),
 
 	[astActions.replaceExp]: (state, { exp, idToReplace }) => {
@@ -179,7 +181,7 @@ export default createReducer({
 	nestingLimit: 10,
 	ignoreInfix: false,
 	evaluating: false,
-	evalResult: '',
+	evalResult: null,
 	showEvalResult: false,
 	evalStartTime: -1,
 	evalEndTime: -1,
