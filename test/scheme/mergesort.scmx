@@ -1,0 +1,58 @@
+(define ulam-next
+  (lambda (n)
+    (cond
+      ((= (remainder n 2) 0) (/ n 2))
+      (else (+ (* 3 n) 1)))))
+
+(define ulam-chain
+  (lambda (n)
+    (cond
+      ((= n 1) (cons 1 (list)))
+      (else (cons n (ulam-chain (ulam-next n)))))))
+
+(define split
+  (lambda (items)
+    (DECON
+     items
+     ((Nil) (CON Pair (CON Nil) (CON Nil)))
+     ((Cons first rest)
+      (DECON
+       rest
+       ((Nil) (CON Pair items (CON Nil)))
+       ((Cons second rest-prime)
+        (DECON
+         (split rest-prime)
+         ((Pair left right)
+          (CON Pair (CON Cons first left)
+                (CON Cons second right))))))))))
+
+(define merge
+  (lambda (a b)
+    (DECON
+     a
+     ((Nil) b)
+     ((Cons ha ta)
+      (DECON
+       b
+       ((Nil) a)
+       ((Cons hb tb)
+        (cond
+         ((< ha hb) (CON Cons ha (merge ta b)))
+         (else (CON Cons hb (merge a tb))))))))))
+
+(define mergesort
+  (lambda (items)
+    (DECON
+     items
+     ((Nil) items)
+     ((Cons h t) 
+      (DECON
+       t
+       ((Nil) items)
+       ((Cons hh tt)
+        (DECON
+         (split items)
+         ((Pair left right)
+          (merge (mergesort left) (mergesort right))))))))))
+
+(mergesort (ulam-chain 3))
