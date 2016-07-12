@@ -40,6 +40,20 @@ newTypeDefinition('List', uid => {
 	};
 });
 
+newTypeDefinition('Pair', uid => {
+	const a = createTypeVariable();
+	const b = createTypeVariable();
+	return {
+		parameters: [a, b],
+		constructors: [
+			createConstructor('Pair', [
+				createTypeInstance(a.id),
+				createTypeInstance(b.id)
+			], uid)
+		]
+	};
+});
+
 const i = {
 	[r.PLUS]: createIdentifier('+'),
 	[r.MINUS]: createIdentifier('-'),
