@@ -1,18 +1,15 @@
-const ulamNext = `
 (define ulam-next
   (lambda (n)
     (cond
       ((= (remainder n 2) 0) (/ n 2))
       (else (+ (* 3 n) 1)))))
-`;
-const ulamChain = `
+
 (define ulam-chain
   (lambda (n)
     (cond
       ((= n 1) (cons 1 (list)))
       (else (cons n (ulam-chain (ulam-next n)))))))
-`;
-const split = `
+
 (define split
   (lambda (items)
     (cond
@@ -23,8 +20,7 @@ const split = `
            ((s (split (cddr items))))
          (cons (cons (car items) (car s))
                (cons (cadr items) (cdr s))))))))
-`;
-const merge = `
+
 (define merge
   (lambda (a b)
     (cond
@@ -36,9 +32,8 @@ const merge = `
           (cons (car a) (merge (cdr a) b)))
           (else
             (cons (car b) (merge a (cdr b)))))))))
-`;
-// instead of let*, redundantly evaluating split
-const mergeSort = `
+
+;; instead of let*, redundantly evaluating split
 (define mergesort
   (lambda (items)
     (cond
@@ -49,13 +44,6 @@ const mergeSort = `
             ((left (mergesort (car (split items))))
              (right (mergesort (cdr (split items)))))
           (merge left right))))))
-`;
-const sourceText =
-  ulamNext +
-  ulamChain +
-  split +
-  merge +
-  mergeSort +
-  `
-(ulam-chain 3)
-`;
+
+(mergesort (ulam-chain 3))
+
