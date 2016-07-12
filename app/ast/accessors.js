@@ -189,6 +189,7 @@ function getEntityType(entity) {
 
 function _getDependencies(program, entityId, _ids = new Set()) {
 	const e = getEntity(program, entityId);
+	if (typeof e === 'undefined') { return _ids; }
 	_ids.add(e.id);
 	const idsToSee = [];
 
