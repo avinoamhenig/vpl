@@ -151,7 +151,7 @@ export default compose(
 										frag => draw(rootNode(frag).value),
 										frag => move(rootNode(frag).value),
 										frag => turn(rootNode(frag).value),
-										100
+										1000
 									);
 								}
 							}}></div>
@@ -188,11 +188,9 @@ export default compose(
 					<ExpressionView
 						expressionId={lambda
 							? lambda.body
-							: p.showEvalResult
-								? p.evalResult.expression
-								: p.expressionId}
+							: p.expressionId}
 						lambdaIdentId={ident ? ident.id : null}
-						program={p.showEvalResult ? p.evalResult : prog}
+						program={prog}
 						nestedLevel={0}
 						expansionLevel={p.expansionLevel || 0}
 						selectedExpId={p.selectedExpId}
@@ -204,6 +202,26 @@ export default compose(
 						navigate={p.navigate}
 						/>
 				</div>
+				{ !ident && (
+				<div style={s.evalResultExpression}>
+					{ p.showEvalResult && p.evalResult && (
+						<ExpressionView
+							expressionId={p.evalResult.expression}
+							lambdaIdentId={null}
+							program={p.evalResult}
+							nestedLevel={0}
+							expansionLevel={p.expansionLevel || 0}
+							selectedExpId={p.selectedExpId}
+							ignoreInfix={p.ignoreInfix}
+							expandedExpIds={p.expandedExpIds}
+							nestingLimit={p.nestingLimit}
+							onClick={p.onClick || p.selectExp}
+							onExpand={p.onExpand || p.toggleExpansion}
+							navigate={p.navigate}
+							/>
+					) }
+				</div>
+			) }
 				{ !ident && (
 					<div style={s.canvas}>
 						<Canvas id="render_canvas" />

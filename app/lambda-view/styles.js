@@ -20,15 +20,30 @@ export default p => {
 		flex: '0 0 auto'
 	};
 
-	s.expressionContainer = {
+	s.pane = {
+		flexBasis: 0,
+		flexGrow: 1,
+		height: '100%'
+	};
+
+	s.expressionContainer = [s.pane, {
 		flex: p.expansionLevel > 0 ? '0 0 auto' : '1 1 0',
 		position: p.expansionLevel > 0 ? 'static' : 'relative',
 		overflow: 'auto',
 		WebkitOverflowScrolling: 'touch',
-		paddingTop: 5,
-		borderLeft: p.showEvalResult ? '5px solid lightgreen' : 'inherit',
-		width: p.showCanvas ? '50%' : '100%'
-	};
+		paddingTop: 5
+	}];
+
+	s.canvas = [s.pane, {
+		borderLeft: '1px dashed #ddd',
+		position: p.showCanvas ? 'static' : 'absolute',
+		left: '-200%'
+	}];
+
+	s.evalResultExpression = [s.pane, {
+		display: p.showEvalResult ? 'block' : 'none',
+		borderLeft: p.showEvalResult ? '1px dashed #ddd' : 'none'
+	}];
 
 	s.backBtn = {
 		display: 'inline-block',
@@ -128,13 +143,6 @@ export default p => {
 		color: p.showCanvas ? 'green' : 'inherit',
 		cursor: 'pointer'
 	}];
-
-	s.canvas = {
-		width: p.showCanvas ? '50%' : 0,
-		height: '100%',
-		flex: '0 0 auto',
-		borderLeft: '3px solid lightgreen'
-	};
 
 	s.paneContainer = {
 		display: 'flex',
