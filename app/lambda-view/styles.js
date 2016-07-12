@@ -42,7 +42,10 @@ export default p => {
 
 	s.evalResultExpression = [s.pane, {
 		display: p.showEvalResult ? 'block' : 'none',
-		borderLeft: p.showEvalResult ? '1px dashed #ddd' : 'none'
+		borderLeft: p.showEvalResult ? '1px dashed #ddd' : 'none',
+		overflow: 'auto',
+		WebkitOverflowScrolling: 'touch',
+		paddingTop: 5
 	}];
 
 	s.backBtn = {
