@@ -25,7 +25,6 @@ const basis = require('../app/basis');
 
 
 var G = {
-  builtInFunctions: ['+', '-', '*', '/', 'div', 'remainder', '=', '!=', '<', '>', '<=', '>=', 'cons', 'null?', 'zero?', 'car', 'cdr', 'cddr', 'cadr', 'list'],
   environment: [],
   functions: {},
 	counter: 0,
@@ -40,12 +39,12 @@ var G = {
 //Main
 function evaluate(program, onComplete, onFail, draw, move, turn, limit=Number.MAX_SAFE_INTEGER) {
 	G.program = program;
+	G.fail = onFail;
 	G.draw = draw;
 	G.move = move;
 	G.turn = turn;
 	G.LIMIT = limit;
 	G.continue = true;
-	G.fail = onFail;
   G.result = G.notDone;
 	G.counter = 1;
 	G.environment = [];
@@ -135,7 +134,6 @@ function evaluateBody(node, callback) {
       if (lookup(name, G.environment)) {
 				return call(callback, getVariable(name, G.environment));
       } else {
-				console.log("undefined identifier: " + name);
         G.continue = false;
         G.fail();
       }
@@ -204,9 +202,11 @@ function evaluateBody(node, callback) {
 			}
 
 		case expressionType.DECONSTRUCTION:
-			const data_expression = node.dataExpression;
 			const deconstruction_cases = node.cases;
-			return call(evaluate_deconstruction, data_expression, cases, callback);
+			return call(evaluateStep, getNode(G.program, node.dataExpression),
+				function (data_exp) {
+					return call(evaluate_deconstruction, data_exp, deconstruction_cases, callback);
+				});
 
 		case expressionType.DO:
 			const unitExpressions = node.unitExpressions;
@@ -240,26 +240,25 @@ function eval_star(exps, pos, callback) {
 }
 
 function evaluate_deconstruction(data_expression, cases, callback) {
+	const data_exp = rootNode(data_expression);
 	for (var i = 0; i < cases.length; i++) {
-		if (data_expression.constructor === cases[i].constructor) {
-			const parameters = data_expression.parameters;
-			const parameterIdentifiers = cases[i].parameterIdentifiers;
-			return call(eval_star, parameters, 0,
-				function (binding_vals) {
-					const new_env = extend(parameterIdentifiers, binding_vals);
-					G.environment.push(new_env);
-					return call(evaluateStep, cases[i].expression,  //getNode or anything?
-						function (b) {
-							G.environment.pop();
-							return call(callback, b);
-						});
+		const cs = getNode(G.program, cases[i]);
+		if (data_exp.constructor === cs.constructor) {
+			const parameters = [];
+			for (var i = 0; i < data_exp.parameters.length; i++) {
+				parameters[i] = extractFragment(data_expression, data_exp.parameters[i]);
+			}
+			const parameterIdentifiers = cs.parameterIdentifiers;
+			const new_env = extend(parameterIdentifiers, parameters);
+			G.environment.push(new_env);
+			return call(evaluateStep, getNode(G.program, cs.expression),
+				function (b) {
+					G.environment.pop();
+					return call(callback, b);
 				});
 		}
 	}
-	console.log("data expression constructor: " + data_expression.constructor);
-	for (var i = 0; i < cases.length; i++) {
-		console.log("deconstruction case constructor: " + cases[i].constructor);
-	}
+	//HERE is if nothing matched
 }
 
 //For evaluating case statement's cases
@@ -339,6 +338,13 @@ function builtIn(ref, a1, a2) {
 	 		} else {
 		 		return createConstructionExpression(basis.constructors.False);
 	 		}
+		case basis.references.LESS_EQUAL:
+			var result = a1 <= a2;
+			if (result) {
+				return createConstructionExpression(basis.constructors.True);
+			} else {
+				return createConstructionExpression(basis.constructors.False);
+			}
 		case basis.references.MOVE:
 			G.move(a1);
 			return createNumberExpression(0);
@@ -352,25 +358,6 @@ function builtIn(ref, a1, a2) {
 		 	throw `Unexpected identifier ` + JSON.stringify(ref);
 	}
 }
-
-/*
-
-function createBoolean(i, a1, a2) {
-	var result;
-	if (i === 6) result = (a1 === a2);
-	else if (i === 7) result = (a1 != a2);
-	else if (i === 8) result = (a1 < a2);
-	else if (i === 9) result = (a1 > a2);
-	else if (i === 10) result = (a1 <= a2);
-	else if (i === 11) result =  (a1 >= a2);
-	else if (i === 13) result = (a1.length === 0);
-	else if (i === 14) result = (a1 === 0);
-	if (result) {
-		return createConstructionExpression(basis.constructors.True);
-	} else {
-		return createConstructionExpression(basis.constructors.False);
-	}
-}*/
 
 // Evaluation continue and speed methods
 function stopEval() {
