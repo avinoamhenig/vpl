@@ -161,7 +161,7 @@ function evaluateBody(node, callback) {
 								return call(callback, builtIn(rootNode(eval_func).reference, x));
 							});
 					} else {
-						return call(callback, builtIn(identifier));
+						return call(callback, builtIn(rootNode(eval_func).reference));
 					}
 				} else {
 					if (getExpressionType(rootNode(eval_func)) !== expressionType.LAMBDA) {
@@ -345,6 +345,10 @@ function builtIn(ref, a1, a2) {
 			} else {
 				return createConstructionExpression(basis.constructors.False);
 			}
+
+		case basis.references.RANDOM:
+			return createNumberExpression(Math.random());
+
 		case basis.references.MOVE:
 			G.move(a1);
 			return createNumberExpression(0);
