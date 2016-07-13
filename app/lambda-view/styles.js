@@ -26,6 +26,12 @@ export default p => {
 		height: '100%'
 	};
 
+	s.paneContainer = {
+		display: p.expansionLevel > 0 ? 'inline' : 'flex',
+		flexDirection: 'row',
+		height: '100%'
+	};
+
 	s.expressionContainer = [s.pane, {
 		flex: p.expansionLevel > 0 ? '0 0 auto' : '1 1 0',
 		position: p.expansionLevel > 0 ? 'static' : 'relative',
@@ -146,12 +152,6 @@ export default p => {
 		color: p.showCanvas ? 'green' : 'inherit',
 		cursor: 'pointer'
 	}];
-
-	s.paneContainer = {
-		display: 'flex',
-		flexDirection: 'row',
-		height: '100%'
-	};
 
 	s.evalTime = [s.nestingInfo, {
 		float: 'left'
