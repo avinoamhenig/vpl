@@ -21,7 +21,6 @@ const G = {};
 function reset() {
   G.index = 0;
 	G.scope= [];
-  G.tokens = [];
 }
 
 function parseProgram(program) {
@@ -97,32 +96,6 @@ function parseExp() {
       const elseExpFrag = caseFrags.pop();
       return createCaseExpression(caseFrags, elseExpFrag);
 
-		} else if (peekNextToken() === 'DO') {
-				getNextToken();
-				const exps = [];
-				while (peekNextToken() !== ')') {
-					exps.push(parseExp());
-				}
-				getNextToken();
-				if (exps.length > 0) {
-					const retExp = exps.pop();
-					return createDoExpression(exps, retExp);
-				} else {
-					throw 'empty DO list';
-				}
-
-		} else if (peekNextToken() === 'MATCH') {
-				getNextToken();
-				const target = parseExp();
-				const matchFrags = [];
-				while (peekNextToken() !== ')') {
-					eat(getNextToken(), '(');
-					matchFrags.push(parseMatchCase());
-					eat(getNextToken(), ')');
-				}
-				eat(getNextToken(), ')');
-				return createDeconstructionExpression(target, matchFrags);
-
     } else if (peekNextToken() === 'let') {
       eat(getNextToken(), 'let');
       eat(getNextToken(), '(');
@@ -149,7 +122,7 @@ function parseExp() {
 			eat(getNextToken(), ')');
       return body;
 
-    } else if (peekNextToken() === 'cons') {
+		} else if (peekNextToken() === 'cons') {
 			eat(getNextToken(), 'cons');
 			const e0 = parseExp();
 			const e1 = parseExp();
@@ -161,6 +134,51 @@ function parseExp() {
 			eat(getNextToken(), ')');
 			return createConstructionExpression(basis.constructors.End);
 
+		}
+		// ----- Scheme extensions -----
+		else if (peekNextToken() === 'CON') {  // (CON <constructor> [<args>...])
+			getNextToken();
+			const constructorName = getNextToken();
+			const constructor = constructorMap[constructorName];
+			if (constructor) {
+				const constructArgs = [];
+				// could check what follows against constructor.parameterIdentifiers.length
+				while (peekNextToken() !== ')') {
+					constructArgs.push(parseExp());
+				}
+				getNextToken();
+				return createConstructionExpression(constructor, constructArgs);
+			} else {
+				error('undefined constructor: ' + constructorName);
+			}
+
+		}	else if (peekNextToken() === 'DECON') {
+				getNextToken();
+				const target = parseExp();
+				const deconFrags = [];
+				while (peekNextToken() !== ')') {
+					eat(getNextToken(), '(');
+					deconFrags.push(parseDeconCase());
+					eat(getNextToken(), ')');
+				}
+				eat(getNextToken(), ')');
+				return createDeconstructionExpression(target, deconFrags);
+
+		} else if (peekNextToken() === 'DO') {
+				getNextToken();
+				const exps = [];
+				while (peekNextToken() !== ')') {
+					exps.push(parseExp());
+				}
+				getNextToken();
+				if (exps.length > 0) {
+					const retExp = exps.pop();
+					return createDoExpression(exps, retExp);
+				} else {
+					error('empty DO list');
+				}
+
+				// ---- otherwise, a standard application expression -----
 		} else {
       const lambdaFrag = parseExp();
       const argFrags = [];
@@ -178,7 +196,7 @@ function parseExp() {
     if (lookup(token, G.scope)) {
       return createIdentifierExpression(getUID(token, G.scope));
     } else {
-			throw 'Undefined token: ' + token;
+			error('Undefined token: ' + token);
     }
   }
 }
@@ -198,7 +216,7 @@ function parseCase() {
   }
 }
 
-function parseMatchCase() {
+function parseDeconCase() {
   eat(getNextToken(), '(');
 	const constructorName = getNextToken();
 	const constructor = constructorMap[constructorName];
@@ -217,13 +235,14 @@ function parseMatchCase() {
 		G.scope.pop();
 		return createDeconstructionCase(constructor, constructParams, action);
 	} else {
-		throw 'undefined constructor: ' + constructorName;
+		error('undefined constructor: ' + constructorName);
 	}
 }
 
 const constructorMap = {
-	'NIL' : basis.constructors.End,
-	'CONS' : basis.constructors.List
+	'Nil' : basis.constructors.End,
+	'Cons' : basis.constructors.List,
+	'Pair' : basis.constructors.Pair
 };
 
 function getTokens() {
@@ -232,12 +251,31 @@ function getTokens() {
 
 // Token Operations
 function tokenize(exp) {
+	const NEW_LINE = ';;NL;;';
 	exp = exp.replace(/;.*$/gm, '');
-	exp = exp.replace(/\n/g, ' ');
+	exp = exp.replace(/\n/g, ' ' + NEW_LINE + ' ');
 	exp = exp.replace(/[\)]/g, " ) ");
   exp = exp.replace(/[\(]/g, " ( ");
   exp = exp.trim();
-  G.tokens = exp.split(/\s+/);
+  const rawTokens = exp.split(/\s+/);
+	G.tokens = [];
+	G.lineMarkers = [];
+	for(var i = 0; i < rawTokens.length; i++) {
+    if (rawTokens[i] !== NEW_LINE) {
+      G.tokens.push(rawTokens[i]);
+    } else {
+      G.lineMarkers.push(G.tokens.length);
+    }
+  }
+}
+
+// this could be made more efficient via binary search
+function recoverLineNumber() {
+	var i = 0;
+	while (i < G.lineMarkers.length && G.index >= G.lineMarkers[i]) {
+		i++;
+	}
+	return i;
 }
 
 function eat(token, expectedToken) {
@@ -295,6 +333,12 @@ function setUpBuiltInEnvironment() {
 
 	};
 	G.scope.push(built_in_env);
+}
+
+
+function error(msg) {
+	const line = recoverLineNumber();
+	throw msg + ' [near line: ' + line + ']';
 }
 
 module.exports = {parseProgram, reset, getTokens};
