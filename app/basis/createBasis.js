@@ -57,14 +57,21 @@ newTypeDefinition('Pair', uid => {
 const i = {
 	[r.PLUS]: createIdentifier('+'),
 	[r.MINUS]: createIdentifier('-'),
-	[r.EQUAL]: createIdentifier('='),
 	[r.TIMES]: createIdentifier('*'),
 	[r.DIVIDE]: createIdentifier('/'),
 	[r.REMAINDER]: createIdentifier('remainder'),
-	[r.NULL]: createIdentifier('null?'),
+
+	[r.EQUAL]: createIdentifier('='),
+	[r.NOT_EQUAL]: createIdentifier('!='),
 	[r.LESS_THAN]: createIdentifier('<'),
 	[r.GREATER_THAN]: createIdentifier('>'),
 	[r.LESS_EQUAL]: createIdentifier('<='),
+	[r.GREATER_EQUAL]: createIdentifier('>='),
+
+  [r.NULL]: createIdentifier('null?'),
+
+	[r.RANDOM]: createIdentifier('random'),
+
 	[r.MOVE]: createIdentifier('move'),
 	[r.DRAW]: createIdentifier('draw'),
 	[r.TURN]: createIdentifier('turn')

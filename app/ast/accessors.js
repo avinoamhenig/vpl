@@ -52,16 +52,28 @@ function isInfixOperator(identifier) {
 
 // Program, Uid Node -> [Identifier]
 function getIdentifiersScopedToNode(program, nodeId) {
-	const node = getNode(program, nodeId);
-	const identIds = getExpressionType(node) === expressionType.LAMBDA
-		? [...node.boundIdentifiers, ...node.arguments]
-		: node.boundIdentifiers
-	return identIds.map(identId => getIdentifier(program, identId));
+	const node = getEntity(program, nodeId);
+	let toAdd = [];
+	switch (getEntityType(node)) {
+		case expressionType.LAMBDA:
+			toAdd = [...node.arguments]; break;
+		case nodeType.DECONSTRUCTION_CASE:
+			console.log('hi');
+			toAdd = [...node.parameterIdentifiers]; break;
+	}
+	toAdd = toAdd.map(identId => getIdentifier(program, identId))
+	return getBoundIdentifiers(program, nodeId).concat(toAdd);
+}
+
+// Program -> [Identifier]
+function getRootScopeIdentifiers(program) {
+	return Object.values(program.identifiers)
+		.filter(ident => ident.scope === null);
 }
 
 // Program, Uid Node -> [Identifier]
 function getBoundIdentifiers(program, nodeId) {
-	return getNode(program, nodeId).boundIdentifiers.map(identId =>
+	return getEntity(program, nodeId).boundIdentifiers.map(identId =>
 		getIdentifier(program, identId));
 }
 
@@ -283,8 +295,18 @@ function extractFragment(program, nodeId) {
 	return frag;
 }
 
+// Program, Uid Node -> [Identifier]
+function getVisibleIdentifiers(program, nodeId) {
+	const idents = [];
+	while (nodeId) {
+		idents.push(...getIdentifiersScopedToNode(program, nodeId))
+		nodeId = getNode(program, nodeId).parent;
+	}
+	return idents.concat(getRootScopeIdentifiers(program));
+}
+
 module.exports = {
-	rootNode, root, getAstType, getNodeType,
+	rootNode, root, getAstType, getNodeType, getEntityType,
 	getExpressionType, getNodeOrExpType,
 	getIdentifier, getNode, getRootScopeLambdaIdentifiers,
 	isInfixOperator, isLeafExpression,
@@ -292,5 +314,8 @@ module.exports = {
 	getChildrenIds,
 	getNodeToTheLeft, getNodeToTheRight,
 	getNodeInside, getNodeOutside,
-	extractFragment
+	extractFragment,
+	getVisibleIdentifiers,
+	getRootScopeIdentifiers,
+	getEntity
 };
