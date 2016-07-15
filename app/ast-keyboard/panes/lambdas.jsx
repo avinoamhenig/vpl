@@ -13,8 +13,9 @@ export default (program, selectedExpId, dispatch) => ({
 	display: 'fn',
 	buttons: getVisibleIdentifiers(program, selectedExpId)
 		.filter(ident =>
-			 getEntityType(getEntity(program, ident.value)) === expressionType.LAMBDA
-		|| getEntityType(getEntity(program, ident.value)) === expressionType.BUILT_IN_FUNCTION
+			 ident.value
+		&& (getEntityType(getEntity(program, ident.value)) === expressionType.LAMBDA
+		|| getEntityType(getEntity(program, ident.value)) === expressionType.BUILT_IN_FUNCTION)
 		)
 		.map(ident => ({
 			display: ident.displayName,
