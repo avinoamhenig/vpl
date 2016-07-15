@@ -2,110 +2,57 @@ import React from 'react'
 import { connect } from 'react-redux'
 import AstKeyboard from './AstKeyboard'
 import { actions } from './astKeyboardReducer'
-import Icon from 'lib/Icon'
 import { actions as astActions } from 'program'
-import {
-	getNode, getNodeOrExpType, expressionType,
-	createNumberExpression, createIdentifier, createIdentifierExpression,
-	createApplicationExpression, createCaseExpression, createCaseBranch,
-	createElseBranch
-} from 'ast'
+import Icon from 'lib/Icon'
+import * as panes from './panes'
+import { insertText } from './panes/helpers'
 
-const mapStateToProps = state => ({
-	...state.astKeyboard,
-	isNodeSelected: !!state.lambdaView.selectedExpId,
-	program: state.program
-});
+const mapStateToProps = state => state;
+const mapDispatchToProps = dispatch => ({ dispatch });
 
-const mapDispatchToProps = (dispatch, props) => ({
-	dispatch,
-	onButtonPressed(value) {
-		if (value === '__--keybd--__') {
-			dispatch(actions.toggleTextInput());
-		} else {
-			value();
-		}
-	},
-	onTogglePressed: () => dispatch(actions.toggleKeyboard()),
-	onAddPressed: () => dispatch(astActions.appendPieceToSelectedExp()),
-	onRemovePressed: () => dispatch(astActions.removeSelectedExp()),
-	onBindPressed: () => {
-		dispatch(astActions.addIdentifierToSelectedExp('x'));
-		dispatch(actions.toggleNameKeyboard())
-	},
-	onNamePressed: () => dispatch(actions.toggleNameKeyboard())
-});
-
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
-	const dispatch = dispatchProps.dispatch;
-	const program = stateProps.program;
-
-	const valueToExp = value => {
-		value = /^\-?\d+$/.test(value) ? parseInt(value) : value;
-		if (typeof value === 'number') {
-			dispatch(astActions.replaceSelectedExp(createNumberExpression(value)));
-		} else {
-			let identId = Object.keys(program.identifiers).filter(id =>
-				program.identifiers[id].displayName === value)[0];
-			let identExp;
-			if (!identId) {
-				identExp = createIdentifierExpression(createIdentifier(value));
-			} else {
-				identExp = createIdentifierExpression(program.identifiers[identId]);
-			}
-			dispatch(astActions.replaceSelectedExp(identExp));
-		}
-	};
-
-	const caseExp = () => dispatch(astActions.replaceSelectedExp(
-		createCaseExpression(
-			[createCaseBranch(createNumberExpression(0), createNumberExpression(0))],
-			createNumberExpression(0)
-		)
-	));
-
-	const appExp = () => dispatch(astActions.replaceSelectedExp(
-		createApplicationExpression(
-			createNumberExpression(0), []
-		)
-	));
-
-	const doExp = () => dispatch(astActions.wrapSelectedExpInDo());
+const mergeProps = (state, {dispatch}, ownProps) => {
+	const program = state.program;
+	const selectedExpId = state.lambdaView.selectedExpId;
 
 	return {
 		...ownProps,
-		...stateProps,
-		...dispatchProps,
-		state: undefined, dispatch: undefined,
+		...state.astKeyboard,
 		onTextEntered(text) {
-			if (stateProps.naming) {
+			if (state.astKeyboard.naming) {
 				dispatch(actions.toggleNameKeyboard());
-				if (text === '') { return; }
-				dispatch(astActions.nameSelectedNode(text));
+				if (text !== '') {
+					dispatch(astActions.nameSelectedNode(text));
+				}
 			} else {
 				dispatch(actions.toggleTextInput());
-				if (text === '') { return; }
-				valueToExp(text);
+				if (text !== '') {
+					insertText(text, dispatch, program);
+				}
 			}
 		},
-		buttons: [
-			{ display: 0, value: () => valueToExp(0) },
-			{ display: 1, value: () => valueToExp(1) },
-			{ display: '+', value: () => valueToExp('+') },
-			{ display: '-', value: () => valueToExp('-') },
-			{ display: '*', value: () => valueToExp('*') },
-			{ display: '/', value: () => valueToExp('/') },
-			{ display: '%', value: () => valueToExp('%') },
-			{ display: '=', value: () => valueToExp('=') },
-			{ display: '≠', value: () => valueToExp('!=') },
-			{ display: '<', value: () => valueToExp('<') },
-			{ display: '≤', value: () => valueToExp('<=') },
-			{ display: '>', value: () => valueToExp('>') },
-			{ display: '≥', value: () => valueToExp('>=') },
-			{ display: (<Icon icon="question" />), value: caseExp },
-			{ display: 'fn()', value: appExp },
-			{ display: 'do', value: doExp },
-			{ display: (<Icon icon="keyboard-o" />), value: '__--keybd--__' }
+		onTogglePressed: () => dispatch(actions.toggleKeyboard()),
+		onPaneSelected: pane => dispatch(actions.selectPane(pane)),
+		selectedPane: state.astKeyboard.selectedPane,
+		toolbarButtons: state.lambdaView.selectedExpId ? [
+			{ display: (<Icon icon="keyboard-o" />)
+			, handler: () => dispatch(actions.toggleTextInput()) },
+			{ display: (<Icon icon="trash" />)
+			, handler: () => dispatch(astActions.removeSelectedExp()) },
+			{ display: ':='
+			, handler: () => {
+					dispatch(astActions.addIdentifierToSelectedExp('x'));
+					dispatch(actions.toggleNameKeyboard());
+				} },
+			{ display: (<Icon icon="tag" />)
+			, handler: () => dispatch(actions.toggleNameKeyboard()) },
+			{ display: (<Icon icon="plus" />)
+			, handler: () => dispatch(astActions.appendPieceToSelectedExp()) },
+		] : [],
+		panes: [
+			panes.lang(program, selectedExpId, dispatch),
+			panes.numeric(program, selectedExpId, dispatch),
+			panes.identifiers(program, selectedExpId, dispatch),
+			panes.lambdas(program, selectedExpId, dispatch)
 		]
 	};
 };

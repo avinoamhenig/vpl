@@ -22,7 +22,7 @@ import {
 	getNodeOrExpType,
 	expressionType, nodeType,
 	isLeafExpression,
-	getIdentifiersScopedToNode
+	getBoundIdentifiers
 } from 'ast'
 
 export default compose(
@@ -88,7 +88,7 @@ export default compose(
 			<div style={s.scopedIdentContainer}>
 				{ (p.nestedLevel <= p.nestingLimit
 						|| isLeafExpression(expression)) &&
-					getIdentifiersScopedToNode(p.program, p.expressionId).map(ident => (
+					getBoundIdentifiers(p.program, p.expressionId).map(ident => (
 					<div
 						key={ident.id}
 						style={[

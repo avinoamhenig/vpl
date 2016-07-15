@@ -10,49 +10,52 @@ import Icon from 'lib/Icon'
 export default compose(
 	name('AstKeyboard'), Radium
 )(p => {
+	const {
+		toolbarButtons,
+		panes,
+		selectedPane,
+		showTextInput,
+		onTextEntered,
+		onTogglePressed,
+		onPaneSelected,
+		show
+	} = p;
 	const s = computeStyles(p);
 
 	return (
 		<div>
-			{ p.showTextInput && (<ModalInput onDone={p.onTextEntered} />) }
+			{ showTextInput && (<ModalInput onDone={onTextEntered} />) }
 			<div style={s.container}>
 				<div style={s.toolbar}>
 					<div
 						key="toggle_btn"
-						style={s.toggleButton}
-						onClick={p.onTogglePressed}>
-						<Icon icon={ p.hidden ? 'caret-up' : 'caret-down' } />
+						style={s.leftButton}
+						onClick={onTogglePressed}>
+						<Icon icon={ show ? 'caret-down' : 'caret-up' } />
 					</div>
-					<div
-						key="remove_btn"
-						style={s.rmBtn}
-						onClick={p.onRemovePressed}>
-						<Icon icon="trash" />
-					</div>
-					<div
-						key="bind_btn"
-						style={s.bindBtn}
-						onClick={p.onBindPressed}>
-						:=
-					</div>
-					<div
-						key="name_btn"
-						style={s.nameBtn}
-						onClick={p.onNamePressed}>
-						<Icon icon="tag" />
-					</div>
-					<div
-						key="add_btn"
-						style={s.addBtn}
-						onClick={p.onAddPressed}>
-						<Icon icon="plus" />
-					</div>
+					{ panes.map(({ display }, i) => (
+						<div
+							key={`pane_${i}`}
+							style={selectedPane === i ? s.leftButtonSelected : s.leftButton}
+							onClick={() => onPaneSelected(i)}>
+							{ display }
+						</div>
+					)) }
+					{ toolbarButtons.map(({ display, handler }, i) => (
+						<div
+							key={`toolbarButton_${i}`}
+							style={s.rightButton}
+							onClick={handler}>
+							{ display }
+						</div>
+					)) }
 				</div>
 				<div style={s.buttonContainer}>
-					{ p.buttons.map(({ display, value }) => (
+					{ panes.length > 0
+					&& panes[selectedPane].buttons.map(({ display, handler }, i) => (
 						<KeyboardButton
-							key={value}
-							onClick={() => p.onButtonPressed(value)}>
+							key={i}
+							onClick={handler}>
 							{ display }
 						</KeyboardButton>
 					)) }

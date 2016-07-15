@@ -37,7 +37,7 @@ export default p => {
 		position: p.expansionLevel > 0 ? 'static' : 'relative',
 		overflow: 'auto',
 		WebkitOverflowScrolling: 'touch',
-		paddingTop: 5
+		paddingTop: 0
 	}];
 
 	s.canvas = [s.pane, {
@@ -51,7 +51,7 @@ export default p => {
 		borderLeft: p.showEvalResult ? '1px dashed #ddd' : 'none',
 		overflow: 'auto',
 		WebkitOverflowScrolling: 'touch',
-		paddingTop: 5
+		paddingTop: 0
 	}];
 
 	s.backBtn = {

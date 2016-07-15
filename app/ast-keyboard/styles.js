@@ -32,32 +32,24 @@ export default p => {
 		fontFamily: 'sans-serif',
 		color: '#aaa',
 		cursor: 'pointer',
-		transition: 'visibility 0.2s, opacity 0.2s',
 
 		':hover': {
 			color: colors.selectedExp
 		}
 	};
 
-	s.toggleButton = [s.toolbarButton, {
-		float: 'left',
-		visibility: 'visible',
-		opacity: 1
+	s.leftButton = [s.toolbarButton, {
+		float: 'left'
 	}];
+
+	s.selected = {
+		color: colors.selectedExp
+	};
+	s.leftButtonSelected = [s.leftButton, s.selected];
 
 	s.rightButton = [s.toolbarButton, {
 		float: 'right'
 	}];
-
-	const showIfSelected = {
-		visibility: p.isNodeSelected ? 'visible' : 'hidden',
-		opacity: p.isNodeSelected ? 1 : 0
-	};
-	s.addBtn =
-	s.rmBtn =
-	s.bindBtn =
-	s.nameBtn =
-		[...s.rightButton, showIfSelected];
 
 	return s;
 };
