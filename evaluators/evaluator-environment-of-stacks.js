@@ -25,7 +25,7 @@ const basis = require('../app/basis');
 
 
 var G = {
-  environment: [],
+  environment: {},
   functions: {},
 	counter: 0,
   procReg: null,
@@ -47,7 +47,7 @@ function evaluate(program, onComplete, onFail, draw, move, turn, limit=Number.MA
 	G.continue = true;
   G.result = G.notDone;
 	G.counter = 1;
-	G.environment = [];
+	G.environment = {};
 	setUp(program);
 	G.InitialTime = Date.now();
 	call(evaluateStep, root(program), onComplete);
@@ -58,15 +58,17 @@ function evaluate(program, onComplete, onFail, draw, move, turn, limit=Number.MA
 
 //Add "name id : lambda node" to G.functions
 function setUp(program) {
-	const new_env = {};
+	const ids = [];
+	const push_vals = [];
   for (const identId of Object.keys(program.identifiers)) {
     const identifier = getIdentifier(program, identId);
     if (identifier.scope !== null || !identifier.value) {
       continue;
     }
-		new_env[identifier.id] = extractFragment(program, identifier.value);
+		ids.push(identifier.id);
+		push_vals.push(extractFragment(program, identifier.value));
   }
-	G.environment.push(new_env);
+	pushEnvironment(ids, push_vals);
 }
 
 //Trampoline
@@ -108,11 +110,10 @@ function evaluateStep(node, callback) {
 			}
 			return call(eval_star, boundExprs, 0,
 				function (binding_vals) {
-					const new_env = extend(binding_names, binding_vals);
-					G.environment.push(new_env);
+					pushEnvironment(binding_names, binding_vals);
 					return call(evaluateBody, node,
 						function (b) {
-							G.environment.pop();
+							popEnvironment(binding_names);
 							return call(callback, b);
 						});
 				});
@@ -132,8 +133,9 @@ function evaluateBody(node, callback) {
 
     case expressionType.IDENTIFIER:
       const name = node.identifier;
-      if (lookup(name, G.environment)) {
-				return call(callback, getVariable(name, G.environment));
+			const variable = lookup(name, G.environment);
+      if (variable) {
+				return call(callback, variable);
       } else {
         G.continue = false;
         G.fail();
@@ -173,11 +175,10 @@ function evaluateBody(node, callback) {
 					const called_fun_args = called_function.arguments;
 					return call(eval_star, argVals, 0,
 						function (binding_vals) {
-							const new_env = extend(called_fun_args, binding_vals);
-							G.environment.push(new_env);
+							pushEnvironment(called_fun_args, binding_vals);
 							return call(evaluateStep, getNode(G.program, called_function.body),
 								function (b) {
-									G.environment.pop();
+									popEnvironment(called_fun_args);
 									return call(callback, b);
 								});
 						});
@@ -250,11 +251,10 @@ function evaluate_deconstruction(data_expression, cases, callback) {
 				parameters[i] = extractFragment(data_expression, data_exp.parameters[i]);
 			}
 			const parameterIdentifiers = cs.parameterIdentifiers;
-			const new_env = extend(parameterIdentifiers, parameters);
-			G.environment.push(new_env);
+			pushEnvironment(parameterIdentifiers, parameters);
 			return call(evaluateStep, getNode(G.program, cs.expression),
 				function (b) {
-					G.environment.pop();
+					popEnvironment(parameterIdentifiers);
 					return call(callback, b);
 				});
 		}
@@ -279,30 +279,30 @@ function evaluate_cases(exps, callback, elseExp, pos) {
 }
 
 // Environment Operations
-function extend(new_syms, new_vals) {
-  const new_env = {};
-  for (var i = 0; i < new_syms.length; i++) {
-    new_env[new_syms[i]] = new_vals[i];
-  }
-  return new_env;
+
+function pushEnvironment(ids, push_vals) {
+	for (var i = 0; i < ids.length; i++) {
+		if (G.environment[ids[i]]) {
+			G.environment[ids[i]].push(push_vals[i]);
+		} else {
+			G.environment[ids[i]] = [];
+			G.environment[ids[i]].push(push_vals[i]);
+		}
+	}
 }
 
-function lookup(val, env) {
-  if (env.length === 0) {
-    return false;
-  } else if (env.length === 1) {
-    return (val in env[0]);
-  } else {
-    return (val in env[env.length-1]) || lookup(val, env.slice(0,env.length-1));
-  }
+function popEnvironment(ids) {
+	for (var i = 0; i < ids.length; i++) {
+		G.environment[ids[i]].pop();
+	}
 }
 
-function getVariable(val, env) {
-  if (val in env[env.length-1]) {
-    return env[env.length-1][val];
-  } else {
-    return getVariable(val, env.slice(0,env.length-1));
-  }
+function lookup(id, env) {
+	var value = env[id];
+	if (value) {
+		value = value[value.length-1];
+	}
+	return value;
 }
 
 // Built In Operations

@@ -323,13 +323,17 @@ function setUpBuiltInEnvironment() {
 		'*': basis.identifiers[basis.references.TIMES],
 		'/': basis.identifiers[basis.references.DIVIDE],
 		'remainder': basis.identifiers[basis.references.REMAINDER],
+
 		'<': basis.identifiers[basis.references.LESS_THAN],
 		'<=': basis.identifiers[basis.references.LESS_EQUAL],
+
+		'random': basis.identifiers[basis.references.RANDOM],
+
 		'draw': basis.identifiers[basis.references.DRAW],
 		'move': basis.identifiers[basis.references.MOVE],
 		'turn': basis.identifiers[basis.references.TURN],
 
-		list: createIdentifier('list'),
+		'list': createIdentifier('list'),
 
 	};
 	G.scope.push(built_in_env);
