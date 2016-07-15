@@ -58,7 +58,6 @@ function getIdentifiersScopedToNode(program, nodeId) {
 		case expressionType.LAMBDA:
 			toAdd = [...node.arguments]; break;
 		case nodeType.DECONSTRUCTION_CASE:
-			console.log('hi');
 			toAdd = [...node.parameterIdentifiers]; break;
 	}
 	toAdd = toAdd.map(identId => getIdentifier(program, identId))
