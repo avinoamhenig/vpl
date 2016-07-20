@@ -75,6 +75,22 @@ newTypeDefinition('Pair', uid => {
 	};
 });
 
+newTypeDefinition('Range', uid => {
+	const start = createTypeVariable();
+	const stop = createTypeVariable();
+	const step = createTypeVariable();
+	return {
+		parameters: [start, stop, step],
+		constructors: [
+			createConstructor('Range', [
+				createTypeInstance(start.id),
+				createTypeInstance(stop.id),
+				createTypeInstance(step.id)
+			], uid)
+		]
+	};
+});
+
 const i = {
 	[r.PLUS]: createIdentifier('+'),
 	[r.MINUS]: createIdentifier('-'),
@@ -92,6 +108,9 @@ const i = {
   [r.NULL]: createIdentifier('null?'),
 
 	[r.RANDOM]: createIdentifier('random'),
+
+	[r.FOLD]: createIdentifier('fold'),
+	[r.FOLD_RANGE]: createIdentifier('foldr'),
 
 	[r.MOVE]: createIdentifier('move'),
 	[r.DRAW]: createIdentifier('draw'),

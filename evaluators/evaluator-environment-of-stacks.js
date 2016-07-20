@@ -12,7 +12,7 @@ const {
 	getNode,
 	rootNode,
 	createConstructionExpression,
-	extractFragment
+	extractFragment,
 } = require('../app/ast');
 const {
 	basisFragment,
@@ -33,6 +33,8 @@ var G = {
   args1: null,
 	args2: null,
 	args3: null,
+	args4: null,
+	args5: null,
   notDone: {},
 };
 
@@ -72,12 +74,14 @@ function setUp(program) {
 }
 
 //Trampoline
-function call(proc, arg0, arg1, arg2, arg3) {
+function call(proc, arg0, arg1, arg2, arg3, arg4, arg5) {
   G.procReg = proc;
   G.args0 = arg0;
   G.args1 = arg1;
 	G.args2 = arg2;
 	G.args3 = arg3;
+	G.args4 = arg4;
+	G.args5 = arg5;
 	G.result = G.notDone;
   return G.notDone
 }
@@ -85,7 +89,7 @@ function call(proc, arg0, arg1, arg2, arg3) {
 function trampoline() {
 	while (G.result === G.notDone &&
 				 G.counter % G.LIMIT !== 0) {
-		G.result = G.procReg(G.args0, G.args1, G.args2, G.args3);
+		G.result = G.procReg(G.args0, G.args1, G.args2, G.args3, G.args4, G.args5);
 		G.counter++;
 	}
 	if (G.result === G.notDone) {
@@ -108,7 +112,8 @@ function evaluateStep(node, callback) {
 				binding_names.push(boundIds[i].id);
 				boundExprs.push(boundIds[i].value);
 			}
-			return call(eval_star, boundExprs, 0,
+			const bound_expressions = boundExprs.map(i => getNode(G.program, i));
+			return call(eval_star, bound_expressions, 0,
 				function (binding_vals) {
 					pushEnvironment(binding_names, binding_vals);
 					return call(evaluateBody, node,
@@ -144,47 +149,19 @@ function evaluateBody(node, callback) {
 
     case expressionType.APPLICATION:
       const func = getNode(G.program, node.lambda);
-			return call(evaluateStep, func, function (eval_func) {
-				const argVals = node.arguments;
+			return call(evaluateStep, func, function(eval_func) {
+			//	const argVals = node.arguments;
+				const argVals = node.arguments.map(i => getNode(G.program, i));
 				if (getExpressionType(rootNode(eval_func)) === expressionType.BUILT_IN_FUNCTION) {
-					if (argVals.length === 2) {
-						return call(evaluateStep, getNode(G.program, argVals[0]),
-							function (x) {
-								return call(evaluateStep, getNode(G.program, argVals[1]),
-									function (y) {
-										const arg0 = rootNode(x).value;
-										const arg1 = rootNode(y).value;
-										return call(callback, builtIn(rootNode(eval_func).reference, arg0, arg1));
-									});
-							});
-					} else if (argVals.length === 1) {
-						return call(evaluateStep, getNode(G.program, argVals[0]),
-							function(x) {
-								const arg1 = x.value;
-								return call(callback, builtIn(rootNode(eval_func).reference, x));
-							});
-					} else {
-						return call(callback, builtIn(rootNode(eval_func).reference));
-					}
+					return evaluateBuiltInFunction(argVals, eval_func, callback);
 				} else {
 					if (getExpressionType(rootNode(eval_func)) !== expressionType.LAMBDA) {
 						G.continue = false;
 						G.fail();
 					}
-					const called_function = rootNode(eval_func);
-					const called_fun_args = called_function.arguments;
-					return call(eval_star, argVals, 0,
-						function (binding_vals) {
-							pushEnvironment(called_fun_args, binding_vals);
-							return call(evaluateStep, getNode(G.program, called_function.body),
-								function (b) {
-									popEnvironment(called_fun_args);
-									return call(callback, b);
-								});
-						});
+					return eval_application(argVals, eval_func, callback);
 				}
 			});
-      break;
 
     case expressionType.CASE:
       const cases = node.caseBranches;
@@ -195,7 +172,8 @@ function evaluateBody(node, callback) {
 			const constructorID = node.constructor;
 			const constructor = G.program.constructors[constructorID];
 			if (node.parameters.length > 0) {
-				return call(eval_star, node.parameters, 0,
+				const node_params = node.parameters.map(i => getNode(G.program, i));
+				return call(eval_star, node_params, 0,
 					function (binding_vals) {
 						return call(callback, createConstructionExpression(constructor, binding_vals));
 					});
@@ -211,8 +189,9 @@ function evaluateBody(node, callback) {
 				});
 
 		case expressionType.DO:
-			const unitExpressions = node.unitExpressions;
-			const returnExpression = getNode(G.program, node.returnExpression);
+		//	const unitExpressions = node.unitExpressions;
+			const unitExpressions = node.unitExpressions.map(i => getNode(G.program, i));
+		//	const returnExpression = getNode(G.program, node.returnExpression);
 			return call(eval_star, unitExpressions, 0,
 				function (unit_exp_vals)  {
 					return call(evaluateStep, returnExpression,
@@ -231,7 +210,7 @@ function eval_star(exps, pos, callback) {
   if (pos === exps.length) {
     return call(callback, []);
   } else {
-    return call(evaluateStep, getNode(G.program, exps[pos]),
+    return call(evaluateStep, exps[pos],
 			function (x) {
 	      return call(eval_star, exps, pos+=1,
 			    function (y) {
@@ -260,6 +239,101 @@ function evaluate_deconstruction(data_expression, cases, callback) {
 		}
 	}
 	//HERE is if nothing matched
+}
+
+
+function evaluateBuiltInFunction(argVals, eval_func, callback) {
+	if (argVals.length === 3) { //FOLD
+		return call(eval_star, argVals, 0,
+								function (evaluated_args) {
+									const construction_exp = rootNode(evaluated_args[2]);
+									const applied_function = evaluated_args[0];
+									const accumulator = evaluated_args[1];
+									if (construction_exp.constructor === basis.constructors.Range.id) { //foldr
+										const [start, stop, step] = construction_exp.parameters;
+										console.log('the case');
+										return call(eval_fold_range, applied_function, accumulator, start, stop, step, callback);
+									} else { //fold
+										return call(eval_fold, applied_function, accumulator, evaluated_args[2], callback);
+									}
+								});
+	}
+  else if (argVals.length === 2) {
+		return call(evaluateStep, argVals[0],
+    function (x) {
+      return call(evaluateStep, argVals[1],
+        function (y) {
+          const arg0 = rootNode(x).value;
+          const arg1 = rootNode(y).value;
+          return call(callback, builtIn(rootNode(eval_func).reference, arg0, arg1));
+        });
+    });
+  } else if (argVals.length === 1) {
+    return call(evaluateStep, argVals[0],
+      function(x) {
+        const arg1 = x.value; //rootNode?
+        return call(callback, builtIn(rootNode(eval_func).reference, x));
+      });
+  } else {
+    return call(callback, builtIn(rootNode(eval_func).reference));
+  }
+}
+
+function eval_application(argVals, eval_func, callback) {
+  const called_function = rootNode(eval_func);
+  const called_fun_args = called_function.arguments;
+  return call(eval_star, argVals, 0,
+    function (binding_vals) {
+      pushEnvironment(called_fun_args, binding_vals);
+      return call(evaluateStep, getNode(G.program, called_function.body),
+        function (b) {
+          popEnvironment(called_fun_args);
+          return call(callback, b);
+        });
+    });
+}
+
+
+function eval_fold(f, a, list, callback) {
+	if (rootNode(list).constructor === basis.constructors.End.id) { //(tedious? better/different way?)
+		return call(callback, a);
+	} else {
+		const head = extractFragment(list, rootNode(list).parameters[0]);
+		const tail = extractFragment(list, rootNode(list).parameters[1]);
+		if (getExpressionType(rootNode(f)) === expressionType.BUILT_IN_FUNCTION) {
+			const result = builtIn(rootNode(f).reference, rootNode(a).value, rootNode(head).value);
+			return call(eval_fold, f, result, tail, callback);
+		} else {
+			const called_fun_args = rootNode(f).arguments;
+			pushEnvironment(called_fun_args, [a, head]);
+			return call(evaluateStep, getNode(G.program, rootNode(f).body),
+				function (result) {
+					popEnvironment(called_fun_args);
+					return call(eval_fold, f, result, tail, callback);
+				})
+		}
+	}
+}
+
+//NOT WORKING YET
+function eval_fold_range(f, a, start, stop, step, callback) {
+	if (start >= stop) {
+		return call(callback, a);
+	} else {
+		if (getExpressionType(rootNode(f)) === expressionType.BUILT_IN_FUNCTION) {
+			console.log("START" + start);
+			const result = builtIn(rootNode(f).reference, rootNode(a).value, start.value); //make sure start is like that (what form)
+			return call(eval_fold_range, f, result, start+step, stop, step, callback);
+		} else {
+			const called_fun_args = rootNode(f).arguments;
+			pushEnvironment(called_fun_args, [a, start]);
+			return call(evaluateStep, getNode(G.program, rootNode(f).body),
+		function (result) {
+			popEnvironment(called_fun_args);
+			return call(eval_fold, f, result, start+step, stop, step, callback);
+		});
+		}
+	}
 }
 
 //For evaluating case statement's cases
@@ -359,6 +433,7 @@ function builtIn(ref, a1, a2) {
 		case basis.references.TURN:
 			G.turn(a1);
 			return createNumberExpression(0);
+
 	  default:
 		 	throw `Unexpected identifier ` + JSON.stringify(ref);
 	}

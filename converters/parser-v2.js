@@ -242,7 +242,8 @@ function parseDeconCase() {
 const constructorMap = {
 	'Nil' : basis.constructors.End,
 	'Cons' : basis.constructors.List,
-	'Pair' : basis.constructors.Pair
+	'Pair' : basis.constructors.Pair,
+	'Range' : basis.constructors.Range
 };
 
 function getTokens() {
@@ -328,6 +329,9 @@ function setUpBuiltInEnvironment() {
 		'<=': basis.identifiers[basis.references.LESS_EQUAL],
 
 		'random': basis.identifiers[basis.references.RANDOM],
+
+		'fold': basis.identifiers[basis.references.FOLD],
+		'foldr': basis.identifiers[basis.references.FOLD_RANGE],
 
 		'draw': basis.identifiers[basis.references.DRAW],
 		'move': basis.identifiers[basis.references.MOVE],

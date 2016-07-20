@@ -16,6 +16,9 @@ module.exports = {
 
 	NULL: 'NULL',
 
+	FOLD: 'FOLD',
+	FOLD_RANGE: 'FOLD_RANGE',
+
 	MOVE: 'MOVE',
 	DRAW: 'DRAW',
 	TURN: 'TURN'
