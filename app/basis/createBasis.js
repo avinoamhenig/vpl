@@ -76,16 +76,13 @@ newTypeDefinition('Pair', uid => {
 });
 
 newTypeDefinition('Range', uid => {
-	const start = createTypeVariable();
-	const stop = createTypeVariable();
-	const step = createTypeVariable();
 	return {
-		parameters: [start, stop, step],
+		parameters: [],
 		constructors: [
 			createConstructor('Range', [
-				createTypeInstance(start.id),
-				createTypeInstance(stop.id),
-				createTypeInstance(step.id)
+				createTypeInstance(typeDefinitions.Number.id),
+				createTypeInstance(typeDefinitions.Number.id),
+				createTypeInstance(typeDefinitions.Number.id)
 			], uid)
 		]
 	};
