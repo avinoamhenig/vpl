@@ -20,8 +20,8 @@ export default p => {
 		display: 'flex',
 		flexWrap: 'wrap',
 		clear: 'both',
-		maxHeight: p.hidden ? 0 : '100%',
-		opacity: p.hidden ? 0 : 1,
+		maxHeight: !p.show ? 0 : '100%',
+		opacity: !p.show ? 0 : 1,
 		overflow: 'hidden',
 		transition: 'opacity ease-in 0.2s, max-height ease-in-out 0.2s'
 	};

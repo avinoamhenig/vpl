@@ -16,8 +16,7 @@ function _createNode (nodeType, props) {
 
 function _createExpression (expressionType, props) {
 	return _createNode(nodeType.EXPRESSION, oa({
-		expressionType,
- 		type: null // REVIEW type should probably never be null
+		expressionType
 	}, props));
 }
 
@@ -43,7 +42,8 @@ function _createProgramFragment (rootNode, ...frags) {
 		identifiers: oa({}, ...frags.map(f => f.identifiers)),
 		constructors: oa({}, ...frags.map(f => f.constructors)),
 		typeDefinitions: oa({}, ...frags.map(f => f.typeDefinitions)),
-		typeVariables: oa({}, ...frags.map(f => f.typeVariables))
+		typeVariables: oa({}, ...frags.map(f => f.typeVariables)),
+		types: oa({}, ...frags.map(f => f.types))
 	};
 }
 
@@ -70,7 +70,8 @@ function createProgram (...frags) {
 		identifiers: oa({}, ...frags.map(f => f.identifiers)),
 		constructors: oa({}, ...frags.map(f => f.constructors)),
 		typeDefinitions: oa({}, ...frags.map(f => f.typeDefinitions)),
-		typeVariables: oa({}, ...frags.map(f => f.typeVariables))
+		typeVariables: oa({}, ...frags.map(f => f.typeVariables)),
+		types: oa({}, ...frags.map(f => f.types))
 	};
 }
 

@@ -10,12 +10,19 @@ import {
 	getNode,
 	getNodeToTheLeft, getNodeToTheRight,
 	getNodeInside, getNodeOutside,
-	createProgram
+	createProgram,
+	getType,
+	typeString
 } from 'ast'
 import { basisFragment } from 'basis'
 
 export const actions = {
-	selectExp: cA('SELECT_EXP', m('exprId', 'expansionLevel')),
+	selectExpression: cA('SELECT_EXP', m('exprId', 'expansionLevel')),
+	selectExp: (exprId, expansionLevel) => (dispatch, getState) => {
+		const { program } = getState();
+		console.log(typeString(program, getType(program, exprId)));
+		dispatch(a.selectExpression(exprId, expansionLevel));
+	},
 	setNestingLimit: cA('SET_NESTING_LIMIT'),
 	incNestingLimit: cA('INC_NESTING_LIMIT'),
 	decNestingLimit: cA('DEC_NESTING_LIMIT'),
@@ -38,7 +45,7 @@ export const actions = {
 			down: getNodeInside,
 			up: getNodeOutside
 		};
-		dispatch(a.selectExp(
+		dispatch(a.selectExpression(
 			(dirs[direction])(
 				program, lambdaView.selectedExpId, lambdaView.ignoreInfix),
 			lambdaView.selectedExpansionLevel
@@ -48,7 +55,7 @@ export const actions = {
 
 const a = actions;
 export default createReducer({
-	[a.selectExp]: (state, payload) => ({
+	[a.selectExpression]: (state, payload) => ({
 		...state,
 		showFnList: false,
 		selectedExpId: payload.exprId,

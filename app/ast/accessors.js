@@ -185,11 +185,13 @@ function getNodeOutside(program, nodeId) {
 }
 
 function getEntity(program, id) {
+	if (program.types === undefined) console.error(program);
 	return program.nodes[id]
 	    || program.identifiers[id]
 	    || program.constructors[id]
 		  || program.typeDefinitions[id]
-		  || program.typeVariables[id];
+		  || program.typeVariables[id]
+			|| program.types[id];
 }
 
 function getEntityType(entity) {
@@ -276,7 +278,8 @@ function extractFragment(program, nodeId) {
 		identifiers: {},
 		constructors: {},
 		typeDefinitions: {},
-		typeVariables: {}
+		typeVariables: {},
+		types: {}
 	};
 	const props = {
 		[astType.IDENTIFIER]: 'identifiers',
@@ -294,6 +297,11 @@ function extractFragment(program, nodeId) {
 	return frag;
 }
 
+// Program, Uid Entity -> TypeInstance?
+function getType(program, entityId) {
+	return program.types[entityId] || null;
+}
+
 // Program, Uid Node -> [Identifier]
 function getVisibleIdentifiers(program, nodeId) {
 	const idents = [];
@@ -302,6 +310,19 @@ function getVisibleIdentifiers(program, nodeId) {
 		nodeId = getNode(program, nodeId).parent;
 	}
 	return idents.concat(getRootScopeIdentifiers(program));
+}
+
+// Program, TypeInstance -> String
+function typeString(program, type) {
+	if (type == null) return 'no type';
+	
+	let str = '';
+	const typeDef = getEntity(program, type.typeDefinition);
+	str += typeDef.displayName || typeDef.id.slice(-4);
+	for (const paramType of type.parameters) {
+		str += ' (' + typeString(program, paramType) + ')';
+	}
+	return str;
 }
 
 module.exports = {
@@ -316,5 +337,7 @@ module.exports = {
 	extractFragment,
 	getVisibleIdentifiers,
 	getRootScopeIdentifiers,
-	getEntity
+	getEntity,
+	getType,
+	typeString
 };

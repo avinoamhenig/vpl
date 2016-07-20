@@ -472,10 +472,20 @@ function wrapExpInDo(program, expId) {
 	return newProgram;
 }
 
+// Program, Uid Entity, TypeInstance -> Program
+function setType(program, entityId, type) {
+	return Object.assign({}, program, {
+		types: Object.assign({}, program.types, {
+			[entityId]: type
+		})
+	});
+}
+
 module.exports = {
 	bindIdentifier, bindIdentifiers, setIdentifierScope,
 	replaceNode, removeNode, appendPieceToExp,
 	removeIdentifier, setDisplayName,
 	attachTypeDefinitions,
-	wrapExpInDo
+	wrapExpInDo,
+	setType
 };

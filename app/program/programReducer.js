@@ -11,11 +11,15 @@ import {
 	setIdentifierScope,
 	setDisplayName,
 	getIdentifier,
-	wrapExpInDo
+	wrapExpInDo,
+	setType,
+	createTypeVariable,
+	createTypeInstance,
+	attachTypeDefinitions
 } from 'ast'
 import { parseProgram } from '../../converters/parser-v2'
 
-const initialState = require('../../test/ast/create_sum')();
+const initialState = require('./createInitialState').default();
 
 const a = {};
 a.replaceExp = cA('REPLACE_EXP', m('exp', 'idToReplace'));
@@ -41,6 +45,11 @@ a.removeSelectedExp = () => (dispatch, getState) => {
 };
 a.addFunction = cA('ADD_FUNCTION', m('identifier', 'lambda'));
 a.newFunction = () => dispatch => {
+	const argTypeVar = createTypeVariable();
+	const retTypeVar = createTypeVariable();
+	const	argType = createTypeInstance(argTypeVar);
+	const retType = createTypeInstance(retTypeVar);
+	// const lambdaType = createTypeInstance(
 	const arg = createIdentifier('x');
 	const lambdaIdent = createIdentifier('f');
 	const lambdaFrag = createLambdaExpression([arg],

@@ -16,12 +16,33 @@ const {
 	newTypeDefinition
 } = require('./typeDefinitionFactory')();
 
+newTypeDefinition('Number', uid => {
+	return {
+		parameters: [],
+		constructors: []
+	};
+});
+
 newTypeDefinition('Bool', uid => {
 	return {
 		parameters: [],
 		constructors: [
 			createConstructor('True', [], uid),
 			createConstructor('False', [], uid)
+		]
+	};
+});
+
+newTypeDefinition('Lambda', uid => {
+	const arg = createTypeVariable();
+	const ret = createTypeVariable();
+	return {
+		parameters: [arg, ret],
+		constructors: [
+			createConstructor('Lambda', [
+				createTypeInstance(arg.id),
+				createTypeInstance(ret.id)
+			], uid)
 		]
 	};
 });
