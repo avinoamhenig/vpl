@@ -162,9 +162,8 @@ function evaluateBody(node, callback) {
 				}
 			});
 
-		case expressionType.LAMBDA: //TODO: Lambdas
-			console.log("LAMBDA: " + JSON.stringify(node, null, 2));
-			break;
+		case expressionType.LAMBDA:
+			return call(callback, extractFragment(G.program, node));
 
     case expressionType.CASE:
       const cases = node.caseBranches;
@@ -192,9 +191,8 @@ function evaluateBody(node, callback) {
 				});
 
 		case expressionType.DO:
-		//	const unitExpressions = node.unitExpressions;
 			const unitExpressions = node.unitExpressions.map(i => getNode(G.program, i));
-		//	const returnExpression = getNode(G.program, node.returnExpression);
+			const returnExpression = getNode(G.program, node.returnExpression);
 			return call(eval_star, unitExpressions, 0,
 				function (unit_exp_vals)  {
 					return call(evaluateStep, returnExpression,
@@ -296,18 +294,23 @@ function eval_application(argVals, eval_func, callback) {
 }
 
 function eval_fold(f, a, list, callback) {
+	if (rootNode(f)) {
+		var root = rootNode(f);
+	} else {
+		var root = f.rootNode;
+	}
 	if (rootNode(list).constructor === basis.constructors.End.id) {
 		return call(callback, a);
 	} else {
 		const head = extractFragment(list, rootNode(list).parameters[0]);
 		const tail = extractFragment(list, rootNode(list).parameters[1]);
-		if (getExpressionType(rootNode(f)) === expressionType.BUILT_IN_FUNCTION) {
-			const result = builtIn(rootNode(f).reference, rootNode(a).value, rootNode(head).value);
+		if (getExpressionType(root) === expressionType.BUILT_IN_FUNCTION) {
+			const result = builtIn(root.reference, rootNode(a).value, rootNode(head).value);
 			return call(eval_fold, f, result, tail, callback);
 		} else {
-			const called_fun_args = rootNode(f).arguments;
+			const called_fun_args = root.arguments;
 			pushEnvironment(called_fun_args, [a, head]);
-			return call(evaluateStep, getNode(G.program, rootNode(f).body),
+			return call(evaluateStep, getNode(G.program, root.body),
 				function (result) {
 					popEnvironment(called_fun_args);
 					return call(eval_fold, f, result, tail, callback);
@@ -317,16 +320,21 @@ function eval_fold(f, a, list, callback) {
 }
 
 function eval_fold_range(f, a, start, stop, step, callback) {
+	if (rootNode(f)) {
+		var root = rootNode(f);
+	} else {
+		var root = f.rootNode;
+	}
 	if (rootNode(start).value >= rootNode(stop).value) {
 		return call(callback, a);
 	} else {
-		if (getExpressionType(rootNode(f)) === expressionType.BUILT_IN_FUNCTION) {
-			const result = builtIn(rootNode(f).reference, rootNode(a).value, rootNode(start).value);
+		if (getExpressionType(root) === expressionType.BUILT_IN_FUNCTION) {
+			const result = builtIn(root.reference, rootNode(a).value, rootNode(start).value);
 			return call(eval_fold_range, f, result, createNumberExpression(rootNode(start).value+rootNode(step).value), stop, step, callback);
 		} else {
-			const called_fun_args = rootNode(f).arguments;
+			const called_fun_args = root.arguments;
 			pushEnvironment(called_fun_args, [a, start]);
-			return call(evaluateStep, getNode(G.program, rootNode(f).body),
+			return call(evaluateStep, getNode(G.program, root.body),
 				function (result) {
 					popEnvironment(called_fun_args);
 					return call(eval_fold_range, f, result, createNumberExpression(rootNode(start).value+rootNode(step).value), stop, step, callback);
@@ -400,27 +408,27 @@ function builtIn(ref, a1, a2) {
 		 } else {
 			 return createConstructionExpression(basis.constructors.False);
 		 }
-	 case basis.references.NOT_EQUAL:
-	  var result = a1 != a2;
-	  if (result) {
-	 	 return createConstructionExpression(basis.constructors.True);
-	  } else {
-	 	 return createConstructionExpression(basis.constructors.False);
-	  }
+		case basis.references.NOT_EQUAL:
+		var result = a1 != a2;
+		if (result) {
+			 return createConstructionExpression(basis.constructors.True);
+		} else {
+			 return createConstructionExpression(basis.constructors.False);
+		}
 		case basis.references.LESS_THAN:
 			var result = a1 < a2;
 			if (result) {
 		 		return createConstructionExpression(basis.constructors.True);
-	 		} else {
+				} else {
 		 		return createConstructionExpression(basis.constructors.False);
-	 		}
+				}
 		case basis.references.GREATER_THAN:
 			var result = a1 > a2;
 			if (result) {
 		 		return createConstructionExpression(basis.constructors.True);
-	 		} else {
+				} else {
 		 		return createConstructionExpression(basis.constructors.False);
-	 		}
+				}
 		case basis.references.LESS_EQUAL:
 			var result = a1 <= a2;
 			if (result) {
