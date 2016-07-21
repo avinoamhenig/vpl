@@ -320,24 +320,31 @@ function setUpBuiltInEnvironment() {
 	const built_in_env = {
 		'+': basis.identifiers[basis.references.PLUS],
 		'-': basis.identifiers[basis.references.MINUS],
-		'=': basis.identifiers[basis.references.EQUAL],
 		'*': basis.identifiers[basis.references.TIMES],
 		'/': basis.identifiers[basis.references.DIVIDE],
 		'remainder': basis.identifiers[basis.references.REMAINDER],
 
+		'=': basis.identifiers[basis.references.EQUAL],
+		'!=': basis.identifiers[basis.references.NOT_EQUAL],
 		'<': basis.identifiers[basis.references.LESS_THAN],
+		'>': basis.identifiers[basis.references.GREATER_THAN],
 		'<=': basis.identifiers[basis.references.LESS_EQUAL],
+		'>=': basis.identifiers[basis.references.GREATER_EQUAL],
+
+		'null?': basis.identifiers[basis.references.NULL],
 
 		'random': basis.identifiers[basis.references.RANDOM],
 
 		'fold': basis.identifiers[basis.references.FOLD],
-		'foldr': basis.identifiers[basis.references.FOLD_RANGE],
+		'fold-range': basis.identifiers[basis.references.FOLD_RANGE],
 
 		'draw': basis.identifiers[basis.references.DRAW],
 		'move': basis.identifiers[basis.references.MOVE],
 		'turn': basis.identifiers[basis.references.TURN],
 
 		'list': createIdentifier('list'),
+
+
 
 	};
 	G.scope.push(built_in_env);
