@@ -10,7 +10,8 @@ const {
 	createCaseBranch,
 	createConstructionExpression,
 	_createElseBranch,
-	createDoExpression
+	createDoExpression,
+	createUid
 } = require('./constructors');
 const {
 	rootNode,
@@ -20,7 +21,8 @@ const {
 const {
 	attachTypeDefinitions,
 	setType,
-	mergeFragments
+	mergeFragments,
+	setIdentifierScope
 } = require('./modifiers');
 
 const tCreateDefaultExpression = () => {
@@ -52,8 +54,18 @@ const tCreateLambdaExpression = (program, argIdentFrag, bodyFrag) => {
 		getBasisEntity(program, require('../basis').typeDefinitions.Lambda).id,
 		[argType, retType]
 	);
+	const lambdaUid = createUid();
+	argIdentFrag = Object.assign({}, argIdentFrag, {
+		identifiers: Object.assign({}, argIdentFrag.identifiers, {
+			[argIdentFrag.rootNode]: setIdentifierScope(
+				argIdentFrag.identifiers[argIdentFrag.rootNode],
+				lambdaUid
+			)
+		})
+	});
 	const lambdaFrag = setType(
-		createLambdaExpression([argIdentFrag.identifiers[argIdentFrag.rootNode]], bodyFrag),
+		createLambdaExpression([argIdentFrag.identifiers[argIdentFrag.rootNode]],
+			bodyFrag, lambdaUid),
 		lambdaType
 	);
 	return mergeFragments(lambdaFrag.rootNode, lambdaFrag, argIdentFrag);

@@ -107,11 +107,13 @@ function createIdentifierExpression (identifier) {
 // This function copies all the Identifiers (preserving their uid's) and
 // sets their scope to the LambdaExpression before attaching them to the
 // resulting ProgramFragment.
-function createLambdaExpression (argumentIdentifiers, bodyFragment) {
+function createLambdaExpression (argumentIdentifiers, bodyFragment, uid) {
+	if (typeof uid === 'undefined') { uid = createUid(); }
 	const frag = _createProgramFragment(
 		_createExpression(expressionType.LAMBDA, {
 			arguments: argumentIdentifiers.map(argIdent => argIdent.id),
-			body: bodyFragment.rootNode
+			body: bodyFragment.rootNode,
+			id: uid
 		}),
 		bodyFragment
 	);

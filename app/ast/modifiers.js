@@ -161,36 +161,35 @@ function appendPieceToExp(program, expId) {
 	switch (getNodeOrExpType(node)) {
 		case expressionType.LAMBDA:
 			const ident = setIdentifierScope(createIdentifier('x'), expId);
-			return Object.assign({}, program, {
-				nodes: Object.assign({}, program.nodes, {
-					[expId]: Object.assign({}, program.nodes[expId], {
-						arguments: [...program.nodes[expId].arguments, ident.id]
-					})
-				}),
-				identifiers: Object.assign({}, program.identifiers, {
-					[ident.id]: ident
-				})
+			const tVar = createTypeVariable();
+			const newLamType = Object.assign(program.types[node.id], {
+				parameters: [
+					...program.types[node.id].parameters.slice(0, -1),
+					createTypeInstance(tVar.id),
+					...program.types[node.id].parameters.slice(-1)
+				]
 			});
-
-		case expressionType.APPLICATION:
-			frag = _setFragParent(createNumberExpression(0), expId);
-			return Object.assign({}, program, {
-				nodes: Object.assign({}, program.nodes, {
-					[expId]: Object.assign({}, program.nodes[expId], {
-						arguments: [...program.nodes[expId].arguments, frag.rootNode]
-					})
-				}, frag.nodes)
-			});
-
-		case expressionType.CONSTRUCTION:
-			frag = _setFragParent(createNumberExpression(0), expId);
-			return Object.assign({}, program, {
-				nodes: Object.assign({}, program.nodes, {
-					[expId]: Object.assign({}, program.nodes[expId], {
-						parameters: [...program.nodes[expId].parameters, frag.rootNode]
-					})
-				}, frag.nodes)
-			});
+			// HACK
+			const identId = Object.keys(program.identifiers).filter(identId =>
+				program.identifiers[identId].value === node.id);
+			return attachTypeDefinitions(
+				setTypes(
+					Object.assign({}, program, {
+						nodes: Object.assign({}, program.nodes, {
+							[expId]: Object.assign({}, program.nodes[expId], {
+								arguments: [...program.nodes[expId].arguments, ident.id]
+							})
+						}),
+						identifiers: Object.assign({}, program.identifiers, {
+							[ident.id]: ident
+						})
+					}), [
+						[ident.id, createTypeInstance(tVar.id)],
+						[node.id, newLamType],
+						[identId, newLamType]
+					]
+				), [], [], [tVar]
+			);
 
 		case expressionType.DO:
 			frag = _setFragParent(createNumberExpression(0), expId);
@@ -594,7 +593,6 @@ function executeInsert(program, nodeType, valueish, idToReplace) {
 	const {
 		tCreateCaseBranch,
 		tCreateCaseExpression,
-		tCreateConstructionExpression,
 		tCreateDoExpression
 	} = require('./typedConstructors');
 
@@ -610,9 +608,9 @@ function executeInsert(program, nodeType, valueish, idToReplace) {
 			replacementType = slotType;
 			replacement = tCreateCaseExpression(
 				[tCreateCaseBranch(
-					tCreateConstructionExpression(
-						getBasisEntity(program, basis.constructors.False)
-					),
+					setType(createDefaultExpression(), createTypeInstance(
+						getBasisEntity(program, basis.typeDefinitions.Bool).id
+					)),
 					setType(createDefaultExpression(), slotType)
 				)],
 				fragToReplace
