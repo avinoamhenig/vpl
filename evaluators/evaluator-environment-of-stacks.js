@@ -439,7 +439,7 @@ function builtIn(ref, a1, a2) {
 			}
 
 		case basis.references.NULL:
-			var result = rootNode(a1).constructor === basis.constructors.End.id;
+			var result = rootNode(a1).constructor === getBasisEntity(G.program, basis.constructors.End).id;
 			if (result) {
 				return createConstructionExpression(getBasisEntity(G.program, basis.constructors.True));
 			} else {
