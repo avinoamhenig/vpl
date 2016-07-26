@@ -1,4 +1,8 @@
 const { astType, nodeType, expressionType } = require('./typeNames');
+const {
+	createTypeVariable,
+	createTypeInstance
+} = require('./constructors');
 
 // ProgramFragment -> Node
 function rootNode(frag) {
@@ -87,6 +91,8 @@ function getChildrenIds(node) {
 		case nodeType.CASE_BRANCH: return [node.condition, node.expression];
 		case nodeType.ELSE_BRANCH: return [node.expression];
 		case expressionType.DO: return [...node.unitExpressions, node.returnExpression];
+		case expressionType.DEFAULT: return [];
+		case expressionType.CONSTRUCTION: return node.parameters;
 		default: throw `Unexpected node: ${getNodeOrExpType(node)}.`;
 	}
 }
@@ -119,6 +125,8 @@ function _getSubIdsInOrder(program, nodeId, ignoreInfix = false) {
 			return [...node.parameterIdentifiers, node.expression];
 		case expressionType.DO:
 			return [...node.unitExpressions, node.returnExpression];
+		case expressionType.DEFAULT: return [];
+		case expressionType.CONSTRUCTION: return node.parameters;
 		default: throw `Unexpected node: ${getNodeOrExpType(node)}.`;
 	}
 }
@@ -190,8 +198,7 @@ function getEntity(program, id) {
 	    || program.identifiers[id]
 	    || program.constructors[id]
 		  || program.typeDefinitions[id]
-		  || program.typeVariables[id]
-			|| program.types[id];
+		  || program.typeVariables[id];
 }
 
 function getEntityType(entity) {
@@ -292,6 +299,9 @@ function extractFragment(program, nodeId) {
 	for (const id of ids) {
 		const entity = getEntity(program, id);
 		frag[props[getAstType(entity)]][id] = entity;
+		if (program.types[id]) {
+			frag.types[id] = program.types[id];
+		}
 	}
 
 	return frag;
@@ -306,8 +316,12 @@ function getType(program, entityId) {
 function getVisibleIdentifiers(program, nodeId) {
 	const idents = [];
 	while (nodeId) {
+		const node = getEntity(program, nodeId);
+		if (getEntityType(node) === astType.IDENTIFIER) {
+			break;
+		}
 		idents.push(...getIdentifiersScopedToNode(program, nodeId))
-		nodeId = getNode(program, nodeId).parent;
+		nodeId = node.parent;
 	}
 	return idents.concat(getRootScopeIdentifiers(program));
 }
@@ -315,8 +329,9 @@ function getVisibleIdentifiers(program, nodeId) {
 // Program, TypeInstance -> String
 function typeString(program, type) {
 	if (type == null) return 'no type';
-	
+
 	let str = '';
+	type = getFinalType(program, type);
 	const typeDef = getEntity(program, type.typeDefinition);
 	str += typeDef.displayName || typeDef.id.slice(-4);
 	for (const paramType of type.parameters) {
@@ -325,19 +340,104 @@ function typeString(program, type) {
 	return str;
 }
 
+function getBasisEntity(program, basisEntity) {
+	switch (getEntityType(basisEntity)) {
+		case astType.TYPE_DEFINITION:
+			for (const id of Object.keys(program.typeDefinitions)) {
+				const typeDef = program.typeDefinitions[id];
+				if (typeDef.displayName === basisEntity.displayName) {
+					return typeDef;
+				}
+			}
+		case astType.CONSTRUCTOR:
+			for (const id of Object.keys(program.constructors)) {
+				const cons = program.constructors[id];
+				if (cons.displayName === basisEntity.displayName) {
+					return cons;
+				}
+			}
+		default:
+			throw `Unexpected basis entity in lookup.`;
+	}
+}
+
+function getFinalType(program, type) {
+	if (program.typeDefinitions[type.typeDefinitions]) {
+		return type;
+	} else if (program.types[type.typeDefinition]) {
+		return getFinalType(
+			program, program.types[type.typeDefinition]);
+	}
+	return type;
+}
+
+function matchTypes(program, typeA, typeB, extraTypeVarMap={}) {
+	typeA = getFinalType(program, typeA);
+	typeB = getFinalType(program, typeB);
+	if (extraTypeVarMap[typeA.typeDefinition]) {
+		typeA = getFinalType(program, extraTypeVarMap[typeA.typeDefinition]);
+	}
+	if (extraTypeVarMap[typeB.typeDefinition]) {
+		typeB.typeDefinition = getFinalTypeId(program, extraTypeVarMap[typeB.typeDefinition]);
+	}
+	const isTypeAVar = !program.typeDefinitions[typeA.typeDefinition];
+	const isTypeBVar = !program.typeDefinitions[typeB.typeDefinition];
+
+	const typeVarTypes = {};
+	const newTypeVars = [];
+
+	if (isTypeAVar && isTypeBVar) {
+		const newTypeVar = createTypeVariable();
+		newTypeVars.push(newTypeVar);
+		typeVarTypes[typeA.typeDefinition] = createTypeInstance(newTypeVar.id);
+		typeVarTypes[typeB.typeDefinition] = createTypeInstance(newTypeVar.id);
+	} else if (isTypeAVar) {
+		typeVarTypes[typeA.typeDefinition] = typeB;
+	} else if (isTypeBVar) {
+		typeVarTypes[typeB.typeDefinition] = typeA;
+	} else {
+			if (typeA.typeDefinition !== typeB.typeDefinition) { return false; }
+			if (typeA.parameters.length !== typeB.parameters.length) { return false; }
+			for (let i = 0; i < typeA.parameters.length; i++) {
+				const paramMatch = matchTypes(
+					program, typeA.parameters[i], typeB.parameters[i], typeVarTypes
+				);
+				if (paramMatch === false) { return false; }
+				Object.assign(typeVarTypes, paramMatch.typeVarTypes);
+				newTypeVars.push(...paramMatch.newTypeVars)
+			}
+	}
+
+	return { typeVarTypes, newTypeVars };
+}
+
 module.exports = {
-	rootNode, root, getAstType, getNodeType, getEntityType,
-	getExpressionType, getNodeOrExpType,
-	getIdentifier, getNode, getRootScopeLambdaIdentifiers,
-	isInfixOperator, isLeafExpression,
-	getIdentifiersScopedToNode, getBoundIdentifiers,
+	rootNode,
+	root,
+	getAstType,
+	getNodeType,
+	getEntityType,
+	getExpressionType,
+	getNodeOrExpType,
+	getIdentifier,
+	getNode,
+	getRootScopeLambdaIdentifiers,
+	isInfixOperator,
+	isLeafExpression,
+	getIdentifiersScopedToNode,
+	getBoundIdentifiers,
 	getChildrenIds,
-	getNodeToTheLeft, getNodeToTheRight,
-	getNodeInside, getNodeOutside,
+	getNodeToTheLeft,
+	getNodeToTheRight,
+	getNodeInside,
+	getNodeOutside,
 	extractFragment,
 	getVisibleIdentifiers,
 	getRootScopeIdentifiers,
 	getEntity,
 	getType,
-	typeString
+	typeString,
+	getBasisEntity,
+	matchTypes,
+	getFinalType
 };

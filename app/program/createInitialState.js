@@ -15,7 +15,7 @@ export default () => {
 	return createProgram(
 		basis.basisFragment,
 		attachTypeDefinitions(
-			setType(frag, frag.rootNode, createTypeInstance(typeVar.id)),
+			setType(frag, createTypeInstance(typeVar.id)),
 			[], [], [typeVar]
 		)
 	);
