@@ -13,14 +13,8 @@ const {
 	rootNode,
 	createConstructionExpression,
 	extractFragment,
+	getBasisEntity
 } = require('../app/ast');
-const {
-	basisFragment,
-	identifiers,
-	typeDefinitions,
-	constructors,
-	references
-} = require('../app/basis');
 const basis = require('../app/basis');
 
 
@@ -250,7 +244,7 @@ function evaluateBuiltInFunction(argVals, eval_func, callback) {
 					const construction_exp = rootNode(evaluated_args[2]);
 					const applied_function = evaluated_args[0];
 					const accumulator = evaluated_args[1];
-					if (construction_exp.constructor === basis.constructors.Range.id) { //foldr
+					if (construction_exp.constructor === getBasisEntity(G.program, basis.constructors.Range).id) { //foldr
 						const [start, stop, step] = construction_exp.parameters.map(i => extractFragment(evaluated_args[2], i));
 						return call(eval_fold_range, applied_function, accumulator, start, stop, step, callback);
 					} else { //fold
@@ -299,7 +293,7 @@ function eval_fold(f, a, list, callback) {
 	} else {
 		var root = f.rootNode;
 	}
-	if (rootNode(list).constructor === basis.constructors.End.id) {
+	if (rootNode(list).constructor === getBasisEntity(G.program, basis.constructors.End).id) {
 		return call(callback, a);
 	} else {
 		const head = extractFragment(list, rootNode(list).parameters[0]);
@@ -352,7 +346,7 @@ function evaluate_cases(exps, callback, elseExp, pos) {
 		return call(evaluateStep, getNode(G.program, cs.condition),
 			function (condition) {
 				const cond = rootNode(condition).constructor;
-				const t = basis.constructors["True"].id;
+				const t = getBasisEntity(G.program, basis.constructors.True).id;
 				if (cond === t) return call(evaluateStep, getNode(G.program, cs.expression), callback);
 				else return call(evaluate_cases, exps, callback, elseExp, pos+=1);
 			});
@@ -404,52 +398,52 @@ function builtIn(ref, a1, a2) {
 		case basis.references.EQUAL:
 		 var result = a1 === a2;
 		 if (result) {
-			 return createConstructionExpression(basis.constructors.True);
+			 return createConstructionExpression(getBasisEntity(G.program, basis.constructors.True));
 		 } else {
-			 return createConstructionExpression(basis.constructors.False);
+			 return createConstructionExpression(getBasisEntity(G.program, basis.constructors.False));
 		 }
 		case basis.references.NOT_EQUAL:
 		var result = a1 != a2;
 		if (result) {
-			 return createConstructionExpression(basis.constructors.True);
+			 return createConstructionExpression(getBasisEntity(G.program, basis.constructors.True));
 		} else {
-			 return createConstructionExpression(basis.constructors.False);
+			 return createConstructionExpression(getBasisEntity(G.program, basis.constructors.False));
 		}
 		case basis.references.LESS_THAN:
 			var result = a1 < a2;
 			if (result) {
-		 		return createConstructionExpression(basis.constructors.True);
+		 		return createConstructionExpression(getBasisEntity(G.program, basis.constructors.True));
 				} else {
-		 		return createConstructionExpression(basis.constructors.False);
+		 		return createConstructionExpression(getBasisEntity(G.program, basis.constructors.False));
 				}
 		case basis.references.GREATER_THAN:
 			var result = a1 > a2;
 			if (result) {
-		 		return createConstructionExpression(basis.constructors.True);
+		 		return createConstructionExpression(getBasisEntity(G.program, basis.constructors.True));
 				} else {
-		 		return createConstructionExpression(basis.constructors.False);
+		 		return createConstructionExpression(getBasisEntity(G.program, basis.constructors.False));
 				}
 		case basis.references.LESS_EQUAL:
 			var result = a1 <= a2;
 			if (result) {
-				return createConstructionExpression(basis.constructors.True);
+				return createConstructionExpression(getBasisEntity(G.program, basis.constructors.True));
 			} else {
-				return createConstructionExpression(basis.constructors.False);
+				return createConstructionExpression(getBasisEntity(G.program, basis.constructors.False));
 			}
 		case basis.references.GREATER_EQUAL:
 			var result = a1 >= a2;
 			if (result) {
-				return createConstructionExpression(basis.constructors.True);
+				return createConstructionExpression(getBasisEntity(G.program, basis.constructors.True));
 			} else {
-				return createConstructionExpression(basis.constructors.False);
+				return createConstructionExpression(getBasisEntity(G.program, basis.constructors.False));
 			}
 
 		case basis.references.NULL:
 			var result = a1.length === 0;
 			if (result) {
-				return createConstructionExpression(basis.constructors.True);
+				return createConstructionExpression(getBasisEntity(G.program, basis.constructors.True));
 			} else {
-				return createConstructionExpression(basis.constructors.False);
+				return createConstructionExpression(getBasisEntity(G.program, basis.constructors.False));
 			}
 
 		case basis.references.RANDOM:

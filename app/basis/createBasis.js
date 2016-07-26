@@ -7,7 +7,8 @@ const {
 	bindIdentifiers,
 	createBuiltInFunctionExpression,
 	attachTypeDefinitions,
-	setTypes
+	setTypes,
+	getBasisEntity
 } = require('../../app/ast');
 const r = require('./references');
 const {
@@ -193,3 +194,25 @@ basisFragment = setTypes(basisFragment,[
 ]);
 
 module.exports.basisFragment = basisFragment;
+
+module.exports.link = program => {
+	const _typeDefinitions = Object.keys(typeDefinitions)
+		.map(k => getBasisEntity(typeDefinitions[k]));
+	const _constructors = Object.keys(constructors)
+		.map(k => getBasisEntity(constructors[k]));
+	const _typeVariables = Object.keys(typeVariables)
+		.map(k => getBasisEntity(typeVariables[k]));
+
+	return Object.assign(module.exports, {
+		basisFragment: attachTypeDefinitions(
+			bindIdentifiers(createNumberExpression(0), Object.keys(i)
+				.map(ref => [i[ref], createBuiltInFunctionExpression(ref)])),
+			_typeDefinitions,
+			_constructors,
+			_typeVariables
+		),
+		typeDefinitions: _typeDefinitions,
+		constructors: _constructors,
+		typeVariables: _typeVariables
+	});
+};
