@@ -445,7 +445,7 @@ function builtIn(ref, a1, a2) {
 			}
 
 		case basis.references.NULL:
-			var result = a1.length === 0;
+			var result = rootNode(a1).constructor === basis.constructors.End.id;
 			if (result) {
 				return createConstructionExpression(basis.constructors.True);
 			} else {
