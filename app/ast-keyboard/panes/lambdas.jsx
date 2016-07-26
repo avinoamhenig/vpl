@@ -2,8 +2,6 @@ import React from 'react'
 import Icon from 'lib/Icon'
 import {
 	getVisibleIdentifiers,
-	createApplicationExpression,
-	createIdentifierExpression,
 	getEntityType, getEntity,
 	expressionType
 } from 'ast'
@@ -21,9 +19,8 @@ export default (program, selectedExpId, dispatch) => ({
 			display: ident.displayName,
 			handler() {
 				dispatch(astActions.replaceSelectedExp(
-					createApplicationExpression(
-						createIdentifierExpression(ident), []
-					)
+					expressionType.APPLICATION,
+					ident.id
 				));
 			}
 		}))

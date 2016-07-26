@@ -12,7 +12,8 @@ import {
 	getNodeInside, getNodeOutside,
 	createProgram,
 	getType,
-	typeString
+	typeString,
+	getEntity
 } from 'ast'
 import { basisFragment } from 'basis'
 
@@ -132,23 +133,14 @@ export default createReducer({
 		showEvalResult: !state.showCanvas ? false : state.showEvalResult
 	}),
 
-	[astActions.replaceExp]: (state, { exp, idToReplace }) => {
-		if (idToReplace === state.selectedExpId
-		 || state.expandedExpIds.includes(idToReplace)) {
-
-			const node = rootNode(exp, expressionType);
-			const toSelect = ({
-				[expressionType.APPLICATION]: () => node.lambda,
-				[expressionType.CASE]: () =>
-					getNode(exp, node.caseBranches[0]).condition
-			}[getNodeOrExpType(node)] || (() => exp.rootNode))();
-
+	[astActions.replaceAst]: (state, { newProgram, idReplaced, replacementId }) => {
+		if (!getEntity(newProgram, idReplaced)) {
 			return {
 				...state,
-				selectedExpId: idToReplace === state.selectedExpId
-					? toSelect : state.selectedExpId,
+				selectedExpId: idReplaced === state.selectedExpId
+					? replacementId : state.selectedExpId,
 				expandedExpIds: state.expandedExpIds.map(id =>
-					id === idToReplace ? exp.rootNode : id)
+					id === idReplaced ? replacementId : id)
 			};
 		}
 		return state;

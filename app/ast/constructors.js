@@ -1,7 +1,8 @@
 const { v4: createUid } = require('node-uuid');
 const { astType, nodeType, expressionType } = require('./typeNames');
-const { rootNode } = require('./accessors');
 const oa = Object.assign;
+
+const rootNode = frag => frag.nodes[frag.rootNode];
 
 function _createNode (nodeType, props) {
 	return oa({
@@ -173,7 +174,7 @@ function createConstructor (name, parameterTypes, typeDefId) {
 		astType: astType.CONSTRUCTOR,
 		id: createUid(),
 		displayName: name,
-		parameterTypes: parameterTypes.map(t => t.id),
+		parameterTypes: parameterTypes,
 		typeDefinition: typeDefId
 	};
 }
@@ -297,5 +298,7 @@ module.exports = {
 	createDefaultExpression,
 	createTypeVariable,
 	createTypeInstance,
-	createDoExpression
+	createDoExpression,
+	_createProgramFragment,
+	_createElseBranch
 };

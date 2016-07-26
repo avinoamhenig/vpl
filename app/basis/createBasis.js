@@ -6,7 +6,9 @@ const {
 	createNumberExpression,
 	bindIdentifiers,
 	createBuiltInFunctionExpression,
-	attachTypeDefinitions
+	attachTypeDefinitions,
+	setTypes,
+	getBasisEntity
 } = require('../../app/ast');
 const r = require('./references');
 const {
@@ -34,16 +36,9 @@ newTypeDefinition('Bool', uid => {
 });
 
 newTypeDefinition('Lambda', uid => {
-	const arg = createTypeVariable();
-	const ret = createTypeVariable();
 	return {
-		parameters: [arg, ret],
-		constructors: [
-			createConstructor('Lambda', [
-				createTypeInstance(arg.id),
-				createTypeInstance(ret.id)
-			], uid)
-		]
+		parameters: [],
+		constructors: []
 	};
 });
 
@@ -114,16 +109,110 @@ const i = {
 	[r.TURN]: createIdentifier('turn')
 };
 
+const nullTVar = createTypeVariable();
+typeVariables[nullTVar.id] = nullTVar;
+const foldTVarA = createTypeVariable();
+typeVariables[foldTVarA.id] = foldTVarA;
+const foldTVarB = createTypeVariable();
+typeVariables[foldTVarB.id] = foldTVarB;
+const foldrTVar = createTypeVariable();
+typeVariables[foldrTVar.id] = foldrTVar;
+
 module.exports.identifiers = i;
 module.exports.typeDefinitions = typeDefinitions;
 module.exports.constructors = constructors;
 module.exports.typeVariables = typeVariables;
 
 // Create fragment and bind identifiers and attach types.
-module.exports.basisFragment = attachTypeDefinitions(
+let basisFragment = attachTypeDefinitions(
 	bindIdentifiers(createNumberExpression(0), Object.keys(i)
 		.map(ref => [i[ref], createBuiltInFunctionExpression(ref)])),
 	Object.keys(typeDefinitions).map(k => typeDefinitions[k]),
 	Object.keys(constructors).map(k => constructors[k]),
 	Object.keys(typeVariables).map(k => typeVariables[k])
 );
+
+// set built in function types
+const ct = createTypeInstance;
+const binNumT = ct(typeDefinitions.Lambda.id, [
+	ct(typeDefinitions.Number.id),
+	ct(typeDefinitions.Number.id),
+	ct(typeDefinitions.Number.id)
+]);
+const cmpT = ct(typeDefinitions.Lambda.id, [
+	ct(typeDefinitions.Number.id),
+	ct(typeDefinitions.Number.id),
+	ct(typeDefinitions.Bool.id)
+]);
+const drawT = ct(typeDefinitions.Lambda.id, [
+	ct(typeDefinitions.Number.id),
+	ct(typeDefinitions.Number.id)
+]);
+basisFragment = setTypes(basisFragment,[
+	[i[r.PLUS].id,      binNumT],
+	[i[r.MINUS].id,     binNumT],
+	[i[r.TIMES].id,     binNumT],
+	[i[r.DIVIDE].id,    binNumT],
+	[i[r.REMAINDER].id, binNumT],
+
+	[i[r.EQUAL].id,         cmpT],
+	[i[r.NOT_EQUAL].id,     cmpT],
+	[i[r.LESS_THAN].id,     cmpT],
+	[i[r.GREATER_THAN].id,  cmpT],
+	[i[r.LESS_EQUAL].id,    cmpT],
+	[i[r.GREATER_EQUAL].id, cmpT],
+
+	[i[r.NULL].id, ct(typeDefinitions.Lambda.id, [
+		ct(typeDefinitions.List.id, [ct(nullTVar.id)]),
+		ct(typeDefinitions.Bool.id)
+	])],
+
+	[i[r.RANDOM].id, ct(typeDefinitions.Lambda.id, [
+		ct(typeDefinitions.Number.id)
+	])],
+
+	[i[r.FOLD].id, ct(typeDefinitions.Lambda.id, [
+		ct(typeDefinitions.Lambda.id, [
+			ct(foldTVarB.id), ct(foldTVarA.id), ct(foldTVarB.id)
+		]),
+		ct(foldTVarB.id),
+		ct(typeDefinitions.List.id, [ ct(foldTVarA.id) ]),
+		ct(foldTVarB.id)
+	])],
+	[i[r.FOLD_RANGE].id, ct(typeDefinitions.Lambda.id, [
+		ct(typeDefinitions.Lambda.id, [
+			ct(foldrTVar.id), ct(typeDefinitions.Number.id), ct(foldrTVar.id)
+		]),
+		ct(foldrTVar.id),
+		ct(typeDefinitions.Range.id),
+		ct(foldrTVar.id)
+	])],
+
+	[i[r.MOVE].id, drawT],
+	[i[r.DRAW].id, drawT],
+	[i[r.TURN].id, drawT]
+]);
+
+module.exports.basisFragment = basisFragment;
+
+module.exports.link = program => {
+	const _typeDefinitions = Object.keys(typeDefinitions)
+		.map(k => getBasisEntity(typeDefinitions[k]));
+	const _constructors = Object.keys(constructors)
+		.map(k => getBasisEntity(constructors[k]));
+	const _typeVariables = Object.keys(typeVariables)
+		.map(k => getBasisEntity(typeVariables[k]));
+
+	return Object.assign(module.exports, {
+		basisFragment: attachTypeDefinitions(
+			bindIdentifiers(createNumberExpression(0), Object.keys(i)
+				.map(ref => [i[ref], createBuiltInFunctionExpression(ref)])),
+			_typeDefinitions,
+			_constructors,
+			_typeVariables
+		),
+		typeDefinitions: _typeDefinitions,
+		constructors: _constructors,
+		typeVariables: _typeVariables
+	});
+};
