@@ -101,7 +101,7 @@ const i = {
 	[r.RANDOM]: createIdentifier('random'),
 
 	[r.FOLD]: createIdentifier('fold'),
-	[r.FOLD_RANGE]: createIdentifier('foldr'),
+	[r.FOLD_RANGE]: createIdentifier('fold-range'),
 
 	[r.MOVE]: createIdentifier('move'),
 	[r.DRAW]: createIdentifier('draw'),
