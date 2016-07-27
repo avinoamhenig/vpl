@@ -11,7 +11,8 @@ const mapStateToProps = state => state.lambdaView;
 const mapDispatchToProps = (dispatch) => bindActionCreators({
 	...actions, navigate,
 	newFunction: astActions.newFunction,
-	loadJSONProgram: astActions.loadJSONProgram
+	loadJSONProgram: astActions.loadJSONProgram,
+	resetRoot: astActions.resetRoot
 }, dispatch);
 export default compose(
 	connect(mapStateToProps, mapDispatchToProps),
