@@ -53,7 +53,8 @@ const mergeProps = (state, {dispatch}, ownProps) => {
 			panes.numeric(program, selectedExpId, dispatch),
 			panes.identifiers(program, selectedExpId, dispatch),
 			panes.lambdas(program, selectedExpId, dispatch),
-			panes.constructors(program, selectedExpId, dispatch)
+			panes.constructors(program, selectedExpId, dispatch),
+			panes.deconstructors(program, selectedExpId, dispatch)
 		]
 	};
 };

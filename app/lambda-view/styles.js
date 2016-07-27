@@ -133,7 +133,8 @@ export default p => {
 	}];
 
 	s.leftBtn = [s.nestingBtn, {
-		float: 'left'
+		float: 'left',
+		color: '#666'
 	}];
 
 	s.evalResult = [s.nestingInfo, {

@@ -25,6 +25,13 @@ newTypeDefinition('Number', uid => {
 	};
 });
 
+newTypeDefinition('Unit', uid => {
+	return {
+		parameters: [],
+		constructors: []
+	};
+});
+
 newTypeDefinition('Bool', uid => {
 	return {
 		parameters: [],
@@ -146,7 +153,7 @@ const cmpT = ct(typeDefinitions.Lambda.id, [
 ]);
 const drawT = ct(typeDefinitions.Lambda.id, [
 	ct(typeDefinitions.Number.id),
-	ct(typeDefinitions.Number.id)
+	ct(typeDefinitions.Unit.id)
 ]);
 basisFragment = setTypes(basisFragment,[
 	[i[r.PLUS].id,      binNumT],

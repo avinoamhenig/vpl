@@ -30,7 +30,13 @@ export default compose(
 			</div>
 			{ e.parameterIdentifiers.map(identId => (
 				<div style={s.leaf} key={identId}>
-					<div style={[s.piece]}>
+					<div
+						style={[
+							s.smallPiece,
+							p.selectedExpId === identId && s.selected
+						]}
+						onClick={sp(p.onClick, identId, p.expansionLevel)}
+						>
 						{p.program.identifiers[identId].displayName}
 					</div>
 				</div>

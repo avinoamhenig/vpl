@@ -1,4 +1,4 @@
-const VERSION = 4.0;
+const VERSION = 5.0;
 
 const Program = {
   astType         : TYPE_NAME,
@@ -42,7 +42,7 @@ const TypeDefinition = {
   astType      : TypeName,
   id           : NewUid(),
   displayName  : String,
-  constructors : nonempty([Uid(Constructor)]),
+  constructors : [Uid(Constructor)],
   parameters   : [Uid(TypeVariable)]
 };
 

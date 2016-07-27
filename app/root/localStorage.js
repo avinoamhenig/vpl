@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'vpl4-iter2';
+const STORAGE_KEY = 'vpl5';
 
 export const loadState = () => {
 	if (typeof window === 'undefined') {

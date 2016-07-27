@@ -90,9 +90,13 @@ function getChildrenIds(node) {
 		case expressionType.CASE: return [...node.caseBranches, node.elseBranch];
 		case nodeType.CASE_BRANCH: return [node.condition, node.expression];
 		case nodeType.ELSE_BRANCH: return [node.expression];
-		case expressionType.DO: return [...node.unitExpressions, node.returnExpression];
+		case expressionType.DO:
+			return [...node.unitExpressions, node.returnExpression];
 		case expressionType.DEFAULT: return [];
 		case expressionType.CONSTRUCTION: return node.parameters;
+		case expressionType.DECONSTRUCTION:
+			return [node.dataExpression, ...node.cases];
+		case nodeType.DECONSTRUCTION_CASE: return [node.expression];
 		default: throw `Unexpected node: ${getNodeOrExpType(node)}.`;
 	}
 }
@@ -127,6 +131,10 @@ function _getSubIdsInOrder(program, nodeId, ignoreInfix = false) {
 			return [...node.unitExpressions, node.returnExpression];
 		case expressionType.DEFAULT: return [];
 		case expressionType.CONSTRUCTION: return node.parameters;
+		case expressionType.DECONSTRUCTION:
+			return [node.dataExpression, ...node.cases];
+		case nodeType.DECONSTRUCTION_CASE:
+			return [...node.parameterIdentifiers, node.expression];
 		default: throw `Unexpected node: ${getNodeOrExpType(node)}.`;
 	}
 }
@@ -374,12 +382,14 @@ function getFinalType(program, type) {
 function matchTypes(program, typeA, typeB, extraTypeVarMap={}) {
 	typeA = getFinalType(program, typeA);
 	typeB = getFinalType(program, typeB);
-	if (extraTypeVarMap[typeA.typeDefinition]) {
-		typeA = getFinalType(program, extraTypeVarMap[typeA.typeDefinition]);
-	}
-	if (extraTypeVarMap[typeB.typeDefinition]) {
-		typeB.typeDefinition = getFinalTypeId(program, extraTypeVarMap[typeB.typeDefinition]);
-	}
+	// if (extraTypeVarMap[typeA.typeDefinition]) {
+	// 	typeA = getFinalType(program,
+	// 		extraTypeVarMap[typeA.typeDefinition]);
+	// }
+	// if (extraTypeVarMap[typeB.typeDefinition]) {
+	// 	typeB.typeDefinition = getFinalType(program,
+	// 		extraTypeVarMap[typeB.typeDefinition]);
+	// }
 	const isTypeAVar = !program.typeDefinitions[typeA.typeDefinition];
 	const isTypeBVar = !program.typeDefinitions[typeB.typeDefinition];
 
