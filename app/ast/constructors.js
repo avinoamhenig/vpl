@@ -1,7 +1,8 @@
 const { v4: createUid } = require('node-uuid');
 const { astType, nodeType, expressionType } = require('./typeNames');
-const { rootNode } = require('./accessors');
 const oa = Object.assign;
+
+const rootNode = frag => frag.nodes[frag.rootNode];
 
 function _createNode (nodeType, props) {
 	return oa({
@@ -16,8 +17,7 @@ function _createNode (nodeType, props) {
 
 function _createExpression (expressionType, props) {
 	return _createNode(nodeType.EXPRESSION, oa({
-		expressionType,
- 		type: null // REVIEW type should probably never be null
+		expressionType
 	}, props));
 }
 
@@ -43,7 +43,8 @@ function _createProgramFragment (rootNode, ...frags) {
 		identifiers: oa({}, ...frags.map(f => f.identifiers)),
 		constructors: oa({}, ...frags.map(f => f.constructors)),
 		typeDefinitions: oa({}, ...frags.map(f => f.typeDefinitions)),
-		typeVariables: oa({}, ...frags.map(f => f.typeVariables))
+		typeVariables: oa({}, ...frags.map(f => f.typeVariables)),
+		types: oa({}, ...frags.map(f => f.types))
 	};
 }
 
@@ -70,7 +71,8 @@ function createProgram (...frags) {
 		identifiers: oa({}, ...frags.map(f => f.identifiers)),
 		constructors: oa({}, ...frags.map(f => f.constructors)),
 		typeDefinitions: oa({}, ...frags.map(f => f.typeDefinitions)),
-		typeVariables: oa({}, ...frags.map(f => f.typeVariables))
+		typeVariables: oa({}, ...frags.map(f => f.typeVariables)),
+		types: oa({}, ...frags.map(f => f.types))
 	};
 }
 
@@ -105,11 +107,13 @@ function createIdentifierExpression (identifier) {
 // This function copies all the Identifiers (preserving their uid's) and
 // sets their scope to the LambdaExpression before attaching them to the
 // resulting ProgramFragment.
-function createLambdaExpression (argumentIdentifiers, bodyFragment) {
+function createLambdaExpression (argumentIdentifiers, bodyFragment, uid) {
+	if (typeof uid === 'undefined') { uid = createUid(); }
 	const frag = _createProgramFragment(
 		_createExpression(expressionType.LAMBDA, {
 			arguments: argumentIdentifiers.map(argIdent => argIdent.id),
-			body: bodyFragment.rootNode
+			body: bodyFragment.rootNode,
+			id: uid
 		}),
 		bodyFragment
 	);
@@ -172,7 +176,7 @@ function createConstructor (name, parameterTypes, typeDefId) {
 		astType: astType.CONSTRUCTOR,
 		id: createUid(),
 		displayName: name,
-		parameterTypes: parameterTypes.map(t => t.id),
+		parameterTypes: parameterTypes,
 		typeDefinition: typeDefId
 	};
 }
@@ -296,5 +300,7 @@ module.exports = {
 	createDefaultExpression,
 	createTypeVariable,
 	createTypeInstance,
-	createDoExpression
+	createDoExpression,
+	_createProgramFragment,
+	_createElseBranch
 };

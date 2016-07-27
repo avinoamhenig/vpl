@@ -3,18 +3,6 @@ import name from 'lib/name'
 import Radium from 'radium'
 import { compose } from 'redux'
 import computeStyles from './expressionViewStyles'
-import CaseExpressionView from './sub/CaseExpressionView'
-import CaseBranchView from './sub/CaseBranchView'
-import ElseBranchView from './sub/ElseBranchView'
-import ApplicationExpressionView from './sub/ApplicationExpressionView'
-import NumberExpressionView from './sub/NumberExpressionView'
-import IdentifierExpressionView from './sub/IdentifierExpressionView'
-import CollapsedExpressionView from './sub/CollapsedExpressionView'
-import ExpandedExpressionView from './sub/ExpandedExpressionView'
-import DoExpressionView from './sub/DoExpressionView'
-import ConstructionExpressionView from './sub/ConstructionExpressionView'
-import DeconstructionExpressionView from './sub/DeconstructionExpressionView'
-import DeconstructionCaseView from './sub/DeconstructionCaseView'
 import Icon from 'lib/Icon'
 import sp from 'lib/stopPropagation'
 import {
@@ -24,6 +12,9 @@ import {
 	isLeafExpression,
 	getBoundIdentifiers
 } from 'ast'
+import * as sub from './sub'
+import CollapsedExpressionView from './sub/CollapsedExpressionView'
+import ExpandedExpressionView from './sub/ExpandedExpressionView'
 
 export default compose(
 	name('ExpressionView'), Radium
@@ -41,40 +32,10 @@ export default compose(
 	if (p.nestedLevel > p.nestingLimit && !isLeafExpression(expression)) {
 		view = (<CollapsedExpressionView {...p} />);
 	} else {
-		switch (getNodeOrExpType(expression)) {
-			case expressionType.NUMBER: view = (
-				<NumberExpressionView {...p} />
-			); break;
-			case expressionType.IDENTIFIER: view = (
-				<IdentifierExpressionView {...p} />
-			); break;
-			case expressionType.LAMBDA:
-				// TODO display LambdaExpression
-				break;
-			case expressionType.APPLICATION: view = (
-				<ApplicationExpressionView {...p} />
-			); break;
-			case expressionType.CASE: view = (
-				<CaseExpressionView {...p} />
-			); break;
-			case nodeType.CASE_BRANCH: view = (
-				<CaseBranchView {...p} />
-			); break;
-			case nodeType.ELSE_BRANCH: view = (
-				<ElseBranchView {...p} />
-			); break;
-			case expressionType.DO: view = (
-				<DoExpressionView {...p} />
-			); break;
-			case expressionType.CONSTRUCTION: view = (
-				<ConstructionExpressionView {...p} />
-			); break;
-			case expressionType.DECONSTRUCTION: view = (
-				<DeconstructionExpressionView {...p} />
-			); break;
-			case nodeType.DECONSTRUCTION_CASE: view = (
-				<DeconstructionCaseView {...p} />
-			); break;
+		const cName = getNodeOrExpType(expression) + 'View';
+		const Component = sub[cName];
+		if (typeof Component !== 'undefined') {
+			view = (<Component {...p} />);
 		}
 	}
 

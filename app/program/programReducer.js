@@ -11,18 +11,34 @@ import {
 	setIdentifierScope,
 	setDisplayName,
 	getIdentifier,
-	wrapExpInDo
+	wrapExpInDo,
+	setType,
+	createTypeVariable,
+	createTypeInstance,
+	attachTypeDefinitions,
+	getBasisEntity,
+	createDefaultExpression,
+	tCreateDefaultExpression,
+	tCreateIdentifier,
+	tCreateLambdaExpression,
+	executeInsert,
+	getEntity
 } from 'ast'
 import { parseProgram } from '../../converters/parser-v2'
 
-const initialState = require('../../test/ast/create_sum')();
+const initialState = require('./createInitialState').default();
 
 const a = {};
-a.replaceExp = cA('REPLACE_EXP', m('exp', 'idToReplace'));
-a.replaceSelectedExp = exp => (dispatch, getState) => {
+a.replaceAst = cA('REPLACE_AST', m('newProgram', 'idReplaced', 'replacementId'));
+a.replaceSelectedExp = (nodeType, valueish) => (dispatch, getState) => {
+	const { program } = getState();
 	const { selectedExpId } = getState().lambdaView;
 	if (selectedExpId) {
-		dispatch(a.replaceExp(exp, selectedExpId));
+		const {
+			newProgram,
+			replacementId
+		} = executeInsert(program, nodeType, valueish, selectedExpId);
+		dispatch(a.replaceAst(newProgram, selectedExpId, replacementId));
 	}
 };
 a.appendPieceToExp = cA('APPEND_PIECE_TO_EXP');
@@ -40,22 +56,24 @@ a.removeSelectedExp = () => (dispatch, getState) => {
 	}
 };
 a.addFunction = cA('ADD_FUNCTION', m('identifier', 'lambda'));
-a.newFunction = () => dispatch => {
-	const arg = createIdentifier('x');
+a.newFunction = () => (dispatch, getState) => {
+	const { program } = getState();
 	const lambdaIdent = createIdentifier('f');
-	const lambdaFrag = createLambdaExpression([arg],
-		createNumberExpression(0)
+	const lambdaFrag = tCreateLambdaExpression(
+		program,
+		tCreateIdentifier('x'),
+		tCreateDefaultExpression()
 	);
 	dispatch(a.addFunction(lambdaIdent, lambdaFrag));
 };
 a.loadSchemeProgram = cA('LOAD_SCHEME_PROGRAM');
-a.bindIdentifier = cA('BIND_IDENTIFIER', m('identifier', 'valueFrag', 'scope'));
+a.loadJSONProgram = cA('LOAD_JSON_PROGRAM');
+a.bindIdentifier = cA('BIND_IDENTIFIER', m('identifier', 'scope'));
 a.addIdentifierToSelectedExp = name => (dispatch, getState) => {
 	const { selectedExpId } = getState().lambdaView;
 	if (selectedExpId) {
-		const value = createNumberExpression(0);
 		const ident = createIdentifier(name);
-		dispatch(a.bindIdentifier(ident, value, selectedExpId));
+		dispatch(a.bindIdentifier(ident, selectedExpId));
 	}
 };
 a.nameNode = cA('NAME_NODE', m('nodeId', 'displayName'));
@@ -75,13 +93,8 @@ a.wrapSelectedExpInDo = displayName => (dispatch, getState) => {
 
 export const actions = a;
 export default createReducer({
-	[a.replaceExp]: (ast, { exp, idToReplace }) => {
-		try {
-			return replaceNode(ast, idToReplace, exp);
-		} catch (e) {
-			console.error(e);
-			return ast;
-		}
+	[a.replaceAst]: (ast, { newProgram }) => {
+		return newProgram;
 	},
 	[a.appendPieceToExp]: (ast, expId) => {
 		return appendPieceToExp(ast, expId);
@@ -101,14 +114,29 @@ export default createReducer({
 	[a.loadSchemeProgram]: (ast, scheme) => {
 		return scheme ? parseProgram(scheme) : ast;
 	},
-	[a.bindIdentifier]: (ast, { identifier, valueFrag, scope = null }) => {
+	[a.loadJSONProgram]: (ast, newJson) => {
+		return newJson ? JSON.parse(newJson) : ast;
+	},
+	[a.bindIdentifier]: (ast, { identifier, scope = null }) => {
 		// if scoped to identifier, change scope to that identifier's scope
 		if (ast.identifiers[scope]) {
 			scope = getIdentifier(ast, scope).scope;
 		}
 
+		const tVar = createTypeVariable();
+		const type = createTypeInstance(tVar.id);
 		identifier = setIdentifierScope(identifier, scope);
-		return bindIdentifier(ast, identifier, valueFrag);
+		return attachTypeDefinitions(
+			setType(
+				bindIdentifier(ast, identifier, setType(
+					createDefaultExpression(),
+					type
+				)),
+				identifier.id,
+				type
+			),
+			[], [], [tVar]
+		);
 	},
 	[a.nameNode]: (ast, { nodeId, displayName }) =>
 		setDisplayName(ast, nodeId, displayName),

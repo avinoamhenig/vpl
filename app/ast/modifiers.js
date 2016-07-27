@@ -5,13 +5,25 @@ const {
 	getChildrenIds,
 	getNode, getIdentifier,
 	getNodeOrExpType, getNodeType, getExpressionType,
-	extractFragment
+	extractFragment,
+	getBasisEntity,
+	getEntity,
+	matchTypes,
+	getFinalType
 } = require('./accessors');
 const {
 	createNumberExpression,
 	createCaseBranch,
 	createIdentifier,
-	createDoExpression
+	createDoExpression,
+	createDefaultExpression,
+	createTypeInstance,
+	createIdentifierExpression,
+	createApplicationExpression,
+	createTypeVariable,
+	createConstructionExpression,
+	createDeconstructionExpression,
+	createDeconstructionCase
 } = require('./constructors');
 
 // Program | ProgramFragment, Identifier, ProgramFragment -> Program | ProgramFragment
@@ -29,6 +41,7 @@ function bindIdentifier(program, identifier, valueExpFrag) {
 		newProgram.nodes,
 		valueExpFrag.nodes
 	);
+	newProgram.types[identifier.id] = valueExpFrag.types[valueExpFrag.rootNode];
 
 	// update scoped node's boundIdentifiers property
 	if (identifier.scope) {
@@ -42,7 +55,16 @@ function bindIdentifier(program, identifier, valueExpFrag) {
 		);
 	}
 
-	return newProgram;
+	return Object.assign(newProgram, {
+		constructors: Object.assign({},
+			newProgram.constructors, valueExpFrag.constructors),
+		typeDefinitions: Object.assign({},
+			newProgram.typeDefinitions, valueExpFrag.typeDefinitions),
+		typeVariables: Object.assign({},
+			newProgram.typeVariables, valueExpFrag.typeVariables),
+		types: Object.assign({},
+			newProgram.types, valueExpFrag.types)
+	});
 }
 
 // Program | ProgramFragment, [[Identifier, ProgramFragment]] -> Program | ProgramFragment
@@ -60,6 +82,7 @@ function bindIdentifiers(program, identMap) {
 		newProgram.identifiers[ident.id] = Object.assign({}, ident, {
 			value: rootNode(valFrag).id
 		});
+		newProgram.types[ident.id] = valFrag.types[valFrag.rootNode];
 
 		// update scoped node's boundIdentifiers property
 		if (ident.scope) {
@@ -74,7 +97,17 @@ function bindIdentifiers(program, identMap) {
 		}
 	}
 
-	return newProgram;
+	const frags = identMap.map(pair => pair[1]);
+	return Object.assign(newProgram, {
+		constructors: Object.assign({},
+			newProgram.constructors, ...frags.map(frag => frag.constructors)),
+		typeDefinitions: Object.assign({},
+			newProgram.typeDefinitions, ...frags.map(frag => frag.typeDefinitions)),
+		typeVariables: Object.assign({},
+			newProgram.typeVariables, ...frags.map(frag => frag.typeVariables)),
+		types: Object.assign({},
+			newProgram.types, ...frags.map(frag => frag.types))
+	});;
 }
 
 // Program | ProrgamFragment, [TypeDefinition], [Constructor], [TypeVariable] -> Program | ProgramFragment
@@ -113,6 +146,13 @@ function assignIdentifierScope(program, identifier, scopeId) {
 
 // Program, Uid Node -> Program
 function appendPieceToExp(program, expId) {
+	const {
+		tCreateCaseBranch,
+		tCreateCaseExpression,
+		tCreateDoExpression
+	} = require('./typedConstructors');
+	const basis = require('basis');
+
 	if (program.identifiers[expId]) {
 		let ident = getIdentifier(program, expId);
 		if (ident.value) {
@@ -130,39 +170,46 @@ function appendPieceToExp(program, expId) {
 	switch (getNodeOrExpType(node)) {
 		case expressionType.LAMBDA:
 			const ident = setIdentifierScope(createIdentifier('x'), expId);
-			return Object.assign({}, program, {
-				nodes: Object.assign({}, program.nodes, {
-					[expId]: Object.assign({}, program.nodes[expId], {
-						arguments: [...program.nodes[expId].arguments, ident.id]
-					})
-				}),
-				identifiers: Object.assign({}, program.identifiers, {
-					[ident.id]: ident
-				})
+			const tVar = createTypeVariable();
+			const newLamType = Object.assign(program.types[node.id], {
+				parameters: [
+					...program.types[node.id].parameters.slice(0, -1),
+					createTypeInstance(tVar.id),
+					...program.types[node.id].parameters.slice(-1)
+				]
 			});
-
-		case expressionType.APPLICATION:
-			frag = _setFragParent(createNumberExpression(0), expId);
-			return Object.assign({}, program, {
-				nodes: Object.assign({}, program.nodes, {
-					[expId]: Object.assign({}, program.nodes[expId], {
-						arguments: [...program.nodes[expId].arguments, frag.rootNode]
-					})
-				}, frag.nodes)
-			});
-
-		case expressionType.CONSTRUCTION:
-			frag = _setFragParent(createNumberExpression(0), expId);
-			return Object.assign({}, program, {
-				nodes: Object.assign({}, program.nodes, {
-					[expId]: Object.assign({}, program.nodes[expId], {
-						parameters: [...program.nodes[expId].parameters, frag.rootNode]
-					})
-				}, frag.nodes)
-			});
+			// HACK
+			const identId = Object.keys(program.identifiers).filter(identId =>
+				program.identifiers[identId].value === node.id);
+			return attachTypeDefinitions(
+				setTypes(
+					Object.assign({}, program, {
+						nodes: Object.assign({}, program.nodes, {
+							[expId]: Object.assign({}, program.nodes[expId], {
+								arguments: [...program.nodes[expId].arguments, ident.id]
+							})
+						}),
+						identifiers: Object.assign({}, program.identifiers, {
+							[ident.id]: ident
+						})
+					}), [
+						[ident.id, createTypeInstance(tVar.id)],
+						[node.id, newLamType],
+						[identId, newLamType]
+					]
+				), [], [], [tVar]
+			);
 
 		case expressionType.DO:
-			frag = _setFragParent(createNumberExpression(0), expId);
+			frag = _setFragParent(
+				setType(
+					createDefaultExpression(),
+					createTypeInstance(
+						getBasisEntity(program, basis.typeDefinitions.Unit).id
+					)
+				),
+				expId
+			);
 			return Object.assign({}, program, {
 				nodes: Object.assign({}, program.nodes, {
 					[expId]: Object.assign({}, program.nodes[expId], {
@@ -171,14 +218,20 @@ function appendPieceToExp(program, expId) {
 							frag.rootNode
 						]
 					})
-				}, frag.nodes)
+				}, frag.nodes),
+				types: Object.assign({}, program.types, frag.types)
 			});
 
 		case expressionType.CASE:
 			frag = _setFragParent(
-				createCaseBranch(
-					createNumberExpression(0),
-					createNumberExpression(0)
+				tCreateCaseBranch(
+					setType(
+						createDefaultExpression(),
+						createTypeInstance(
+							getBasisEntity(program, basis.typeDefinitions.Bool).id
+						)
+					),
+					setType(createDefaultExpression(), program.types[node.id])
 				),
 				expId
 			);
@@ -187,8 +240,10 @@ function appendPieceToExp(program, expId) {
 					[expId]: Object.assign({}, program.nodes[expId], {
 						caseBranches: [...program.nodes[expId].caseBranches, frag.rootNode]
 					})
-				}, frag.nodes)
+				}, frag.nodes),
+				types: Object.assign({}, program.types, frag.types)
 			});
+
 		default:
 			if (node.parent) {
 				return appendPieceToExp(program, node.parent);
@@ -207,34 +262,20 @@ function removeNode(program, idToRemove) {
 			if (getNode(program, oldNode.parent).caseBranches.length > 1) {
 				break;
 			}
-			return replaceNode(program, idToRemove, createCaseBranch(
-				createNumberExpression(0), createNumberExpression(0)
-			));
+			return program;
 
 		case nodeType.EXPRESSION:
 			if (oldNode.parent
-			 && (
+			 &&
 				(getExpressionType(getNode(program, oldNode.parent))
-					=== expressionType.APPLICATION
-				&& getNode(program, oldNode.parent).arguments.includes(idToRemove))
-
-				|| (getExpressionType(getNode(program, oldNode.parent))
-				  === expressionType.DO
+				=== expressionType.DO
 				&& getNode(program, oldNode.parent).unitExpressions.includes(idToRemove))
-
-				|| (getExpressionType(getNode(program, oldNode.parent))
-				  === expressionType.CONSTRUCTION
-				&& getNode(program, oldNode.parent).parameters.includes(idToRemove))
-			)) {
-				 break;
-			}
-
-			if (!oldNode.parent && program.expression !== oldNode.parent) {
+			) {
 				break;
 			}
 
 		default:
-			return replaceNode(program, idToRemove, createNumberExpression(0));
+			return program;
 	}
 
 	const newProg = Object.assign({}, program);
@@ -262,6 +303,14 @@ function replaceNode(program, idToReplace, replaceWith) {
 	const newProg = Object.assign({}, program);
 	newProg.identifiers = Object.assign({}, program.identifiers);
 	newProg.nodes = Object.assign({}, program.nodes);
+	newProg.typeDefinitions =
+		Object.assign({}, program.typeDefinitions, replaceWith.typeDefinitions);
+	newProg.constructors =
+		Object.assign({}, program.constructors, replaceWith.constructors);
+	newProg.typeVariables =
+		Object.assign({}, program.typeVariables, replaceWith.typeVariables);
+	newProg.types =
+		Object.assign({}, program.types, replaceWith.types);
 
 	_removeSubtree(newProg, oldNode);
 
@@ -320,11 +369,27 @@ function removeIdentifier(program, identIdToRemove) {
 
 	if (ident.scope) {
 		const scopedTo = Object.assign({}, getNode(program, ident.scope));
+		const scopedToT = getFinalType(program,
+			Object.assign({}, program.types[scopedTo.id]));
+
+		if (getExpressionType(scopedTo) === nodeType.DECONSTRUCTION_CASE
+		 && scopedTo.parameterIdentifiers.includes(identIdToRemove)) {
+			return program;
+		}
+
 		if (getExpressionType(scopedTo) === expressionType.LAMBDA
 		 && scopedTo.arguments.includes(identIdToRemove)) {
+			scopedToT.parameters = [
+				...scopedToT.parameters.slice(0,
+						scopedTo.arguments.indexOf(identIdToRemove)),
+				...scopedToT.parameters.slice(0,
+						scopedTo.arguments.indexOf(identIdToRemove) + 1)
+			];
+
 			scopedTo.arguments = scopedTo.arguments.filter(id =>
 				id !== identIdToRemove);
 		}
+
 		if (scopedTo.boundIdentifiers.includes(identIdToRemove)) {
 			scopedTo.boundIdentifiers = scopedTo.boundIdentifiers.filter(id =>
 				id !== identIdToRemove);
@@ -333,6 +398,9 @@ function removeIdentifier(program, identIdToRemove) {
 		program = Object.assign({}, program, {
 			nodes: Object.assign({}, program.nodes, {
 				[ident.scope]: scopedTo
+			}),
+			types: Object.assign({}, program.types, {
+				[ident.scope]: scopedToT
 			})
 		});
 	}
@@ -342,11 +410,14 @@ function removeIdentifier(program, identIdToRemove) {
 	}
 
 	// remove all IdentifierExpression's referencing identIdToRemove
-	for (const nodeId of Object.keys(program)) {
+	for (const nodeId of Object.keys(program.nodes)) {
 		const node = getNode(program, nodeId);
 		if (node && getNodeOrExpType(node) === expressionType.IDENTIFIER
-		 && node.identIdToRemove === identIdToRemove) {
-			program = removeNode(program, nodeId)
+		 && node.identifier === identIdToRemove) {
+			program = replaceNode(program, nodeId, setType(
+				createDefaultExpression(),
+				program.types[ident.id]
+			));
 		}
 	}
 
@@ -410,6 +481,21 @@ function _replaceNodeChild(parent, idToReplace, childId) {
 				parameters: parent.parameters.map(id =>
 					id === idToReplace ? childId : id)
 			});
+		case expressionType.DECONSTRUCTION:
+			return Object.assign({}, parent, {
+				dataExpression: parent.dataExpression === idToReplace
+					? childId : parent.dataExpression,
+				cases: parent.cases.map(id => id === idToReplace ? childId : id)
+			});
+		case nodeType.DECONSTRUCTION_CASE:
+			return Object.assign({}, parent, {
+				constructor: parent.constructor === idToReplace
+					? childId : parent.constructor,
+				expression: parent.expression === idToReplace
+					? childId : parent.expression,
+				parameterIdentifiers: parent.parameterIdentifiers.map(id =>
+					id === idToReplace ? childId : id)
+			});
 		default: throw `Unexpected parent node: ${getNodeOrExpType(parent)}.`;
 	}
 }
@@ -443,7 +529,7 @@ function _removeNodeChild(parent, idToRemove) {
 function _removeSubtree(program, node) {
 	for (const ident of getIdentifiersScopedToNode(program, node.id)) {
 		if (ident.value) {
-			_removeSubtree(program, ident.value);
+			_removeSubtree(program, getEntity(program, ident.value));
 		}
 		delete program.identifiers[ident.id];
 	}
@@ -472,10 +558,271 @@ function wrapExpInDo(program, expId) {
 	return newProgram;
 }
 
+// Program, Uid Entity, TypeInstance -> Program
+// OR: Program, TypeInstance -> Program
+function setType(program, entityId, type) {
+	if (typeof type === 'undefined') {
+		type = entityId;
+		entityId = program.rootNode || program.expression;
+	}
+	return Object.assign({}, program, {
+		types: Object.assign({}, program.types, {
+			[entityId]: type
+		})
+	});
+}
+
+// Program, [[Uid Entity, TypeInstance]] -> Program
+function setTypes(program, types) {
+	const newProgram = Object.assign({}, program, {
+		types: Object.assign({}, program.types)
+	});
+	for (const [entityId, typeInstance] of types) {
+		newProgram.types[entityId] = typeInstance;
+	}
+	return newProgram;
+}
+
+function mergeFragments(rootNodeId, ...frags) {
+	const oa = Object.assign;
+	return {
+		astType: astType.PROGRAM_FRAGMENT,
+		rootNode: rootNodeId,
+		nodes: oa({}, ...frags.map(f => f.nodes)),
+		identifiers: oa({}, ...frags.map(f => f.identifiers)),
+		constructors: oa({}, ...frags.map(f => f.constructors)),
+		typeDefinitions: oa({}, ...frags.map(f => f.typeDefinitions)),
+		typeVariables: oa({}, ...frags.map(f => f.typeVariables)),
+		types: oa({}, ...frags.map(f => f.types))
+	};
+}
+
+function copyTypeWithNewVars(program, type, mappedVars={}) {
+	mappedVars = Object.assign({}, mappedVars);
+	type = getFinalType(program, type);
+	if (program.typeVariables[type.typeDefinition]) {
+		const tVar = mappedVars[type.typeDefinition] || createTypeVariable();
+		mappedVars[type.typeDefinition] = tVar;
+		return {
+			newType: createTypeInstance(tVar.id),
+			newTypeVariables: [tVar],
+			mappedVars
+		};
+	} else {
+		const tVars = [];
+		const newParams = [];
+		for (const paramType of type.parameters) {
+			const { newType, newTypeVariables, mappedVars: newMappedVars } =
+				copyTypeWithNewVars(program, paramType, mappedVars);
+			tVars.push(...newTypeVariables);
+			newParams.push(newType);
+			Object.assign(mappedVars, newMappedVars);
+		}
+		return {
+			newType: createTypeInstance(type.typeDefinition, newParams),
+			newTypeVariables: tVars,
+			mappedVars
+		};
+	}
+}
+
+function createTypeDefType(program, typeDefId) {
+	const typeDef = getEntity(program, typeDefId);
+	return copyTypeWithNewVars(
+		program,
+		createTypeInstance(
+			typeDefId,
+			typeDef.parameters.map(tVarId => createTypeInstance(tVarId))
+		)
+	);
+}
+
+function executeInsert(program, nodeType, valueish, idToReplace) {
+	const {
+		tCreateCaseBranch,
+		tCreateCaseExpression,
+		tCreateDoExpression
+	} = require('./typedConstructors');
+
+	const fragToReplace = extractFragment(program, idToReplace);
+	const slotType = program.types[idToReplace];
+	const basis = require('basis');
+
+	let replacement;
+	let replacementType;
+
+	switch (nodeType) {
+		case expressionType.CASE:
+			replacementType = slotType;
+			replacement = tCreateCaseExpression(
+				[tCreateCaseBranch(
+					setType(createDefaultExpression(), createTypeInstance(
+						getBasisEntity(program, basis.typeDefinitions.Bool).id
+					)),
+					setType(createDefaultExpression(), slotType)
+				)],
+				fragToReplace
+			);
+			break;
+
+		case expressionType.DO:
+			replacementType = slotType;
+			replacement = tCreateDoExpression([], fragToReplace);
+			break;
+
+		case expressionType.NUMBER:
+			replacementType = createTypeInstance(
+				getBasisEntity(program, basis.typeDefinitions.Number).id);
+			replacement = setType(
+				createNumberExpression(valueish),
+				replacementType
+			);
+			break;
+
+		case expressionType.IDENTIFIER: {
+			const lambdaTId = getBasisEntity(
+				program, basis.typeDefinitions.Lambda).id;
+			const identType = getFinalType(program, program.types[valueish]);
+			let newTVars = [];
+			if (identType.typeDefinition === lambdaTId) {
+				const {
+					newType,
+					newTypeVariables
+				} = copyTypeWithNewVars(program, identType);
+				replacementType = newType;
+				newTVars = newTypeVariables;
+			} else {
+				replacementType = identType;
+			}
+			replacement = attachTypeDefinitions(
+				setType(
+					createIdentifierExpression(program.identifiers[valueish]),
+					replacementType
+				),
+				[], [], newTVars
+			);
+			break;
+		}
+
+		case expressionType.APPLICATION: {
+			const {
+				newType: lamType,
+				newTypeVariables
+			} = copyTypeWithNewVars(program,
+				getFinalType(program, program.types[valueish]));
+			replacementType = lamType.parameters[lamType.parameters.length - 1];
+			replacement = attachTypeDefinitions(
+				setType(
+					createApplicationExpression(
+						setType(
+							createIdentifierExpression(program.identifiers[valueish]),
+							lamType
+						),
+						lamType.parameters.slice(0, -1).map(paramType =>
+							setType(createDefaultExpression(), paramType))
+					),
+					replacementType
+				), [], [], newTypeVariables
+			);
+			break;
+		}
+
+		case expressionType.CONSTRUCTION: {
+			const constructor = program.constructors[valueish];
+			const { newType, newTypeVariables, mappedVars } =
+				createTypeDefType(program, constructor.typeDefinition);
+			replacementType = newType;
+			replacement = attachTypeDefinitions(
+				setType(
+					createConstructionExpression(
+						constructor,
+						constructor.parameterTypes.map(paramType =>
+							setType(
+								createDefaultExpression(),
+								copyTypeWithNewVars(program, paramType, mappedVars).newType
+							)
+						)
+					),
+					replacementType
+				), [], [], newTypeVariables
+			);
+			break;
+		}
+
+		case expressionType.DECONSTRUCTION: {
+			const { newType, newTypeVariables, mappedVars } =
+				createTypeDefType(program, valueish);
+			const typeDef = getEntity(program, valueish);
+			const identIdToType = {};
+			replacementType = slotType;
+			replacement = attachTypeDefinitions(
+				setType(
+					createDeconstructionExpression(
+						setType(createDefaultExpression(), newType),
+						typeDef.constructors.map((cId, j) => {
+							const cons = getEntity(program, cId);
+							return setType(
+								createDeconstructionCase(
+									cons,
+									cons.parameterTypes.map((paramType, i) => {
+										const ident = createIdentifier('x' + j + i);
+										const typeCopy = copyTypeWithNewVars(
+											program,
+											paramType,
+											mappedVars
+										);
+										identIdToType[ident.id] = typeCopy.newType;
+										return ident;
+									}),
+									setType(createDefaultExpression(), replacementType)
+								),
+								replacementType
+							);
+						})
+					),
+					replacementType
+				), [], [], newTypeVariables
+			);
+			for (const identId of Object.keys(identIdToType)) {
+				replacement = setType(
+					replacement,
+					identId,
+					identIdToType[identId]
+				);
+			}
+			break;
+		}
+
+		default:
+			throw `Cant handle ${nodeType} in insert operation yet`;
+	}
+
+	const typeMatch = matchTypes(program, slotType, replacementType);
+	if (typeMatch === false) { throw `Incompatible types!`; }
+	const { typeVarTypes, newTypeVars } = typeMatch;
+	replacement = attachTypeDefinitions(replacement, [], [], newTypeVars);
+	for (const tVarId of Object.keys(typeVarTypes)) {
+		replacement = setType(
+			replacement,
+			tVarId,
+			typeVarTypes[tVarId]
+		);
+	}
+
+	return {
+		newProgram: replaceNode(program, idToReplace, replacement),
+		replacementId: replacement.rootNode
+	};
+}
+
 module.exports = {
 	bindIdentifier, bindIdentifiers, setIdentifierScope,
 	replaceNode, removeNode, appendPieceToExp,
 	removeIdentifier, setDisplayName,
 	attachTypeDefinitions,
-	wrapExpInDo
+	wrapExpInDo,
+	setType, setTypes,
+	mergeFragments,
+	executeInsert,
+	createTypeDefType
 };

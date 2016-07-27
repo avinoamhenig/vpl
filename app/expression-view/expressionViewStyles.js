@@ -126,5 +126,9 @@ export default p => {
 		marginLeft: 10
 	};
 
+	s.selected = {
+		color: colors.selectedExp
+	};
+
 	return s;
 };

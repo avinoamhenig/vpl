@@ -1,4 +1,4 @@
-const VERSION = 3.0;
+const VERSION = 5.0;
 
 const Program = {
   astType         : TYPE_NAME,
@@ -7,7 +7,8 @@ const Program = {
   identifiers     : {[Uid]:Identifier},
   constructors    : {[Uid]:Constructor},
   typeDefinitions : {[Uid]:TypeDefinition},
-  typeVariables   : {[Uid]:TypeVariable}
+  typeVariables   : {[Uid]:TypeVariable},
+  types           : {[Uid(Node|Identifier|TypeVariable)]:TypeInstance}
 };
 
 const ProgramFragment = {
@@ -17,7 +18,8 @@ const ProgramFragment = {
   identifiers     : {[Uid]:Identifier},
   constructors    : {[Uid]:Constructor},
   typeDefinitions : {[Uid]:TypeDefinition},
-  typeVariables   : {[Uid]:TypeVariable}
+  typeVariables   : {[Uid]:TypeVariable},
+  types           : {[Uid(Node|Identifier|TypeVariable)]:TypeInstance}
 };
 
 const Identifier = {
@@ -40,14 +42,14 @@ const TypeDefinition = {
   astType      : TypeName,
   id           : NewUid(),
   displayName  : String,
-  constructors : nonempty([Uid(Constructor)]),
+  constructors : [Uid(Constructor)],
   parameters   : [Uid(TypeVariable)]
 };
 
 const TypeVariable = {
-  astType     : TypeName,
-  id          : NewUid(),
-  displayName : nullable(String)
+  astType      : TypeName,
+  id           : NewUid(),
+  displayName  : nullable(String)
 };
 
 const TypeInstance = {
@@ -75,7 +77,6 @@ const Expression = {
   ...extend(Node),
   nodeType       : noOverride(TypeName),
   expressionType : TypeName,
-  type           : TypeInstance,
   ...sub(
     NumberExpression,
     IdentifierExpression,
