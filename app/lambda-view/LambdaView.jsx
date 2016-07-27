@@ -192,6 +192,9 @@ export default class LambdaView extends React.Component {
 									3
 								) + 's' }
 							</div>
+							<div style={s.leftBtn} onClick={p.resetRoot}>
+								<Icon icon="ban" />
+							</div>
 						</span>
 					)}
 					{ p.hideButtons && (

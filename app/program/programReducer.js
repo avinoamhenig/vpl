@@ -68,6 +68,7 @@ a.newFunction = () => (dispatch, getState) => {
 };
 a.loadSchemeProgram = cA('LOAD_SCHEME_PROGRAM');
 a.loadJSONProgram = cA('LOAD_JSON_PROGRAM');
+a.resetRoot = cA('RESET_ROOT');
 a.bindIdentifier = cA('BIND_IDENTIFIER', m('identifier', 'scope'));
 a.addIdentifierToSelectedExp = name => (dispatch, getState) => {
 	const { selectedExpId } = getState().lambdaView;
@@ -116,6 +117,15 @@ export default createReducer({
 	},
 	[a.loadJSONProgram]: (ast, newJson) => {
 		return newJson ? JSON.parse(newJson) : ast;
+	},
+	[a.resetRoot]: prog => {
+		const tVar = createTypeVariable();
+		return replaceNode(prog, prog.expression,
+			attachTypeDefinitions(
+				setType(createDefaultExpression(), createTypeInstance(tVar.id)),
+				[], [], [tVar]
+			)
+		);
 	},
 	[a.bindIdentifier]: (ast, { identifier, scope = null }) => {
 		// if scoped to identifier, change scope to that identifier's scope
