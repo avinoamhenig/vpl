@@ -326,10 +326,20 @@ function getVisibleIdentifiers(program, nodeId) {
 	while (nodeId) {
 		const node = getEntity(program, nodeId);
 		if (getEntityType(node) === astType.IDENTIFIER) {
-			break;
+			nodeId = node.scope;
+			continue;
 		}
 		idents.push(...getIdentifiersScopedToNode(program, nodeId))
 		nodeId = node.parent;
+		if (!nodeId) {
+			const idents = Object.keys(program.identifiers).filter(identId => {
+				const e = getEntity(program, identId);
+				return e && e.scope && e.value === node.id;
+			});
+			if (idents.length) {
+				nodeId = idents[0];
+			}
+		}
 	}
 	return idents.concat(getRootScopeIdentifiers(program));
 }
