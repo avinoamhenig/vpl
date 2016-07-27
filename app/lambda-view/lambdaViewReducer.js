@@ -145,6 +145,17 @@ export default createReducer({
 		}
 		return state;
 	},
+	[astActions.loadJSONProgram]: state => {
+		return {
+			...state,
+			selectedExpId: null,
+			selectedExpansionLevel: 0,
+			expandedExpIds: [],
+			evaluating: false,
+			evalResult: null,
+			showEvalResult: false
+		};
+	},
 	[astActions.removeExp]: (state, expId) => {
 		if (expId === state.selectedExpId
 		 || state.expandedExpIds.includes(expId)) {
