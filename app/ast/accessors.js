@@ -370,9 +370,7 @@ function getBasisEntity(program, basisEntity) {
 }
 
 function getFinalType(program, type) {
-	if (program.typeDefinitions[type.typeDefinitions]) {
-		return type;
-	} else if (program.types[type.typeDefinition]) {
+	if (program.types[type.typeDefinition]) {
 		return getFinalType(
 			program, program.types[type.typeDefinition]);
 	}
@@ -382,14 +380,12 @@ function getFinalType(program, type) {
 function matchTypes(program, typeA, typeB, extraTypeVarMap={}) {
 	typeA = getFinalType(program, typeA);
 	typeB = getFinalType(program, typeB);
-	// if (extraTypeVarMap[typeA.typeDefinition]) {
-	// 	typeA = getFinalType(program,
-	// 		extraTypeVarMap[typeA.typeDefinition]);
-	// }
-	// if (extraTypeVarMap[typeB.typeDefinition]) {
-	// 	typeB.typeDefinition = getFinalType(program,
-	// 		extraTypeVarMap[typeB.typeDefinition]);
-	// }
+	if (extraTypeVarMap[typeA.typeDefinition]) {
+		typeA = getFinalType(program, extraTypeVarMap[typeA.typeDefinition]);
+	}
+	if (extraTypeVarMap[typeB.typeDefinition]) {
+		typeB = getFinalType(program, extraTypeVarMap[typeB.typeDefinition]);
+	}
 	const isTypeAVar = !program.typeDefinitions[typeA.typeDefinition];
 	const isTypeBVar = !program.typeDefinitions[typeB.typeDefinition];
 

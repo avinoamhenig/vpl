@@ -10,17 +10,17 @@ import { actions } from '../astKeyboardReducer'
 const textToAction = (value, program) => {
 	value = /^\-?\d+$/.test(value) ? parseInt(value) : value;
 	if (typeof value === 'number') {
-		return astActions.replaceSelectedExp(createNumberExpression(value));
+		return astActions.replaceSelectedExp(expressionType.NUMBER, value);
 	} else {
-		let identId = Object.keys(program.identifiers).filter(id =>
-			program.identifiers[id].displayName === value)[0];
-		let identExp;
-		if (!identId) {
-			identExp = createIdentifierExpression(createIdentifier(value));
-		} else {
-			identExp = createIdentifierExpression(program.identifiers[identId]);
-		}
-		return astActions.replaceSelectedExp(identExp);
+		// let identId = Object.keys(program.identifiers).filter(id =>
+		// 	program.identifiers[id].displayName === value)[0];
+		// let identExp;
+		// if (!identId) {
+		// 	identExp = createIdentifierExpression(createIdentifier(value));
+		// } else {
+		// 	identExp = createIdentifierExpression(program.identifiers[identId]);
+		// }
+		// return astActions.replaceSelectedExp(identExp);
 	}
 };
 export const makeDefaultCaseExp = () => createCaseExpression(
