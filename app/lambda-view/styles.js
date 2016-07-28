@@ -139,12 +139,19 @@ export default p => {
 
 	s.evalResult = [s.nestingInfo, {
 		float: 'left',
-		marginLeft: 10,
+		marginLeft: 5,
 		marginRight: 5,
 		color: p.showEvalResult ? 'green' : 'inherit',
 		cursor: 'pointer'
 	}, p.evalFailed && {
 		color: 'red'
+	}];
+
+	s.stepModeToggle = [s.nestingInfo, {
+		float: 'left',
+		color: p.stepMode ? colors.selectedExp : 'inherit',
+		cursor: 'pointer',
+		marginLeft: 5
 	}];
 
 	s.canvasToggle = [s.nestingInfo, {

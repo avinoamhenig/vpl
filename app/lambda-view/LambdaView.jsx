@@ -17,11 +17,16 @@ import {
 	getNode,
 	getIdentifier,
 	getRootScopeLambdaIdentifiers,
-	rootNode
+	rootNode,
+	astType
 } from 'ast'
 
 @Radium
 export default class LambdaView extends React.Component {
+	state = {
+		resumeEval: null
+	};
+
 	render() {
 		const p = this.props;
 		const s = computeStyles(p);
@@ -154,8 +159,12 @@ export default class LambdaView extends React.Component {
 								key="run_btn"
 								style={s.runBtn}
 								className={
-									`fa fa-${p.evaluating ? 'stop' : 'play'}`}
-								onClick={(e) => {
+									`fa fa-${this.state.resumeEval
+										? 'step-forward'
+										: p.evaluating ? 'stop' : 'play'}`}
+								onClick={
+									this.state.resumeEval ||
+									((e) => {
 									e.stopPropagation();
 									if (p.evaluating) {
 										evaluator.stopEval();
@@ -166,16 +175,31 @@ export default class LambdaView extends React.Component {
 										p.startEval(performance.now());
 										evaluator.evaluate(p.program, val => {
 												p.setEvalResult(val, performance.now(), p.program)
+												this.state.resumeEval = null;
 											}, () => {
 												p.evalFail();
+												this.state.resumeEval = null;
 											},
 											frag => draw(rootNode(frag).value),
 											frag => move(rootNode(frag).value),
 											frag => turn(rootNode(frag).value),
-											1000
+											p.stepMode && ((fr, resume) => {
+												if (fr.astType === astType.PROGRAM_FRAGMENT) {
+													p.setEvalResult(fr, performance.now(), p.program);
+													this.state.resumeEval = resume;
+												} else {
+													resume();
+												}
+											}),
+											Number.MAX_SAFE_INTEGER
 										);
 									}
-								}}></div>
+								})}></div>
+							<div style={s.stepModeToggle}>
+								<span onClick={p.toggleStepMode}>
+									S
+								</span>
+							</div>
 							<div style={s.evalResult}>
 								<span onClick={p.toggleEvalResult}>
 									<Icon icon={p.showEvalResult ? 'eye' : 'eye-slash'} />

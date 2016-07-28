@@ -84,11 +84,10 @@ function call(proc, arg0, arg1, arg2, arg3, arg4, arg5) {
 function trampoline() {
 	while (G.result === G.notDone &&
 				 G.counter % G.LIMIT !== 0) {
-		G.result = G.procReg(G.args0, G.args1, G.args2, G.args3, G.args4, G.args5);
 		if (G.onStep && G.step) {
-			G.step = false;
-			G.onStep(G.args0, trampoline);
+			break;
 		}
+		G.result = G.procReg(G.args0, G.args1, G.args2, G.args3, G.args4, G.args5);
 		G.counter++;
 	}
 	if (G.result === G.notDone) {
@@ -157,7 +156,6 @@ function evaluateBody(node, callback) {
       const func = getNode(G.program, node.lambda);
 			return call(evaluateStep, func, function(eval_func) {
 				const argVals = node.arguments.map(i => getNode(G.program, i));
-				console.log(eval_func)
 				if (getExpressionType(rootNode(eval_func)) === expressionType.BUILT_IN_FUNCTION) {
 					return evaluateBuiltInFunction(argVals, eval_func, callback);
 				} else {
