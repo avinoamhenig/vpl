@@ -85,11 +85,15 @@ function trampoline() {
 	while (G.result === G.notDone &&
 				 G.counter % G.LIMIT !== 0) {
 		G.result = G.procReg(G.args0, G.args1, G.args2, G.args3, G.args4, G.args5);
+		if (G.onStep && G.step) {
+			G.step = false;
+			G.onStep(G.args0, trampoline);
+		}
 		G.counter++;
 	}
 	if (G.result === G.notDone) {
 		G.counter++;
-		if (typeof G.onStep === 'function' && G.step) {
+		if (G.onStep && G.step) {
 			G.step = false;
 			G.onStep(G.args0, trampoline);
 		} else {
