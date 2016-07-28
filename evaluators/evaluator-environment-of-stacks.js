@@ -33,12 +33,13 @@ var G = {
 };
 
 //Main
-function evaluate(program, onComplete, onFail, draw, move, turn, limit=Number.MAX_SAFE_INTEGER) {
+function evaluate(program, onComplete, onFail, draw, move, turn, onStep, limit=Number.MAX_SAFE_INTEGER) {
 	G.program = program;
 	G.fail = onFail;
 	G.draw = draw;
 	G.move = move;
 	G.turn = turn;
+	G.onStep = onStep;
 	G.LIMIT = limit;
 	G.continue = true;
   G.result = G.notDone;
@@ -88,12 +89,18 @@ function trampoline() {
 	}
 	if (G.result === G.notDone) {
 		G.counter++;
-		setTimeout(trampoline, 0);
+		if (typeof G.onStep === 'function' && G.step) {
+			G.step = false;
+			G.onStep(G.args0, trampoline);
+		} else {
+			setTimeout(trampoline, 0);
+		}
 	} else {
 		console.log('done: ' + JSON.stringify(G.result));
 		return G.result;
 	}
 }
+
 
 //Evaluate expression precursor (takes care of let bindings)
 function evaluateStep(node, callback) {
@@ -126,6 +133,7 @@ function evaluateStep(node, callback) {
 
 //Evaluate expression
 function evaluateBody(node, callback) {
+	G.step = true;
   switch (getNodeOrExpType(node)) {
     case expressionType.NUMBER:
 			return call(callback, createNumberExpression(node.value));
@@ -145,6 +153,7 @@ function evaluateBody(node, callback) {
       const func = getNode(G.program, node.lambda);
 			return call(evaluateStep, func, function(eval_func) {
 				const argVals = node.arguments.map(i => getNode(G.program, i));
+				console.log(eval_func)
 				if (getExpressionType(rootNode(eval_func)) === expressionType.BUILT_IN_FUNCTION) {
 					return evaluateBuiltInFunction(argVals, eval_func, callback);
 				} else {
