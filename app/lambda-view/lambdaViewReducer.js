@@ -31,6 +31,7 @@ export const actions = {
 	collapseExpansion: cA('COLLAPSE_EXPANSION'),
 	toggleExpansion: cA('TOGGLE_EXPANSION', m('n', 'expansionLevel')),
 	toggleInfix: cA('TOGGLE_INFIX'),
+	toggleStepMode: cA('TOGGLE_STEP_MODE'),
 	startEval: cA('START_EVAL'),
 	evalFail: cA('EVAL_FAIL'),
 	setEvalResult: cA('SET_EVAL_RESULT', m('result', 'time', 'program')),
@@ -103,6 +104,9 @@ export default createReducer({
 	},
 	[a.toggleInfix]: state => ({
 		...state, ignoreInfix: !state.ignoreInfix
+	}),
+	[a.toggleStepMode]: state => ({
+		...state, stepMode: !state.stepMode
 	}),
 	[a.startEval]: (state, time) => ({
 		...state,
@@ -205,5 +209,6 @@ export default createReducer({
 	evalEndTime: -1,
 	evalFailed: false,
 	showFnList: false,
-	showCanvas: false
+	showCanvas: false,
+	stepMode: false
 });

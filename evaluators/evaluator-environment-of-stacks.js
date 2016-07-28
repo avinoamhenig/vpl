@@ -33,12 +33,13 @@ var G = {
 };
 
 //Main
-function evaluate(program, onComplete, onFail, draw, move, turn, limit=Number.MAX_SAFE_INTEGER) {
+function evaluate(program, onComplete, onFail, draw, move, turn, onStep, limit=Number.MAX_SAFE_INTEGER) {
 	G.program = program;
 	G.fail = onFail;
 	G.draw = draw;
 	G.move = move;
 	G.turn = turn;
+	G.onStep = onStep;
 	G.LIMIT = limit;
 	G.continue = true;
   G.result = G.notDone;
@@ -83,17 +84,26 @@ function call(proc, arg0, arg1, arg2, arg3, arg4, arg5) {
 function trampoline() {
 	while (G.result === G.notDone &&
 				 G.counter % G.LIMIT !== 0) {
+		if (G.onStep && G.step) {
+			break;
+		}
 		G.result = G.procReg(G.args0, G.args1, G.args2, G.args3, G.args4, G.args5);
 		G.counter++;
 	}
 	if (G.result === G.notDone) {
 		G.counter++;
-		setTimeout(trampoline, 0);
+		if (G.onStep && G.step) {
+			G.step = false;
+			G.onStep(G.args0, trampoline);
+		} else {
+			setTimeout(trampoline, 0);
+		}
 	} else {
 		console.log('done: ' + JSON.stringify(G.result));
 		return G.result;
 	}
 }
+
 
 //Evaluate expression precursor (takes care of let bindings)
 function evaluateStep(node, callback) {
@@ -126,6 +136,7 @@ function evaluateStep(node, callback) {
 
 //Evaluate expression
 function evaluateBody(node, callback) {
+	G.step = true;
   switch (getNodeOrExpType(node)) {
     case expressionType.NUMBER:
 			return call(callback, createNumberExpression(node.value));
