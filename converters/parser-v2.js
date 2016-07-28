@@ -37,7 +37,7 @@ function parseProgram(program) {
     // build up array of [[ident, val],...]
   }
   const rootExp = parseExp();
-  reset();  // does this need to be called here?
+  reset();
   return createProgram(basis.basisFragment, bindIdentifiers(rootExp, idFrags));
 }
 
