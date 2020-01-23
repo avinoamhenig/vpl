@@ -4,3 +4,5 @@ A project done in the summer of 2016 as part of the Sarah Lawrence College Summe
 
 ## Demo
 [avinoamhenig.github.io/vpl](http://avinoamhenig.github.io/vpl)
+
+Example program available: primes.json
