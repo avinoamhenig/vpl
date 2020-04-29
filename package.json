@@ -6,7 +6,7 @@
   "dependencies": {
     "babel": "^6.5.2",
     "history": "^2.1.1",
-    "jquery": "^2.2.4",
+    "jquery": "^3.5.0",
     "lodash": "^4.13.1",
     "node-uuid": "^1.4.7",
     "path-parser": "^1.0.2",
